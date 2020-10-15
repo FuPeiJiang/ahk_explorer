@@ -28,7 +28,7 @@ send_string(stringToSend, number)  {
     NumPut(&message, COPYDATASTRUCT, A_PtrSize*2)
     DetectHiddenWindows, On
     SetTitleMatchMode, 2
-    SendMessage, WM_COPYDATA := 0x4A,, &COPYDATASTRUCT,, test667.ahk ahk_class AutoHotkey
+    SendMessage, WM_COPYDATA := 0x4A,, &COPYDATASTRUCT,, ahk_explorer.ahk ahk_class AutoHotkey
 }
 autoByteFormat(size, decimalPlaces = 2)
 {
