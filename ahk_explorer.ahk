@@ -2426,19 +2426,16 @@ $up::
         LV_Modify(A_Index, "-Select -Focus") ; select
         }
     
-    if (selectedRow=0) {
+    ; if (selectedRow=0) {
+        ; LV_Modify(numberOfRows, "+Select +Focus Vis") ; select
+        ; }
+    ; else 
+    if (selectedRow<2) {
         LV_Modify(numberOfRows, "+Select +Focus Vis") ; select
-        }
-    else if (selectedRow<2) {
-        LV_Modify(1, "+Select +Focus Vis") ; select
         }
     else {
         LV_Modify(selectedRow-1, "+Select +Focus Vis") ; select
         }
-    
-    ; } else {
-    ; send, {up}
-    ; }
 return
 selectCurrent:
     Gui, main:Default
@@ -2503,7 +2500,7 @@ downLabel:
         LV_Modify(selectedRow+1, "+Select +Focus Vis") ; select
         }
     else {
-        LV_Modify(numberOfRows, "+Select +Focus Vis") ; select
+        LV_Modify(1, "+Select +Focus Vis") ; select
         }
     ; } else {
     ; p(6556)
