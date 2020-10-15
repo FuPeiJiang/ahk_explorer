@@ -1,3 +1,5 @@
+## much fast file manager
+
 You have to put ahk_explorer_settings in %Appdata% with :\
 vscodePath.txt\
 peazipPath.txt\

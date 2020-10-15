@@ -2232,8 +2232,8 @@ $^+right::
     renderCurrentDir()
 return
 
-$^left::
-$^1::
+^left::
+^1::
     gui, main:default
     whichSide:=1
         Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
@@ -2242,8 +2242,8 @@ $^1::
     GuiControl, +Background%BGColorOfSelectedPane%, vlistView1
     GuiControl, +BackgroundWhite, vlistView2
 return
-$^right::
-$^2::
+^right::
+^2::
     gui, main:default
     whichSide:=2
         Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
@@ -2524,3 +2524,5 @@ $enter::
         ControlFocus,, % "ahk_id " ListviewHwnd%whichSide%
     }
 return
+
+

@@ -3,6 +3,9 @@
     SendMode Input  ; Recommended for new scripts due to its superior speed and reliability.
 SetWorkingDir %A_ScriptDir%  ; Ensures a consistent starting directory.
 
+ahkTestsPath=C:\Users\Public\AHK\notes\tests
+nameOfNewAHK=test
+
 $#e::
     minimizeCortana()
     SetTitleMatchMode, 2
@@ -34,6 +37,55 @@ return
 $^+1::
     minimizeCortana()
     openInAhkExplorer("C:\Users\Public\AHK\notes\tests") 
+return
+
+$^+a:: ;create a test.ahk at currentDir. will become test2.ahk if exist... test3, test4
+    bak:=clipboard
+    desktop:=false
+    WinGet, OutputVar, ProcessName, A
+    if (OutputVar="Explorer.EXE")
+    {
+        WinGetClass, OutputVar2, A
+        if (OutputVar2="Shell_TrayWnd" or OutputVar2="WorkerW")
+        {
+            desktop:=true
+        }
+        pathOfAHK := Explorer_GetPath()
+    }
+    else
+    {
+        SetTitleMatchMode, 2
+        if winactive("ahk_explorer ahk_class AutoHotkeyGUI") {
+            SetTitleMatchMode, 1
+            pathOfAHK:=getAhk_ExplorerTitle()
+        }
+        else {
+            SetTitleMatchMode, 1
+            pathOfAHK:=ahkTestsPath
+        }
+    }
+    fullPathOfAHK := GetPathWithIncrement(pathOfAHK . "\" . nameOfNewAHK . ".ahk", newAhkScript_saveTheNumberOnEnd)
+    if (desktop)
+    {
+        SplitPath, fullPathOfAHK,,,,OutNameNoExt
+        clipboard:=OutNameNoExt
+        click, right
+        sleep, 50
+        send, wa
+        send, ^v
+        send, {enter}
+        sleep, 200
+    }
+    else
+    {
+        FileCopy, C:\WINDOWS\SHELLNEW\Template.ahk , %fullPathOfAHK% 
+    }
+    fullPathOfAHK:= SurroundByQuotes(fullPathOfAHK)
+    toRun:= """C:\Users\User\AppData\Local\Programs\Microsoft VS Code\Code.exe"" " . fullPathOfAHK
+    run, %toRun% 
+    WinWaitActive, ahk_exe Code.exe
+    send, ^g6{enter}
+    clipboard:=bak 
 return
 
 $XButton2::
@@ -306,3 +358,92 @@ send_string(stringToSend)
     SetTitleMatchMode, 2
     SendMessage, WM_COPYDATA := 0x4A,, &COPYDATASTRUCT,, ahk_explorer.ahk ahk_class AutoHotkey
 }
+    GetPathWithIncrement(element, saveTheNumberOnEnd)
+    {
+        if (checkIfSurroundedByQuotes(element))
+            copyPath := removeFirstAndLastFromString(element)
+        else
+            copyPath := element
+        
+        number:=""
+        
+        SplitPath, copyPath ,OutFileName ,OutDir , OutExtension1, OutNameNoExt
+        
+        numberFromEnd := getNumberFromEnd(OutNameNoExt)
+        
+        OutNameNoExt := SubStr(OutNameNoExt, 1 , StrLen(OutNameNoExt)-StrLen(numberFromEnd))
+        if (saveTheNumberOnEnd)
+        {
+            number := numberFromEnd ; if number := "" den ok
+        }
+        
+        
+        
+        if (OutExtension1)
+        {
+            OutExtension1:= "." . OutExtension1
+        }
+        
+        
+        
+        idkPath := OutDir . "\" . OutNameNoExt
+        
+        idkBOOL:=false
+        bruh := idkPath . 1 . OutExtension1	
+        if FileExist(bruh)
+            idkBOOL:= true
+        
+        
+        loop 
+        {
+            
+            pastePath := idkPath . number . OutExtension1		
+            
+            if FileExist(pastePath) or (idkBOOL)
+            {
+                idkBOOL:=false
+                
+                if (number = "")
+                    number++
+                number++
+                continue
+            }
+            break			
+            
+        }
+        
+        return pastePath
+    }
+        checkIfSurroundedByQuotes(string)
+    {
+        left:= SubStr(string,1, 1)
+        right:= SubStr(string,0)
+        if (left = """" and right = """")
+            return true
+        return false
+    }
+        removeFirstAndLastFromString(string)
+    {
+        string := SubStr(string,1, -1)
+        string := SubStr(string,2)
+        return string
+    }
+        getNumberFromEnd(string)
+    {
+        i:=0
+        lastChar1:=""
+        
+        loop % StrLen(string)
+        {	
+            lastChar := SubStr(string, i) ;index 0 
+            If lastChar is not Number
+            {
+                lastChar1 := SubStr(lastChar, 2)
+                break
+                
+            }
+            i--
+            
+        }
+        return lastChar1
+    }
