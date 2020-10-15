@@ -639,7 +639,7 @@ listViewEvents2:
             
         } else if (CtrlIsDown and ShiftIsDown) {
             if (key="x") {
-                for k, v in getSelectedNames()
+                for k, v in getSelectedNames() ;extract using 7zip, 7-zip
                 {
                     SplitPath, v,,,, OutNameNoExt
                     runwait, % "lib\7z x """ EcurrentDir%whichSide% "\" v """ -o""" EcurrentDir%whichSide% "\" OutNameNoExt """ -spe",,Hide

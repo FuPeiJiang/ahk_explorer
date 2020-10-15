@@ -1,3 +1,9 @@
+need to put ahk_explorer_settings in %Appdata% with :\
+vscodePath.txt\
+peazipPath.txt\
+favoriteFolders.txt\
+BGColorOfSelectedPane.txt
+
 just type, to start searching for the file you want, (case insensitive and ignores file extensions)\
 If I wanted to search for "ahk_explorer.ahk" I would type "ex"\
 type . to search for files\folders with no extensions\
@@ -27,7 +33,11 @@ RCtrl : open CMD at currentDir\
 RShift : open vscode at currentDir\
 \ : open selected files\folders in vscode
 
-ctrl+shift+c to get fullPath of selected files
+ctrl+shift+c : get fullPath of selected files
+
+ctrl+shift+x : extract selected files using 
+7-Zip\
+ctrl+shift+d : archive selected files using PeaZip
 
 you can change the hotkeys to what you want
 
