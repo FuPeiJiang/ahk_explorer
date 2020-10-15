@@ -72,7 +72,87 @@ $XButton2::
             run, %toRun%
         }
         else {
-            ;I have deleted code here
+            click,
+            sleep, 10
+            
+            selected:=Explorer_GetSelected()
+            
+            SplitPath,selected, , , OutExtension
+            selected:=SurroundByQuotes(selected)
+            
+            if (OutExtension = "lnk" or OutExtension = "url")
+            {
+                send, {alt down}
+                click 
+                send, {alt up}
+                
+            }
+            else if (OutExtension = "txt")
+            {
+                
+                If WinExist("ahk_class Notepad++")
+                {
+                    run, %selected%
+                }
+                else
+                {
+                    DetectHiddenWindows, on
+                    If WinExist("ahk_class Notepad++")
+                    {
+                        WinHide, ahk_class Notepad++
+                        Winshow, ahk_class Notepad++
+                        DetectHiddenWindows, off
+                        WinWait, ahk_class Notepad++
+                        WinActivate, ahk_class Notepad++
+                        run, %selected%
+                    }
+                    else
+                    {
+                        DetectHiddenWindows, off
+                        run, %selected%
+                    }
+                }
+            }
+            else ;NOTE THAT VSCODE CANT OPEN ITSELF
+            {
+                if (selected="""""")
+                {
+                    clipboard:=""
+                    send, {ctrl down}lc{ctrl up}
+                    sleep, 100
+                    selected:= clipboard
+                    ;selected :=Explorer_GetPath() ;for commander
+                    selected:=SurroundByQuotes(selected) 
+                    
+                }
+                toRun:= """C:\Users\User\AppData\Local\Programs\Microsoft VS Code\Code.exe"" " . selected
+                If (ok:=WinExist("ahk_exe Code.exe"))
+                {
+                    winactivate
+                    run, %toRun%
+                }
+                else
+                {
+                    
+                    DetectHiddenWindows, on
+                    If WinExist("ahk_exe Code.exe")
+                    {
+                        WinHide
+                        sleep, 100
+                        WinShow
+                        DetectHiddenWindows, off
+                        winwait, ahk_exe Code.exe
+                        WinActivate, ahk_exe Code.exe
+                        run, %toRun%
+                        
+                    }
+                    else
+                    {
+                        DetectHiddenWindows, off
+                        run, %toRun%
+                    }
+                }
+            }
         }
         
         SetTitleMatchMode, 1
@@ -114,7 +194,7 @@ $XButton1::
     sleep, 100
     clipBackup := clipboard
     
-
+    
     
     if (clipBackup != "" and !InStr(clipBackup, ":\") ) ; = ""
     {
@@ -166,7 +246,6 @@ $XButton1::
     
     */
 return
-
 
 f3::Exitapp
 
