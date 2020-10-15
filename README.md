@@ -1,2 +1,38 @@
-# ahk_explorer
- 
+just type, to start searching for the file you want, (case insensitive and ignores file extensions)\
+If I wanted to search for "ahk_explorer.ahk" I would type "ex"\
+type . to search for files\folders with no extensions\
+type .txt to search for .txt files
+
+esc : refresh page, or stop searching
+
+ctrl+shift+left : panel : left <- right\
+ctrl+shift+right : panel : left -> right
+
+ctrl+left\
+ctrl+1 : select left panel
+
+ctrl+left\
+ctrl+2 : select right panel
+
+you can use these to get out of search.
+
+/ : change Dir\
+ctrl+L : change Dir
+
+alt+left : go to parent Dir\
+alt+right : undo Dir change\
+alt+up : redo the undo
+
+RCtrl : open CMD at currentDir\
+RShift : open vscode at currentDir\
+\ : open selected files\folders in vscode
+
+ctrl+shift+c to get fullPath of selected files
+
+you can change the hotkeys to what you want
+
+up, down to navigate\
+there is shift+up, shift+down, ctrl+up, ctrl+down\
+shift can be used to retract, ctrl will never retract, it will overflow to other side. for example : after shift+down, two (rows) will be selected, if I do shift+up, only one will be selected, but if I did ctrl+up instead, 3 will be selected.
+
+enter : enter folder or run the file
