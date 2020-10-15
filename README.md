@@ -45,4 +45,6 @@ up, down to navigate\
 there is shift+up, shift+down, ctrl+up, ctrl+down\
 shift can be used to retract, ctrl will never retract, it will overflow to other side. for example : after shift+down, two (rows) will be selected, if I do shift+up, only one will be selected, but if I did ctrl+up instead, 3 will be selected.
 
-enter : enter folder or run the file
+enter : enter Dir or run the file
+
+it uses LastAccessDate for dates, so its inconsistent, but it works better for me.

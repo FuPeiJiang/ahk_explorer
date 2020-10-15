@@ -12,6 +12,7 @@ favoriteFolders:=StrSplit(favoriteFolders,"`r`n")
 FileRead, peazipPath, %A_AppData%\ahk_explorer_settings\peazipPath.txt
 FileRead, vscodePath, %A_AppData%\ahk_explorer_settings\vscodePath.txt
 FileRead, BGColorOfSelectedPane, %A_AppData%\ahk_explorer_settings\BGColorOfSelectedPane.txt
+FileRead, BGColorOfSelectedPane, %A_AppData%\ahk_explorer_settings\BGColorOfSelectedPane.txt
 
 EcurrentDir1=C:\Users\User\Downloads
 EcurrentDir2=C:\Users\Public\AHK
@@ -1513,12 +1514,6 @@ getSelectedPaths()
 return selectedPaths
 }
 
-; doubleClickedSpecial(ByRef arr,ByRef index)
-; {
-; path:=arr[index]
-; doubleClickedFolderOrFile(path) 
-; 
-; }
 doubleClickedNormal(ByRef index)
 {
     global
