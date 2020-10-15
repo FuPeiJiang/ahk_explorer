@@ -47,4 +47,7 @@ shift can be used to retract, ctrl will never retract, it will overflow to other
 
 enter : enter Dir or run the file
 
-it uses LastAccessDate for dates, so its inconsistent, but it works better for me.
+it uses LastAccessDate for dates, so its inconsistent, but it works better for me.\
+I can add a setting in %Appdata% if you want to switch to LastModifyDate
+
+feedback and suggestions are much appreciated!
