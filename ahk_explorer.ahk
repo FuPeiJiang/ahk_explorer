@@ -7,10 +7,11 @@ SetWorkingDir %A_ScriptDir%  ; Ensures a consistent starting directory.
 SetBatchLines, -1
 SetTitleMatchMode, 2
 currentDirSearch=
-FileRead, favoriteFolders, %A_AppData%\ahk_explorer_paths\favoriteFolders.txt
+FileRead, favoriteFolders, %A_AppData%\ahk_explorer_settings\favoriteFolders.txt
 favoriteFolders:=StrSplit(favoriteFolders,"`r`n")
-FileRead, peazipPath, %A_AppData%\ahk_explorer_paths\peazipPath.txt
-FileRead, vscodePath, %A_AppData%\ahk_explorer_paths\vscodePath.txt
+FileRead, peazipPath, %A_AppData%\ahk_explorer_settings\peazipPath.txt
+FileRead, vscodePath, %A_AppData%\ahk_explorer_settings\vscodePath.txt
+FileRead, BGColorOfSelectedPane, %A_AppData%\ahk_explorer_settings\BGColorOfSelectedPane.txt
 
 EcurrentDir1=C:\Users\User\Downloads
 EcurrentDir2=C:\Users\Public\AHK
@@ -39,7 +40,6 @@ for n, param in A_Args  ; For each parameter:
     break
 }
 ;vars
-bgColor:=0xf2f2f2
 maxRows:=50
 rememberIconNumber:=0
 lastInputSearchCurrentDir:=false
@@ -2207,7 +2207,7 @@ $^+left::
     whichSide:=1
     GuiControl, Focus, vlistView1 ;bad code
     ControlFocus,, ahk_id %ListviewHwnd1%
-    GuiControl, +Background%bgColor%, vlistView1
+    GuiControl, +Background%BGColorOfSelectedPane%, vlistView1
     GuiControl, +BackgroundWhite, vlistView2
     EcurrentDir1:=EcurrentDir2
     renderCurrentDir()
@@ -2217,7 +2217,7 @@ $^+right::
     whichSide:=2
     GuiControl, Focus, vlistView2 ;bad code
     ControlFocus,, ahk_id %ListviewHwnd2%
-    GuiControl, +Background%bgColor%, vlistView2
+    GuiControl, +Background%BGColorOfSelectedPane%, vlistView2
     GuiControl, +BackgroundWhite, vlistView1
     EcurrentDir2:=EcurrentDir1
     renderCurrentDir()
@@ -2229,7 +2229,7 @@ $^1::
     whichSide:=1
     GuiControl, Focus, vlistView1 ;bad code
     ControlFocus,, ahk_id %ListviewHwnd1%
-    GuiControl, +Background%bgColor%, vlistView1
+    GuiControl, +Background%BGColorOfSelectedPane%, vlistView1
     GuiControl, +BackgroundWhite, vlistView2
 return
 $^right::
@@ -2238,7 +2238,7 @@ $^2::
     whichSide:=2
     GuiControl, Focus, vlistView2 ;bad code
     ControlFocus,, ahk_id %ListviewHwnd2%
-    GuiControl, +Background%bgColor%, vlistView2
+    GuiControl, +Background%BGColorOfSelectedPane%, vlistView2
     GuiControl, +BackgroundWhite, vlistView1
     
 return

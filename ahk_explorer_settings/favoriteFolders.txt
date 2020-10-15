@@ -1,0 +1,16 @@
+﻿C:\Users\Public\AHK
+C:\Users\Public\AHK\notes
+C:\Users\Public\AHK\notes\tests\ahk_explorer\test
+C:\Program Files\AutoHotkey\lib
+C:\DEsktop   
+C:\Users\User\Documents\GitHub\ahk_explorer
+
+C:\Users\User\Downloads
+C:\Users\User\Desktop
+C:\Users\User
+C:\Users\User\Videos
+C:\Users\User\Documents
+C:\Users\User\Pictures
+
+C:\Program Files
+C:\Program Files (x86)
