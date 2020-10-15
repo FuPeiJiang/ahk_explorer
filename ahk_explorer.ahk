@@ -297,6 +297,8 @@ return
 
 folderlistViewEvents1_1:
     whichSide:=1
+        Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
+
     if (A_GuiEvent="ColClick")
     {
         EcurrentDir%whichSide%:=parent2Dir%whichSide%
@@ -308,6 +310,8 @@ folderlistViewEvents1_1:
 return
 folderlistViewEvents2_1:
     whichSide:=1
+        Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
+
     if (A_GuiEvent="ColClick")
     {
         EcurrentDir%whichSide%:=parent1Dir%whichSide%
@@ -319,6 +323,7 @@ folderlistViewEvents2_1:
 return
 folderlistViewEvents1_2:
     whichSide:=2
+        Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
     if (A_GuiEvent="ColClick")
     {
         EcurrentDir%whichSide%:=parent2Dir%whichSide%
@@ -330,6 +335,7 @@ folderlistViewEvents1_2:
 return
 folderlistViewEvents2_2:
     whichSide:=2
+        Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
     if (A_GuiEvent="ColClick")
     {
         EcurrentDir%whichSide%:=parent1Dir%whichSide%
@@ -375,6 +381,7 @@ listViewEvents2:
     }
     else if (A_GuiEvent=="F") {
         whichSide:=SubStr(A_GuiControl, 0)
+        Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
         
         If (ICELV%whichSide%["Changed"]) {
             Msg := ""
@@ -613,6 +620,7 @@ listViewEvents2:
                                                 ControlFocus,, % "ahk_id " ListviewHwnd%sideBak%
                                                 Gui, ListView, vlistView%sideBak%
                                                 whichSide:=sideBak
+        Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
                                             }
                                             
                                             SoundPlay, *-1
@@ -1581,6 +1589,7 @@ HandleMessage( p_w, p_l, p_m, p_hw )
         if (p_w=0x1000007) {
             ; p(p_l)
             whichSide:=1
+        Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
             if (focused="flistView") ; if listView for instance
             {
                 focused:="changePath"
@@ -1590,6 +1599,7 @@ HandleMessage( p_w, p_l, p_m, p_hw )
         }
         else if (p_w=0x100000B) {
             whichSide:=2
+        Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
             if (focused="flistView") ; if listView for instance
             {
                 focused:="changePath"
@@ -1603,9 +1613,11 @@ HandleMessage( p_w, p_l, p_m, p_hw )
         {
             if (p_w=0x2000007) {
                 whichSide:=1
+        Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
             }
             else if (p_w=0x200000B) {
                 whichSide:=2
+        Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
             }
             
             if (((p_w >> 16) & 0x200) and not ((p_w >> 16) & 0x100))
@@ -2205,6 +2217,7 @@ return
 $^+left::
     gui, main:default
     whichSide:=1
+        Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
     GuiControl, Focus, vlistView1 ;bad code
     ControlFocus,, ahk_id %ListviewHwnd1%
     GuiControl, +Background%BGColorOfSelectedPane%, vlistView1
@@ -2215,6 +2228,7 @@ return
 $^+right::
     gui, main:default
     whichSide:=2
+        Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
     GuiControl, Focus, vlistView2 ;bad code
     ControlFocus,, ahk_id %ListviewHwnd2%
     GuiControl, +Background%BGColorOfSelectedPane%, vlistView2
@@ -2227,6 +2241,7 @@ $^left::
 $^1::
     gui, main:default
     whichSide:=1
+        Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
     GuiControl, Focus, vlistView1 ;bad code
     ControlFocus,, ahk_id %ListviewHwnd1%
     GuiControl, +Background%BGColorOfSelectedPane%, vlistView1
@@ -2236,6 +2251,7 @@ $^right::
 $^2::
     gui, main:default
     whichSide:=2
+        Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
     GuiControl, Focus, vlistView2 ;bad code
     ControlFocus,, ahk_id %ListviewHwnd2%
     GuiControl, +Background%BGColorOfSelectedPane%, vlistView2
