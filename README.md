@@ -6,6 +6,8 @@ peazipPath.txt\
 favoriteFolders.txt\
 BGColorOfSelectedPane.txt
 
+git clone using github desktop and pull origin to update! no need to compile
+
 just type, to start searching for the file you want, (case insensitive and ignores file extensions)\
 If I wanted to search for "ahk_explorer.ahk" I would type "ex"\
 type . to search for files\folders with no extensions\
