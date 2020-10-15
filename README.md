@@ -1,4 +1,4 @@
-need to put ahk_explorer_settings in %Appdata% with :\
+You have to put ahk_explorer_settings in %Appdata% with :\
 vscodePath.txt\
 peazipPath.txt\
 favoriteFolders.txt\
