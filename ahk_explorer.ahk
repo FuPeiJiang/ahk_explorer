@@ -646,6 +646,7 @@ listViewEvents2:
                     ; runwait, """" peazipPath """ -ext2folder """ EcurrentDir%whichSide% "\" v """"
                 }
                 soundplay, *-1
+                EcurrentDir%whichSide%:=EcurrentDir%whichSide% "\" OutNameNoExt
                 renderCurrentDir()                
             } else if (key="d") {
                 files:=array_ToSpacedString(getSelectedPaths()) 
