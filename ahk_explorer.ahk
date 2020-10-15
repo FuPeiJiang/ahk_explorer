@@ -534,7 +534,6 @@ listViewEvents2:
             else if (key="]") {
             }
             else if (key="NumpadDel") {
-                
                 ControlFocus,, % "ahk_id " ListviewHwnd%whichSide%
                 Gui, ListView, vlistView%whichSide%
                 indexes:=[]
@@ -1527,7 +1526,7 @@ doubleClickedNormal(ByRef index)
     Gui, ListView, vlistView%whichSide%
     
     LV_GetText(filename,index,2)
-    tooltip, % filename
+    ; tooltip, % filename
     path:=EcurrentDir%whichSide% "\" filename
     doubleClickedFolderOrFile(path) 
 }
