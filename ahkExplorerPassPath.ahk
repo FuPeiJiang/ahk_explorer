@@ -55,12 +55,7 @@ OnExit:
         NumPut(&message, COPYDATASTRUCT, A_PtrSize*2)
         DetectHiddenWindows, On
         SetTitleMatchMode, 2
-        
-        ;    SendMessage, WM_COPYDATA := 0x4A,, &COPYDATASTRUCT,, C:\Users\Public\AHK - ahk_explorer ahk_class AutoHotkey
-        ;    SendMessage, WM_COPYDATA := 0x4A,, &COPYDATASTRUCT,, C:\Users\Public\AHK - ahk_explorer ahk_class AutoHotkey
-        ;    SendMessage, WM_COPYDATA := 0x4A,, &COPYDATASTRUCT,, ahk_explorer ahk_class AutoHotkey
         SendMessage, WM_COPYDATA := 0x4A,, &COPYDATASTRUCT,, ahk_explorer.ahk ahk_class AutoHotkey
-        Exitapp
     }
     
     RunAsTask() { ; By SKAN, http://goo.gl/yG6A1F, CD:19/Aug/2014 | MD:24/Apr/2020
