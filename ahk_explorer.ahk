@@ -710,11 +710,11 @@ else if (A_GuiEvent="ColClick")
         {   
             newOld:=true    
             
-            renderFunctionsToSort(sortedByDate, true)
+            renderFunctionsToSort(sortedByDate%whichSide%, true)
             ; sortColumn(4, "SortDesc")
         } else {
             newOld:=false    
-            renderFunctionsToSort(sortedByDate)
+            renderFunctionsToSort(sortedByDate%whichSide%)
             ; sortColumn(4, "Sort")
         }
     } else if (A_EventInfo=5) {
