@@ -1357,7 +1357,10 @@ WM_COPYDATA_READ(wp, lp)  {
         
         ; p(sortedBySize)
         canSortBySize%whichSide%:=true
-    } else {
+    }  else if (match2=4) {
+        gosub, selectPanel%match1%
+    }
+     else {
         p("something went wrong")
     }
     
@@ -2152,10 +2155,6 @@ sortArrayByArray(toSort, sortWith, reverse=false, key=false)
 
 ;end of functions
 ;hotkeys
-; #if winactive("rename_file ahk_class AutoHotkeyGUI")
-; p(65656)
-; Gosub, renameFileLabel
-; Return
 #if winactive("renamingWinTitle ahk_class AutoHotkeyGUI")
     $esc::
     if (focused="flistView")
@@ -2218,8 +2217,9 @@ $^+right::
     renderCurrentDir()
 return
 
-^left::
 ^1::
+selectPanel1:
+^left::
     gui, main:default
     whichSide:=1
     Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
@@ -2228,8 +2228,9 @@ return
     GuiControl, +Background%BGColorOfSelectedPane%, vlistView1
     GuiControl, +BackgroundWhite, vlistView2
 return
-^right::
 ^2::
+selectPanel2:
+^right::
     gui, main:default
     whichSide:=2
     Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
