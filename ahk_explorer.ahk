@@ -718,16 +718,16 @@ else if (A_GuiEvent="ColClick")
             ; sortColumn(4, "Sort")
         }
     } else if (A_EventInfo=5) {
-        if (canSortByDate) {
+        if (canSortBySize%whichSide%) {
             if (!bigSmall)
             {   
                 bigSmall:=true    
-                renderFunctionsToSort(sortedBySize)
+                renderFunctionsToSort(sortedBySize%whichSide%)
                 
                 ; sortColumn(6, "SortDesc")
             } else {
                 bigSmall:=false    
-                renderFunctionsToSort(sortedBySize, true)
+                renderFunctionsToSort(sortedBySize%whichSide%, true)
                 ; sortColumn(6, "Sort")
             }
         }
@@ -1342,7 +1342,8 @@ receivedFolderSize(string) {
 }
 
 WM_COPYDATA_READ(wp, lp)  {
-    global Script1Var,sortedBySize,canSortByDate,unsorted,stuffByName
+    global
+    ; global Script1Var,sortedBySize,canSortBySize,unsorted,stuffByName
     data := StrGet(NumGet(lp + A_PtrSize*2), "UTF-16")
     RegExMatch(data, "s)(.*)\|(\d+)", match)
     
@@ -1352,10 +1353,10 @@ WM_COPYDATA_READ(wp, lp)  {
         ; p(match1)
         receivedFolderSize(match1)
     } else if (match2=3) {
-        sortedBySize:=sortArrayByArray(unsorted,stuffByName,true,"size")
+        sortedBySize%whichSide%:=sortArrayByArray(unsorted%whichSide%,stuffByName%whichSide%,true,"size")
         
         ; p(sortedBySize)
-        canSortByDate:=true
+        canSortBySize%whichSide%:=true
     } else {
         p("something went wrong")
     }
@@ -1824,7 +1825,7 @@ renderCurrentDir()
         unsorted%whichSide%:=[]
         sortedByDate%whichSide%:=[]
         sortedBySize%whichSide%:=[]
-        canSortByDate%whichSide%:=false
+        canSortBySize%whichSide%:=false
         stuffByName%whichSide%:={}
         Loop, Files, % EcurrentDir%whichSide% "\*", DF
         {
