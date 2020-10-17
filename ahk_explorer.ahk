@@ -1334,7 +1334,7 @@ receivedFolderSize(string) {
         LV_Modify(rowsForSizes%whichSide%[1],,,,,,ar[2],ar[3])
             rowsForSizes%whichSide%.RemoveAt(1)
         }
-    stuffByName[ar[1]]["size"]:=ar[3]
+    stuffByName%whichSide%[ar[1]]["size"]:=ar[3]
     
     ; if (name="MSIAfterburnerSetup")
     ; p(stuffByName["MSIAfterburnerSetup"])
@@ -1671,7 +1671,6 @@ searchInCurrentDir() {
             for k,v in objectToSort {
                 name:=v["name"]
                 obj:=stuffByName%whichSide%[name]
-                
                 calculateStuff(obj["date"],obj["attri"],obj["size"],name,k)
                 
                 LV_Add(,,name,var1,var2,formattedBytes,bytes)
