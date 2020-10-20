@@ -66,7 +66,8 @@ Gui,Font, s10, Segoe UI
 
 ; Gui, Font, s10, Segoe UI
 
-Gui, +LastFound +Resize
+Gui, +LastFound
+; Gui, +LastFound +Resize
 hw_gui := WinExist()
 
 Gui, Margin, 0, 0
@@ -164,8 +165,10 @@ return
 gmultiRenameApply:
     multiRenameNames:=getMultiRenameNames()
     multiRenameNamesBak:=A.cloneDeep(multiRenameNames)
+    namesToMultiRenameBak:=A.cloneDeep(namesToMultiRename)
+
     for k, v in multiRenameNamesBak {
-        toRenamePath := multiRenameDir "\" namesToMultiRename[k]
+        toRenamePath := multiRenameDir "\" namesToMultiRenameBak[k]
         renamedPath := multiRenameDir "\" v
         
         renamedPathExists:=fileExist(renamedPath)
@@ -175,7 +178,7 @@ gmultiRenameApply:
         }
         toRenameExists:=fileExist(toRenamePath)
         if (toRenameExists) {
-            p(toRenamePath " | " renamedPath)
+            ; p(toRenamePath " | " renamedPath)
             if (InStr(toRenameExists, "D")) {
                 FileMoveDir, %toRenamePath%, %renamedPath%
             } else {
@@ -193,14 +196,12 @@ gmultiRenameApply:
         }
     }
     multiRenamelength:=namesToMultiRename.Length()
-    p(multiRenameNames)
-    p(multiRenameNamesBak)
-    ; vmultiRenameTargets
     if (multiRenamelength) {
         Guicontrol, text, vmultiRenameTargets, % "|" array_ToVerticleBarString(namesToMultiRename)
         Guicontrol, text, vmultiRenamePreview, % "|" array_ToVerticleBarString(multiRenameNames)
     } else {
         Gui, Destroy
+setWhichSideFromDir(multiRenameDir)
         renderCurrentDir()
     }
 return
