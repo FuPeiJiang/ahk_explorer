@@ -7,6 +7,7 @@ SetWorkingDir %A_ScriptDir%  ; Ensures a consistent starting directory.
 SetBatchLines, -1
 SetTitleMatchMode, 2
 currentDirSearch=
+;%appdata%\ahk_explorer_settings
 FileRead, favoriteFolders, %A_AppData%\ahk_explorer_settings\favoriteFolders.txt
 favoriteFolders:=StrSplit(favoriteFolders,"`r`n")
 FileRead, peazipPath, %A_AppData%\ahk_explorer_settings\peazipPath.txt
@@ -244,7 +245,7 @@ TypingInRenameSimple:
     }
 return
 grenameFileLabel:
-fromButton:=true
+    fromButton:=true
 renameFileLabel:
     if (canRename) {
         canRename:=false
@@ -286,10 +287,7 @@ renameFileLabel:
                         p("file could not be moved")
                     SoundPlay, *-1
                 }
-                
             }
-            
-            
         }
         gui, renameSimple:Default
         
@@ -688,6 +686,10 @@ listViewEvents2:
                                                         FileMoveDir, %v%, % EcurrentDir%whichSide% "\" OutFileName
                                                     } else {
                                                         FileMove, %v%, % EcurrentDir%whichSide%
+                                                    }
+                                                    if (ErrorLevel) {
+                                                        p("couldn't move file " v)
+                                                        break
                                                     }
                                                 }
                                             }
@@ -2524,6 +2526,7 @@ $+up::
     Gui, ListView, vlistView%whichSide%
     
     focusRow:=LV_GetNext(0, "F")
+    
     before:=LV_GetNext(focusRow - 2)
     if (focusRow - 1 > 0) {
         if (before=focusRow - 1) {
@@ -2532,7 +2535,10 @@ $+up::
         } else {
             LV_Modify(focusRow - 1,"+Select +Focus Vis")
             }
-    }
+    } else {
+        numberOfRows:=LV_GetCount()
+        LV_Modify(numberOfRows,"+Select +Focus Vis")
+        }
 return
 $^up::
     Gui, main:Default
@@ -2613,12 +2619,19 @@ $+down::
     
     focusRow:=LV_GetNext(0, "F")
     after:=LV_GetNext(focusRow)
-    if (after=focusRow + 1) {
-        LV_Modify(focusRow, "-Select -Focus")
+    numberOfRows:=LV_GetCount()
+    
+    if (focusRow < numberOfRows) {
+        if (after=focusRow + 1) {
+            LV_Modify(focusRow, "-Select -Focus")
+                LV_Modify(focusRow + 1,"+Select +Focus Vis")
+        } else {
             LV_Modify(focusRow + 1,"+Select +Focus Vis")
+            }
     } else {
-        LV_Modify(focusRow + 1,"+Select +Focus Vis")
+        LV_Modify(1,"+Select +Focus Vis")
         }
+    
 return
 $down::
     SetTimer, downLabel ,-0
