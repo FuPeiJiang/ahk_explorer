@@ -250,8 +250,6 @@ renameFileLabel:
         gui, destroy
         
     }
-    ; sleep, 100
-    cannotDoubleClick:=false
 return
 
 DriveButtonEvents:
@@ -454,7 +452,6 @@ listViewEvents2:
         }
     } else if (A_GuiEvent = "DoubleClick")
     {
-        if (!cannotDoubleClick)
         doubleClickedNormal(A_EventInfo)
     }
     else if (A_GuiEvent=="K") ;key pressed
@@ -1661,7 +1658,6 @@ HandleMessage( p_w, p_l, p_m, p_hw )
                         ; 
                     }
                 } else if ( p_l = RenameHwnd ) {
-                    cannotDoubleClick:=true
                     gosub, renameFileLabel
                 }
             } 
