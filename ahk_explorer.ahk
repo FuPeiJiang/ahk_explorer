@@ -264,15 +264,36 @@ mainGuiClose:
     Exitapp
 return
 
+couldNotCreateFolder()
+{
+    global
+    Gui, createFolder:Default
+    creatingNewFolder:=true
+    dontSearch:=true
+    ControlSetText,, %createFolderName%, ahk_id %folderCreationHwnd%
+    SendMessage, 0xB1, 0, -1,, % "ahk_id " folderCreationHwnd
+    gui, createFolder: show,, create_folder
+    dontSearch:=false
+}
+
 createLabel:
     gui, createFolder: submit
     toCreate:=EcurrentDir%whichSide% "\" createFolderName
     if (!fileExist(toCreate)) {
         FileCreateDir, %toCreate%
-        Gui, main:Default
-        renderCurrentDir()
+        if (ErrorLevel) {
+            SoundPlay, *16
+            p("Could not create Folder, illegal name or idk")
+            couldNotCreateFolder()
+        } else {
+            Gui, main:Default
+            SoundPlay, *-1
+            renderCurrentDir()
+        }
     } else {
+        SoundPlay, *16
         p("folder already exists")
+        couldNotCreateFolder()
     }
 return
 
@@ -281,11 +302,20 @@ createAndOpenLabel:
     toCreate:=EcurrentDir%whichSide% "\" createFolderName
     if (!fileExist(toCreate)) {
         FileCreateDir, %toCreate%
-        EcurrentDir%whichSide%:=toCreate
-        Gui, main:Default
-        renderCurrentDir()
+        if (ErrorLevel) {
+            SoundPlay, *16
+            p("Could not create Folder, illegal name or idk")
+            couldNotCreateFolder()
+        } else {
+            EcurrentDir%whichSide%:=toCreate
+            Gui, main:Default
+            SoundPlay, *-1
+            renderCurrentDir()
+        }
     } else {
+        SoundPlay, *16
         p("folder already exists")
+        couldNotCreateFolder()
     }
 return
 
@@ -1360,7 +1390,7 @@ WM_COPYDATA_READ(wp, lp)  {
     }  else if (match2=4) {
         gosub, selectPanel%match1%
     }
-     else {
+    else {
         p("something went wrong")
     }
     
@@ -2285,16 +2315,24 @@ $^+n::
     dontSearch:=true
     newFolderPath:=findNextDirNameNumberIteration(EcurrentDir%whichSide% "\New Folder *")
     SplitPath, newFolderPath, newFolderName
+    strLen:=StrLen(newFolderName)
+    if (SubStr(newFolderName, 0)=" " and strLen > 1) {
+        newFolderName:=SubStr(newFolderName, 1, strLen-1)
+    }
+    
     if (!notFirstTimeCreatingFolder) {
         notFirstTimeCreatingFolder:=true
         Gui, createFolder: Font, s10, Segoe UI
         ;Segoe UI
         gui, createFolder: add, text,, Folder Name:  ; Save this control's position and start a new section.
-        gui, createFolder: add, edit, w250 vcreateFolderName, %newFolderName%
+        gui, createFolder: add, edit, w250 vcreateFolderName hwndfolderCreationHwnd, %newFolderName%
         gui, createFolder: add, button, Default w125 x11 vcreate gcreateLabel,Create Folder`r`n{Enter}
         gui, createFolder: add, button, w125 x+2 vcreateAndOpen gcreateAndOpenLabel,Create and Open`r`n{Shift + Enter}
     } else {
-        GuiControl, text, createFolderName, %newFolderName%
+        ; GuiControl, text, createFolderName, %newFolderName%
+        ControlSetText,, %newFolderName%, ahk_id %folderCreationHwnd%
+        SendMessage, 0xB1, 0, -1,, % "ahk_id " folderCreationHwnd
+        
     }
     
     gui, createFolder: show,, create_folder
