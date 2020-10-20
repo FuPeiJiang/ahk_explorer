@@ -3,6 +3,26 @@
     SendMode Input ; Recommended for new scripts due to its superior speed and reliability.
 SetWorkingDir %A_ScriptDir% ; Ensures a consistent starting directory.
 
+array_ToVerticleBarString(oArray)
+{
+    finalStr=
+    length:=oArray.Length()
+    for k, v in oArray {
+        finalStr.=(k=length) ? v : v "|"
+    }
+    return finalStr
+}
+
+array_ToNewLineString(oArray)
+{
+    finalStr=
+    length:=oArray.Length()
+    for k, v in oArray {
+        finalStr.=(k=length) ? v : v "`r`n"
+    }
+    return finalStr
+}
+
 array_ToSpacedString(oArray)
 {
     finalStr=

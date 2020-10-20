@@ -160,6 +160,52 @@ Exitapp
 return
 
 ;labels
+gmultiRenameApply:
+    multiRenameNames:=getMultiRenameNames()
+    multiRenameNamesBak:=A.cloneDeep(multiRenameNames)
+    for k, v in multiRenameNamesBak {
+        toRenamePath := multiRenameDir "\" namesToMultiRename[k]
+        renamedPath := multiRenameDir "\" v
+        
+        renamedPathExists:=fileExist(renamedPath)
+        if (renamedPathExists) {
+            p("name already taken", renamedPathExists)
+            break
+        }
+        toRenameExists:=fileExist(toRenamePath)
+        if (toRenameExists) {
+            p(toRenamePath " | " renamedPath)
+            if (InStr(toRenameExists, "D")) {
+                FileMoveDir, %toRenamePath%, %renamedPath%
+            } else {
+                FileMove, %toRenamePath%, %renamedPath%
+            }
+            if ErrorLevel {
+                p("file", toRenamePath "could not be renamed to", renamedPath)
+                break
+            }
+            namesToMultiRename.RemoveAt(1)
+            multiRenameNames.RemoveAt(1)
+        } else {
+            p("file to rename:", toRenamePath, "doesn't exist anymore")
+            break
+        }
+    }
+    multiRenamelength:=namesToMultiRename.Length()
+    p(multiRenameNames)
+    p(multiRenameNamesBak)
+    ; vmultiRenameTargets
+    if (multiRenamelength) {
+        Guicontrol, text, vmultiRenameTargets, % "|" array_ToVerticleBarString(namesToMultiRename)
+        Guicontrol, text, vmultiRenamePreview, % "|" array_ToVerticleBarString(multiRenameNames)
+    } else {
+        Gui, Destroy
+        renderCurrentDir()
+    }
+return
+gmultiRenamePreview:
+    Guicontrol, text, vmultiRenamePreview, % "|" array_ToVerticleBarString(getMultiRenameNames())
+return
 RemoveToolTip:
     ToolTip
 return
@@ -197,14 +243,14 @@ TypingInRenameSimple:
         
     }
 return
-
+grenameFileLabel:
+fromButton:=true
 renameFileLabel:
     if (canRename) {
         canRename:=false
         gui, renameSimple:Default
         gui, submit
         gui, main:Default
-        ; ControlFocus,, % "ahk_id " ListviewHwnd%whichSide%
         
         if (TextBeingRenamed!=RenamingSimple) {
             if (stuffByName[RenamingSimple].Count()) {
@@ -248,6 +294,11 @@ renameFileLabel:
         gui, renameSimple:Default
         
         gui, destroy
+        gui, main:Default
+        if (fromButton) {
+            fromButton:=false
+            ControlFocus,, % "ahk_id " ListviewHwnd%whichSide%
+        }
         
     }
 return
@@ -457,9 +508,9 @@ listViewEvents2:
     else if (A_GuiEvent=="K") ;key pressed
     {
         if (!dontSearch) {
-                ControlFocus,, % "ahk_id " ListviewHwnd%whichSide%
-                Gui, ListView, vlistView%whichSide%
-
+            ControlFocus,, % "ahk_id " ListviewHwnd%whichSide%
+            Gui, ListView, vlistView%whichSide%
+            
             key := GetKeyName(Format("vk{:x}", A_EventInfo))
             if (key="Backspace")
             {
@@ -468,6 +519,7 @@ listViewEvents2:
                 canRename:=true
                 ; focused:="renaming"
                 firstRename:=false
+                fromButton:=false
                 renameTextWidthLimit:=200
                 
                 row:=LV_GetNext("")
@@ -494,7 +546,7 @@ listViewEvents2:
                 Gui,Font, s10, Segoe UI
                 Gui, Margin , 0,0,0,0
                 gui, add, edit,y2 r1 w%renameTextWidthLimit% -wrap gTypingInRenameSimple vRenamingSimple hwndRenameHwnd, %TextBeingRenamed%
-                Gui, Add, Button, Hidden Default grenameFileLabel
+                Gui, Add, Button, Hidden Default ggrenameFileLabel
                 
                 
                 
@@ -505,7 +557,7 @@ listViewEvents2:
                 WinSet, Style, -0xC00000,a ; remove the titlebar and border(s) 
                 
                 gosub, TypingInRenameSimple
-
+                
                 sleep, 500
                 
                 return
@@ -561,7 +613,7 @@ listViewEvents2:
             else if (key="]") {
             }
             else if (key="NumpadDel") {
-
+                
                 indexes:=[]
                 selectedNames:=[]
                 loop {
@@ -761,6 +813,8 @@ else if (A_GuiEvent="ColClick")
 }
 
 return
+;includes
+#include <biga>
 #include <Class_LV_InCellEdit>
 ;Classes
 ; ======================================================================================================================
@@ -1124,6 +1178,37 @@ Return DllCall("Comctl32.dll\DefSubclassProc", "Ptr", H, "UInt", M, "Ptr", W, "P
 }
 ; ======================================================================================================================
 ;start of functions start
+setWhichSideFromDir(dir)
+{
+    global
+    if (EcurrentDir1=dir) {
+        whichSide:=1
+    } else if (EcurrentDir2=dir) {
+        whichSide:=2
+    }
+}
+
+getMultiRenameNames()
+{
+    global
+    Gui, multiRenameGui:Default
+    gui, submit, nohide
+    
+    startingNums:=StrSplit(multiRenameStartingNums, ",")
+    asteriskLength:=StrSplit(multiRenameTheName, "*").Length()
+    previewNames:=[]
+    for k, in namesToMultiRename {
+        nameInstance:=multiRenameTheName
+        loop % asteriskLength {
+            num:=(startingNums[A_Index]) ? startingNums[A_Index] : 1
+            nameInstance:=StrReplace(nameInstance, "*" , num+k-1,, 1)
+        }
+        
+        previewNames.Push(nameInstance)
+        
+    }
+return previewNames
+}
 
 getTextWidth(text)
 {
@@ -1385,8 +1470,9 @@ WM_COPYDATA_READ(wp, lp)  {
         canSortBySize%whichSide%:=true
     }  else if (match2=4) {
         gosub, selectPanel%match1%
-    }
-    else {
+    } else if (match2=5) {
+        gosub, copySelectedPaths
+    } else {
         p("something went wrong")
     }
     
@@ -1524,6 +1610,7 @@ sortColumn(column, sortMethod)
 getSelectedNames()
 {
     global
+    gui, main:default
     Gui, ListView, vlistView%whichSide%
     index:=""
     selectedNames:=[]
@@ -2300,6 +2387,25 @@ $`::
     p(focused)
 Return
 
+$^+r::
+    namesToMultiRename:=getSelectedNames()
+    multiRenameDir:=EcurrentDir%whichSide%
+    multiRenamelength:=namesToMultiRename.Length()
+    Gui, multiRenameGui:Default
+    Gui,Font, s10, Segoe UI
+    
+    Gui, Add, Edit, w400 vmultiRenameTheName
+    Gui, Add, Edit, x+5 w300 vmultiRenameStartingNums 
+    
+    Gui, Add, Button, h30 w200 y+5 x+-705 ggmultiRenamePreview,preview
+    Gui, Add, Button, h30 w200 x+5 ggmultiRenameApply,apply
+    
+    Gui, Add, ListBox, r%multiRenamelength% w500 y+5 vvmultiRenameTargets x+-405 , % array_ToVerticleBarString(selectedNames)
+    Gui, Add, ListBox, r%multiRenamelength% w500 x+5 vvmultiRenamePreview,
+    Gui, show,,multiRenameGui
+return
+
+$^r::
 $esc::
     stopSearching()
 return
@@ -2336,6 +2442,7 @@ $^+n::
     
 return
 
+copySelectedPaths:
 ^+c::
     Gui, main:Default
     ; Gui, ListView, listView
@@ -2464,8 +2571,8 @@ $+home::
     selectedRow:=LV_GetNext()
     loop % selectedRow - 1 {
         LV_Modify(A_Index, "+Select +Focus Vis") ; select
-    }
-
+        }
+    
 return
 $+end::
     Gui, main:Default
@@ -2477,7 +2584,7 @@ $+end::
         LV_Modify(A_Index + selectedRow, "+Select +Focus Vis") ; select
         }
     
-
+    
 return
 selectCurrent:
     Gui, main:Default
