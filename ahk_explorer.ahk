@@ -471,7 +471,6 @@ listViewEvents2:
                 firstRename:=false
                 renameTextWidthLimit:=200
                 
-                
                 row:=LV_GetNext("")
                 LV_GetText(TextBeingRenamed, row, 2)
                 ICELV%whichSide%.EditCell(row, 2)
@@ -507,12 +506,8 @@ listViewEvents2:
                 WinSet, Style, -0xC00000,a ; remove the titlebar and border(s) 
                 
                 gosub, TypingInRenameSimple
-                
-                
-                
-                
+
                 sleep, 500
-                
                 
                 return
                 
@@ -2463,6 +2458,27 @@ $up::
     else {
         LV_Modify(selectedRow-1, "+Select +Focus Vis") ; select
         }
+return
+$+home::
+    Gui, main:Default
+    Gui, ListView, vlistView%whichSide%
+    selectedRow:=LV_GetNext()
+    loop % selectedRow - 1 {
+        LV_Modify(A_Index, "+Select +Focus Vis") ; select
+    }
+
+return
+$+end::
+    Gui, main:Default
+    Gui, ListView, vlistView%whichSide%
+    selectedRow:=LV_GetNext()
+    numberOfRows:=LV_GetCount()
+    loop % numberOfRows - selectedRow
+    {
+        LV_Modify(A_Index + selectedRow, "+Select +Focus Vis") ; select
+        }
+    
+
 return
 selectCurrent:
     Gui, main:Default
