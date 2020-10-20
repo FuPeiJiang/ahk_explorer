@@ -458,6 +458,9 @@ listViewEvents2:
     else if (A_GuiEvent=="K") ;key pressed
     {
         if (!dontSearch) {
+                ControlFocus,, % "ahk_id " ListviewHwnd%whichSide%
+                Gui, ListView, vlistView%whichSide%
+
             key := GetKeyName(Format("vk{:x}", A_EventInfo))
             if (key="Backspace")
             {
@@ -564,8 +567,7 @@ listViewEvents2:
             else if (key="]") {
             }
             else if (key="NumpadDel") {
-                ControlFocus,, % "ahk_id " ListviewHwnd%whichSide%
-                Gui, ListView, vlistView%whichSide%
+
                 indexes:=[]
                 selectedNames:=[]
                 loop {
