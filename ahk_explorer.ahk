@@ -2527,6 +2527,12 @@ $backspace::
         }
     }
 return
+$^+up::
+gosub, shiftUp
+gosub, shiftUp
+return
+
+shiftUp:
 $+up::
     Gui, main:Default
     Gui, ListView, vlistView%whichSide%
@@ -2605,20 +2611,12 @@ selectCurrent:
     LV_Modify(selectedRow, "-Select -Focus") ; select
         LV_Modify(selectedRow, "+Select +Focus Vis") ; select
         return
-$^down::
-    Gui, main:Default
-    Gui, ListView, vlistView%whichSide%
-    
-    selectedRow:=0
-    index:=0
-    loop {
-        index:=LV_GetNext(index)
-        if (!index)
-            break
-        selectedRow:=index
-    }
-    LV_Modify(selectedRow+1, "+Select +Focus Vis") ; select
-        return
+
+$^+down::
+gosub, shiftDown
+gosub, shiftDown
+return
+shiftDown:
 $+down::
     Gui, main:Default
     Gui, ListView, vlistView%whichSide%
@@ -2638,7 +2636,22 @@ $+down::
         LV_Modify(1,"+Select +Focus Vis")
         }
     
-return
+return        
+$^down::
+    Gui, main:Default
+    Gui, ListView, vlistView%whichSide%
+    
+    selectedRow:=0
+    index:=0
+    loop {
+        index:=LV_GetNext(index)
+        if (!index)
+            break
+        selectedRow:=index
+    }
+    LV_Modify(selectedRow+1, "+Select +Focus Vis") ; select
+        return
+
 $down::
     SetTimer, downLabel ,-0
 return
