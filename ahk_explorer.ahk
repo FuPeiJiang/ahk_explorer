@@ -1184,6 +1184,14 @@ Return DllCall("Comctl32.dll\DefSubclassProc", "Ptr", H, "UInt", M, "Ptr", W, "P
 }
 ; ======================================================================================================================
 ;start of functions start
+
+paddedNumber(number, howManyChars)
+{
+    VarSetCapacity(ZeroPaddedNumber, 20)  ; Ensure the variable is large enough to accept the new string.
+    DllCall("wsprintf", "Str", ZeroPaddedNumber, "Str", "%0" howManyChars "d", "Int", number, "Cdecl")  ; Requires the Cdecl calling convention.
+return ZeroPaddedNumber
+}
+
 setWhichSideFromDir(dir)
 {
     global
@@ -1205,13 +1213,50 @@ getMultiRenameNames()
     previewNames:=[]
     for k, v in namesToMultiRename {
         nameInstance:=multiRenameTheName
-        loop % asteriskLength {
-            num:=(startingNums[A_Index]) ? startingNums[A_Index] : 1
-            nameInstance:=StrReplace(nameInstance, "*" , num+k-1,, 1)
+        
+        continueChar:=true
+        charIndex:=1
+        
+        length:=StrLen(nameInstance)
+        
+        asterisksAndQmarks:=[]
+        while (charIndex<=length) {
+            char:=SubStr(nameInstance, charIndex, 1)
+            
+            if (char="*") {
+                asterisksAndQmarks.Push("*")
+            } else if (char="?") {
+                
+                questionMarkCounter:=0
+                while (char="?") {
+                    questionMarkCounter++
+                    charIndex++
+                    char:=SubStr(nameInstance, charIndex, 1)
+                }
+                asterisksAndQmarks.Push(string_Multiply("?",questionMarkCounter))
+                continue
+            } 
+            charIndex++
+        }
+        for key, value in asterisksAndQmarks {
+            num:=(startingNums[key]) ? startingNums[key] : 1
+            actualNum:=num+k-1
+            if (InStr(value, "?" )) {
+                actualNum:=paddedNumber(actualNum, StrLen(value))
+            }
+            nameInstance:=StrReplace(nameInstance, value , actualNum,, 1)
         }
         SplitPath, v,,, OutExtension
         nameInstance:=StrReplace(nameInstance, "<ext>" , OutExtension)
-        
+
+        fileExist:=fileExist(multiRenameDir "\" v)
+        if (InStr(fileExist, "D" )) {
+        nameInstance:=StrReplace(nameInstance, "<Dext>" , "")
+        nameInstance:=StrReplace(nameInstance, "<.Dext>" , "")
+        } else {
+        nameInstance:=StrReplace(nameInstance, "<Dext>" , OutExtension)
+        nameInstance:=StrReplace(nameInstance, "<.Dext>" , "." OutExtension)
+        }
         previewNames.Push(nameInstance)
         
     }
@@ -2528,10 +2573,10 @@ $backspace::
     }
 return
 $^+up::
-gosub, shiftUp
-gosub, shiftUp
-return
-
+    gosub, shiftUp
+        gosub, shiftUp
+        return
+    
 shiftUp:
 $+up::
     Gui, main:Default
@@ -2611,11 +2656,11 @@ selectCurrent:
     LV_Modify(selectedRow, "-Select -Focus") ; select
         LV_Modify(selectedRow, "+Select +Focus Vis") ; select
         return
-
+    
 $^+down::
-gosub, shiftDown
-gosub, shiftDown
-return
+    gosub, shiftDown
+        gosub, shiftDown
+        return
 shiftDown:
 $+down::
     Gui, main:Default
@@ -2651,7 +2696,7 @@ $^down::
     }
     LV_Modify(selectedRow+1, "+Select +Focus Vis") ; select
         return
-
+    
 $down::
     SetTimer, downLabel ,-0
 return
