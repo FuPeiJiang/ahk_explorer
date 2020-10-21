@@ -162,11 +162,14 @@ Exitapp
 return
 
 ;labels
+multiRenameGuiGuiClose:
+    Gui, Destroy
+return
 gmultiRenameApply:
     multiRenameNames:=getMultiRenameNames()
     multiRenameNamesBak:=A.cloneDeep(multiRenameNames)
     namesToMultiRenameBak:=A.cloneDeep(namesToMultiRename)
-
+    
     for k, v in multiRenameNamesBak {
         toRenamePath := multiRenameDir "\" namesToMultiRenameBak[k]
         renamedPath := multiRenameDir "\" v
@@ -201,7 +204,7 @@ gmultiRenameApply:
         Guicontrol, text, vmultiRenamePreview, % "|" array_ToVerticleBarString(multiRenameNames)
     } else {
         Gui, Destroy
-setWhichSideFromDir(multiRenameDir)
+        setWhichSideFromDir(multiRenameDir)
         renderCurrentDir()
     }
 return
@@ -1200,12 +1203,14 @@ getMultiRenameNames()
     startingNums:=StrSplit(multiRenameStartingNums, ",")
     asteriskLength:=StrSplit(multiRenameTheName, "*").Length()
     previewNames:=[]
-    for k, in namesToMultiRename {
+    for k, v in namesToMultiRename {
         nameInstance:=multiRenameTheName
         loop % asteriskLength {
             num:=(startingNums[A_Index]) ? startingNums[A_Index] : 1
             nameInstance:=StrReplace(nameInstance, "*" , num+k-1,, 1)
         }
+        SplitPath, v,,, OutExtension
+        nameInstance:=StrReplace(nameInstance, "<ext>" , OutExtension)
         
         previewNames.Push(nameInstance)
         
