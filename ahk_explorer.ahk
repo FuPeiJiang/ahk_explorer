@@ -1248,14 +1248,14 @@ getMultiRenameNames()
         }
         SplitPath, v,,, OutExtension
         nameInstance:=StrReplace(nameInstance, "<ext>" , OutExtension)
-
+        
         fileExist:=fileExist(multiRenameDir "\" v)
         if (InStr(fileExist, "D" )) {
-        nameInstance:=StrReplace(nameInstance, "<Dext>" , "")
-        nameInstance:=StrReplace(nameInstance, "<.Dext>" , "")
+            nameInstance:=StrReplace(nameInstance, "<Dext>" , "")
+            nameInstance:=StrReplace(nameInstance, "<.Dext>" , "")
         } else {
-        nameInstance:=StrReplace(nameInstance, "<Dext>" , OutExtension)
-        nameInstance:=StrReplace(nameInstance, "<.Dext>" , "." OutExtension)
+            nameInstance:=StrReplace(nameInstance, "<Dext>" , OutExtension)
+            nameInstance:=StrReplace(nameInstance, "<.Dext>" , "." OutExtension)
         }
         previewNames.Push(nameInstance)
         
@@ -2361,6 +2361,10 @@ return
     }
 return 
 $^+left::
+    if (focused="changePath") {
+        send, ^+{left}
+        return
+    }
     gui, main:default
     whichSide:=1
     Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
@@ -2372,6 +2376,10 @@ $^+left::
     renderCurrentDir()
 return
 $^+right::
+    if (focused="changePath") {
+        send, ^+{right}
+        return
+    }
     gui, main:default
     whichSide:=2
     Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
@@ -2383,9 +2391,13 @@ $^+right::
     renderCurrentDir()
 return
 
+^left::
+    if (focused="changePath") {
+        send, ^{left}
+        return
+    }
 ^1::
 selectPanel1:
-^left::
     gui, main:default
     whichSide:=1
     Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
@@ -2394,9 +2406,14 @@ selectPanel1:
     GuiControl, +Background%BGColorOfSelectedPane%, vlistView1
     GuiControl, +BackgroundWhite, vlistView2
 return
+
+^right::
+    if (focused="changePath") {
+        send, ^{right}
+        return
+    }
 ^2::
 selectPanel2:
-^right::
     gui, main:default
     whichSide:=2
     Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
