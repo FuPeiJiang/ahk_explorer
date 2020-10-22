@@ -651,173 +651,128 @@ listViewEvents2:
                             FileToClipboard(selectedPaths, "cut")
                         } else if (key="v") 
                         {
-                            ; action:=false
-                            if (DllCall("IsClipboardFormatAvailable", "UInt", CF_HDROP := 15)) { ; file being copied
-                            if (DllCall("IsClipboardFormatAvailable", "UInt", dropEffectFormat)) {
-                                if (DllCall("OpenClipboard", "Ptr", A_ScriptHwnd)) {
-                                    if (data := DllCall("GetClipboardData", "UInt", dropEffectFormat, "Ptr")) {
-                                        if (effect := DllCall("GlobalLock", "Ptr", data, "UInt*")) {
-                                    if (effect & DROPEFFECT_COPY) {
-                                        files:=StrSplit(clipboard, "`r`n")
-                                        for k, v in files {
-                                            fileExist:=FileExist(v)
-                                            if (fileExist) {
-                                                SplitPath, v , OutFileName
-                                                if (InStr(fileExist, "D")) {
-                                                    FileCopyDir, %v%, % EcurrentDir%whichSide% "\" OutFileName
-                                                } else {
-                                                    FileCopy, %v%, % EcurrentDir%whichSide%
-                                                }
-                                            }
-                                        }
-                                        renderCurrentDir()
-                                        SoundPlay, *-1
-                                    }
-                                    ; action:="copy"
-                                    else if (effect & DROPEFFECT_MOVE) {
-                                        files:=StrSplit(clipboard, "`r`n")
-                                        if (files.Length()) {
-                                            fromOtherSide:=false
-                                            otherSide:=(whichSide=1) ? 2 : 1
-                                            for k, v in files {
-                                                fileExist:=FileExist(v)
-                                                if (fileExist) {
-                                                    SplitPath, v , OutFileName, OutDir
-                                                    if (Outdir=EcurrentDir%otherSide%) {
-                                                        fromOtherSide:=true
-                                                    }
-                                                    if (InStr(fileExist, "D")) {
-                                                        FileMoveDir, %v%, % EcurrentDir%whichSide% "\" OutFileName
-                                                    } else {
-                                                        FileMove, %v%, % EcurrentDir%whichSide%
-                                                    }
-                                                    if (ErrorLevel) {
-                                                        p("couldn't move file " v)
-                                                        break
-                                                    }
-                                                }
-                                            }
-                                            renderCurrentDir()
-                                            
-                                            if (fromOtherSide) {
-                                                sideBak:=whichSide
-                                                whichSide:=otherSide
-                                                renderCurrentDir()
-                                                whichSide:=sideBak
-                                                ControlFocus,, % "ahk_id " ListviewHwnd%sideBak%
-                                                Gui, ListView, vlistView%sideBak%
-                                                whichSide:=sideBak
-                                                Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
-                                            }
-                                            
-                                            SoundPlay, *-1
-                                        }
-                                        
-                                    }
-                                    ; action:="move"
-                                    DllCall("GlobalUnlock", "Ptr", data)
-                                }
+                            pasteFile()
+                            
+                        }   else if (key="a") {
+                            loop % LV_GetCount()
+                            {
+                                LV_Modify(A_Index, "+Select") ; select                            
+                                    ; LV_Modify(A_Index, "+Select +Focus") ; select                            
                             }
-                            DllCall("CloseClipboard")
                         }
-                    }
-                }
-                
-            }   else if (key="a") {
-                loop % LV_GetCount()
-                {
-                    LV_Modify(A_Index, "+Select") ; select                            
-                        ; LV_Modify(A_Index, "+Select +Focus") ; select                            
-                }
-            }
-            return
-            
-        } else if (CtrlIsDown and ShiftIsDown) {
-            if (key="x") {
-                for k, v in getSelectedNames() ;extract using 7zip, 7-zip
-                {
-                    SplitPath, v,,,, OutNameNoExt
-                    runwait, % "lib\7z x """ EcurrentDir%whichSide% "\" v """ -o""" EcurrentDir%whichSide% "\" OutNameNoExt """ -spe",,Hide
-                    ; runwait, """" peazipPath """ -ext2folder """ EcurrentDir%whichSide% "\" v """"
-                }
-                soundplay, *-1
-                EcurrentDir%whichSide%:=EcurrentDir%whichSide% "\" OutNameNoExt
-                renderCurrentDir()                
-                return
-            } else if (key="d") {
-                files:=array_ToSpacedString(getSelectedPaths()) 
-                runwait, "%peazipPath%" -add2archive %files%
-                soundplay, *-1
-                renderCurrentDir()   
-                return
-            }
-        }
-        if (CtrlIsDown or ShiftIsDown)
-            return
-        
-        focused=searchCurrentDirEdit
-        ; focused=searchCurrentDirEdit%whichSide%
-        GuiControl, Focus, vcurrentDirEdit%whichSide%
-        GuiControl, Text, vcurrentDirEdit%whichSide%,% searchString%whichSide% key
-        SendMessage, 0xB1, -2, -1,, % "ahk_id " Edithwnd%whichSide%
-    }
-} 
-}
-}
-else if (A_GuiEvent="RightClick") {
-    selectedNames:=getSelectedNames()
-    ShellContextMenu(EcurrentDir%whichSide%,selectedNames)
-}
-else if (A_GuiEvent="ColClick")
-{
-    columnsToSort:=[1,2,4,6]
-    if (A_EventInfo=1) {
-        if (!foldersFirst)
-        {   
-            foldersFirst:=true
-            sortColumn(1, "SortDesc")
-        } else {
-            foldersFirst:=false    
-            sortColumn(1, "Sort")
-        }
-    } else if (A_EventInfo=2) {
-        if (!z_ASort)
-        {   
-            z_ASort:=true
-            sortColumn(2, "SortDesc")
-        } else {
-            z_ASort:=false    
-            sortColumn(2, "Sort")
-        }
-    } else if (A_EventInfo=3)  {
-        if (!newOld)
-        {   
-            newOld:=true    
-            
-            renderFunctionsToSort(sortedByDate%whichSide%, true)
-            ; sortColumn(4, "SortDesc")
-        } else {
-            newOld:=false    
-            renderFunctionsToSort(sortedByDate%whichSide%)
-            ; sortColumn(4, "Sort")
-        }
-    } else if (A_EventInfo=5) {
-        if (canSortBySize%whichSide%) {
-            if (!bigSmall)
-            {   
-                bigSmall:=true    
-                renderFunctionsToSort(sortedBySize%whichSide%)
-                
-                ; sortColumn(6, "SortDesc")
-            } else {
-                bigSmall:=false    
-                renderFunctionsToSort(sortedBySize%whichSide%, true)
-                ; sortColumn(6, "Sort")
-            }
-        }
-    }
-}
+                        return
+                        
+                    } else if (CtrlIsDown and ShiftIsDown) {
+                        if (key="x") {
+                            for k, v in getSelectedNames() ;extract using 7zip, 7-zip
+                            {
+                                SplitPath, v,,,, OutNameNoExt
+                                runwait, % "lib\7z x """ EcurrentDir%whichSide% "\" v """ -o""" EcurrentDir%whichSide% "\" OutNameNoExt """ -spe",,Hide
+                                ; runwait, """" peazipPath """ -ext2folder """ EcurrentDir%whichSide% "\" v """"
+                            }
+                            soundplay, *-1
+                            EcurrentDir%whichSide%:=EcurrentDir%whichSide% "\" OutNameNoExt
+                            renderCurrentDir()                
+                            return
+                        } else if (key="d") {
+                            files:=array_ToSpacedString(getSelectedPaths()) 
+                            runwait, "%peazipPath%" -add2archive %files%
+                            soundplay, *-1
+                            renderCurrentDir()   
+                            return
+                        } else if (key="v") {
+                            ; if (whichSide=1) {
+; 
+; gosub, selectPanel2
+                            ; } else {
+; gosub, selectPanel1
+                            ; }
+                            gui, main:default
+                            whichSideBak:=whichSide
+                            whichSide:=(whichSide=1) ? 2 : 1
+                            Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
+ ; sleep, 1000
+                            GuiControl, Focus, vlistView%whichSide% ;bad code
+                            ControlFocus,, % "ahk_id " ListviewHwnd%whichSide%
+                            GuiControl, +Background%BGColorOfSelectedPane%, vlistView%whichSide%
+                            GuiControl, +BackgroundWhite, vlistView%whichSideBak%
 
+
+                            ; p(whichSide)
+                                        ControlFocus,, % "ahk_id " ListviewHwnd%whichSide%
+            Gui, ListView, vlistView%whichSide%
+            
+                            pasteFile()
+                            return
+                            
+                        } 
+                    }
+                    if (CtrlIsDown or ShiftIsDown)
+                        return
+                    
+                    focused=searchCurrentDirEdit
+                    ; focused=searchCurrentDirEdit%whichSide%
+                    GuiControl, Focus, vcurrentDirEdit%whichSide%
+                    GuiControl, Text, vcurrentDirEdit%whichSide%,% searchString%whichSide% key
+                    SendMessage, 0xB1, -2, -1,, % "ahk_id " Edithwnd%whichSide%
+                }
+            } 
+        }
+    }
+    else if (A_GuiEvent="RightClick") {
+        selectedNames:=getSelectedNames()
+        ShellContextMenu(EcurrentDir%whichSide%,selectedNames)
+    }
+    else if (A_GuiEvent="ColClick")
+    {
+        columnsToSort:=[1,2,4,6]
+        if (A_EventInfo=1) {
+            if (!foldersFirst)
+            {   
+                foldersFirst:=true
+                sortColumn(1, "SortDesc")
+            } else {
+                foldersFirst:=false    
+                sortColumn(1, "Sort")
+            }
+        } else if (A_EventInfo=2) {
+            if (!z_ASort)
+            {   
+                z_ASort:=true
+                sortColumn(2, "SortDesc")
+            } else {
+                z_ASort:=false    
+                sortColumn(2, "Sort")
+            }
+        } else if (A_EventInfo=3)  {
+            if (!newOld)
+            {   
+                newOld:=true    
+                
+                renderFunctionsToSort(sortedByDate%whichSide%, true)
+                ; sortColumn(4, "SortDesc")
+            } else {
+                newOld:=false    
+                renderFunctionsToSort(sortedByDate%whichSide%)
+                ; sortColumn(4, "Sort")
+            }
+        } else if (A_EventInfo=5) {
+            if (canSortBySize%whichSide%) {
+                if (!bigSmall)
+                {   
+                    bigSmall:=true    
+                    renderFunctionsToSort(sortedBySize%whichSide%)
+                    
+                    ; sortColumn(6, "SortDesc")
+                } else {
+                    bigSmall:=false    
+                    renderFunctionsToSort(sortedBySize%whichSide%, true)
+                    ; sortColumn(6, "Sort")
+                }
+            }
+        }
+    }
+    
 return
 ;includes
 #include <biga>
@@ -1184,6 +1139,84 @@ Return DllCall("Comctl32.dll\DefSubclassProc", "Ptr", H, "UInt", M, "Ptr", W, "P
 }
 ; ======================================================================================================================
 ;start of functions start
+
+pasteFile()
+{
+    global
+    ; action:=false
+
+    if (DllCall("IsClipboardFormatAvailable", "UInt", CF_HDROP := 15)) { ; file being copied
+    if (DllCall("IsClipboardFormatAvailable", "UInt", dropEffectFormat)) {
+        if (DllCall("OpenClipboard", "Ptr", A_ScriptHwnd)) {
+            if (data := DllCall("GetClipboardData", "UInt", dropEffectFormat, "Ptr")) {
+                if (effect := DllCall("GlobalLock", "Ptr", data, "UInt*")) {
+            if (effect & DROPEFFECT_COPY) {
+                files:=StrSplit(clipboard, "`r`n")
+                for k, v in files {
+                    fileExist:=FileExist(v)
+                    if (fileExist) {
+                        SplitPath, v , OutFileName
+                        if (InStr(fileExist, "D")) {
+                            FileCopyDir, %v%, % EcurrentDir%whichSide% "\" OutFileName
+                        } else {
+                            FileCopy, %v%, % EcurrentDir%whichSide%
+                        }
+                    }
+                }
+                renderCurrentDir()
+                SoundPlay, *-1
+            }
+            ; action:="copy"
+            else if (effect & DROPEFFECT_MOVE) {
+                files:=StrSplit(clipboard, "`r`n")
+                if (files.Length()) {
+                    fromOtherSide:=false
+                    otherSide:=(whichSide=1) ? 2 : 1
+                    for k, v in files {
+                        fileExist:=FileExist(v)
+                        if (fileExist) {
+                            SplitPath, v , OutFileName, OutDir
+                            if (Outdir=EcurrentDir%otherSide%) {
+                                fromOtherSide:=true
+                            }
+                            if (InStr(fileExist, "D")) {
+                                FileMoveDir, %v%, % EcurrentDir%whichSide% "\" OutFileName
+                            } else {
+                                FileMove, %v%, % EcurrentDir%whichSide%
+                            }
+                            if (ErrorLevel) {
+                                p("couldn't move file " v)
+                                break
+                            }
+                        }
+                    }
+                    renderCurrentDir()
+                    
+                    if (fromOtherSide) {
+                        sideBak:=whichSide
+                        whichSide:=otherSide
+                        renderCurrentDir()
+                        whichSide:=sideBak
+                        ControlFocus,, % "ahk_id " ListviewHwnd%sideBak%
+                        Gui, ListView, vlistView%sideBak%
+                        whichSide:=sideBak
+                        Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
+                    }
+                    
+                    SoundPlay, *-1
+                }
+                
+            }
+            ; action:="move"
+            DllCall("GlobalUnlock", "Ptr", data)
+        }
+    }
+    DllCall("CloseClipboard")
+}
+}
+}
+
+}
 
 paddedNumber(number, howManyChars)
 {
@@ -2361,7 +2394,7 @@ return
     }
 return 
 $^+left::
-    if (focused="changePath") {
+    if (focused="changePath" or focused="searchCurrentDirEdit") {
         send, ^+{left}
         return
     }
@@ -2390,10 +2423,11 @@ $^+right::
     EcurrentDir2:=EcurrentDir1
     renderCurrentDir()
 return
-
+left::
 ^left::
-    if (focused="changePath") {
-        send, ^{left}
+    if (focused="changePath" or focused="searchCurrentDirEdit") {
+        thisHotkey:=StrReplace(A_ThisHotkey, "left", "{left}")
+        send, %thisHotkey%
         return
     }
 ^1::
@@ -2407,9 +2441,11 @@ selectPanel1:
     GuiControl, +BackgroundWhite, vlistView2
 return
 
+right::
 ^right::
-    if (focused="changePath") {
-        send, ^{right}
+    if (focused="changePath" or focused="searchCurrentDirEdit") {
+        thisHotkey:=StrReplace(A_ThisHotkey, "Right", "{Right}")
+        send, %thisHotkey%
         return
     }
 ^2::
@@ -2454,11 +2490,11 @@ $\::
 return
 
 tab::
-
+    
 return
 
 ; $`::
-    p(focused)
+p(focused)
 Return
 
 $^+r::
