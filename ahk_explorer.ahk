@@ -441,7 +441,7 @@ currentDirEdit1ChangedTimer:
         if (vcurrentDirEdit%whichSide%!=lastEditText)
             lastEditText:=vcurrentDirEdit%whichSide%
         if (!submittingGui) {
-            searchString:=vcurrentDirEdit%whichSide%
+            searchString%whichSide%:=vcurrentDirEdit%whichSide%
             searchInCurrentDir()
         }  else  {
             p(6456) 
@@ -758,7 +758,7 @@ listViewEvents2:
         focused=searchCurrentDirEdit
         ; focused=searchCurrentDirEdit%whichSide%
         GuiControl, Focus, vcurrentDirEdit%whichSide%
-        GuiControl, Text, vcurrentDirEdit%whichSide%,% searchString key
+        GuiControl, Text, vcurrentDirEdit%whichSide%,% searchString%whichSide% key
         SendMessage, 0xB1, -2, -1,, % "ahk_id " Edithwnd%whichSide%
     }
 } 
@@ -1362,7 +1362,7 @@ renderFunctionsToSort(ByRef objectToSort, reverse:=false)
     ControlFocus,, % "ahk_id " ListviewHwnd%whichSide%
     
     GuiControl,Text,vcurrentDirEdit%whichSide%, % EcurrentDir%whichSide%
-    searchString=
+    searchString%whichSide%=
     
     GuiControl, -Redraw, vlistView%whichSide% 
     LV_Delete()
@@ -1726,7 +1726,7 @@ stopSearching()
     ControlFocus,, % "ahk_id " ListviewHwnd%whichSide%
     focused=flistView
     GuiControl,Text,currentDirEdit, % EcurrentDir%whichSide%
-    searchString=
+    searchString%whichSide%=
     renderCurrentDir()
 }
 
@@ -1809,7 +1809,7 @@ return
 
 searchInCurrentDir() {
     global
-    if (searchString="") {
+    if (searchString%whichSide%="") {
     } 
     else {
         searching:=true
@@ -1823,14 +1823,14 @@ searchInCurrentDir() {
             
         GuiControl, -Redraw, vlistView%whichSide%
         LV_Delete()
-        if (SubStr(searchString, 1, 1)!=".") {
+        if (SubStr(searchString%whichSide%, 1, 1)!=".") {
             counter:=0
             objectToSort:=[]
             for k,v in sortedByDate%whichSide% {
                 if (counter>maxRows)
                     break
                 SplitPath, v,,,, OutNameNoExt
-                pos:=InStr(OutNameNoExt, searchString)
+                pos:=InStr(OutNameNoExt, searchString%whichSide%)
                 if (pos) {
                     counter++
                     objectToSort.Push({name:v,pos:pos})
@@ -1848,7 +1848,7 @@ searchInCurrentDir() {
                 namesForIcons%whichSide%.Push(name)
                 }
         } else {
-            searchFoldersOnly:=searchString="." ? true : false
+            searchFoldersOnly:=(searchString%whichSide%=".") ? true : false
             if (searchFoldersOnly) {
                 counter:=0
                 for k,v in sortedByDate%whichSide% {
@@ -1872,14 +1872,14 @@ searchInCurrentDir() {
                 ; LV_Add(,ar["isFolder"],v,ar["date"],ar["sortableDate"],ar["size"],ar["sortableSize"])
                 ; }
             } else {
-                searchStringBak:=SubStr(searchString, 2)
+                searchStringBak%whichSide%:=SubStr(searchString%whichSide%, 2)
                 counter:=0
                 objectToSort:=[]
                 for k,v in sortedByDate%whichSide% {
                     if (counter>maxRows)
                         break
                     SplitPath, v,,, OutExtension
-                    pos:=InStr(OutExtension, searchStringBak)
+                    pos:=InStr(OutExtension, searchStringBak%whichSide%)
                     if (pos) {
                         counter++
                         objectToSort.Push({name:v,pos:pos})
@@ -2453,7 +2453,11 @@ $\::
     
 return
 
-$`::
+tab::
+
+return
+
+; $`::
     p(focused)
 Return
 
@@ -2574,7 +2578,7 @@ $backspace::
     if (focused="changePath" or focused="renaming") {
         send, {backspace}
     } else if (focused="listViewInSearch" or focused="flistView") {
-        if (searchString="") {
+        if (searchString%whichSide%="") {
             stopSearching()
         } else {
             GuiControl, focus,vcurrentDirEdit%whichSide%
@@ -2582,7 +2586,7 @@ $backspace::
             send, {backspace}
         }
     } else if (focused="searchCurrentDirEdit") {
-        if (searchString="") {
+        if (searchString%whichSide%="") {
             stopSearching()
         } else {
             send, {backspace}
