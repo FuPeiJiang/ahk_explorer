@@ -83,10 +83,10 @@ Gui, Add, Button, h40 w%favoritesListViewWidth% gDriveButtonEvents vDriveButton 
 ; Gui, Add, ListView, 0x2000 h28 w%favoritesListViewWidth% +WantF2 -ReadOnly vdriveSpace AltSubmit ,C:\ `r`n7.06 GB/232.24 GB
 ; Gui, Add, ListView, r1 w%favoritesListViewWidth% y220 +WantF2 -ReadOnly vdriveSpace gdriveSpaceEvent AltSubmit ,Please enter your name:
 favoritesLenght:=favoriteFolders.Length()
-Gui, Add, ListView, r%favoritesLenght% w%favoritesListViewWidth% y+200 +WantF2 -ReadOnly vfavoritesListView gfavoritesListViewEvents AltSubmit ,Favorites
+Gui, Add, ListView, r%favoritesLenght% w%favoritesListViewWidth% y+200 nosort vfavoritesListView gfavoritesListViewEvents AltSubmit ,Favorites
 
-Gui, Add, ListView, r10 w%folderListViewWidth% y0 x+0 +WantF2 -ReadOnly vfolderListView1_1 gfolderlistViewEvents1_1 AltSubmit ,Name
-Gui, Add, ListView, r10 w%folderListViewWidth% x+0 y0 +WantF2 -ReadOnly vfolderlistView2_1 gfolderlistViewEvents2_1 AltSubmit ,Name
+Gui, Add, ListView, r10 w%folderListViewWidth% y0 x+0 vfolderListView1_1 gfolderlistViewEvents1_1 AltSubmit ,Name
+Gui, Add, ListView, r10 w%folderListViewWidth% x+0 y0 vfolderlistView2_1 gfolderlistViewEvents2_1 AltSubmit ,Name
 
 Gui, Add, Edit, hwndEdithwnd1 r1 w%listViewWidth% y+0 x+-500 vvcurrentDirEdit1 gcurrentDirEdit1Changed, %EcurrentDir1%
 
@@ -97,8 +97,8 @@ Gui, Add, Edit, hwndEdithwnd1 r1 w%listViewWidth% y+0 x+-500 vvcurrentDirEdit1 g
 
 Gui, Add, ListView, NoSort HwndListviewHwnd1 Count5000 r25 -WantF2 w%listViewWidth% -ReadOnly vvlistView1 glistViewEvents1 AltSubmit ,type|Name|Date|sortableDate|Size|sortableSize
 
-Gui, Add, ListView, r10 w%folderListViewWidth% y0 x+0 +WantF2 -ReadOnly vfolderListView1_2 gfolderlistViewEvents1_2 AltSubmit ,Name
-Gui, Add, ListView, r10 w%folderListViewWidth% x+0 y0 +WantF2 -ReadOnly vfolderlistView2_2 gfolderlistViewEvents2_2 AltSubmit ,Name
+Gui, Add, ListView, r10 w%folderListViewWidth% y0 x+0 vfolderListView1_2 gfolderlistViewEvents1_2 AltSubmit ,Name
+Gui, Add, ListView, r10 w%folderListViewWidth% x+0 y0 vfolderlistView2_2 gfolderlistViewEvents2_2 AltSubmit ,Name
 Gui, Add, Edit, hwndEdithwnd2 r1 w%listViewWidth% y+0 x+-500 vvcurrentDirEdit2 gcurrentDirEdit2Changed, %EcurrentDir2%
 Gui, Add, ListView, NoSort HwndListviewHwnd2 Count5000 r25 -WantF2 w%listViewWidth% -ReadOnly vvlistView2 glistViewEvents2 AltSubmit ,type|Name|Date|sortableDate|Size|sortableSize
 ; Gui, Add, ListView, NoSort HwndListviewHwnd Count200 r25 w%listViewWidth% +WantF2 -ReadOnly vlistView glistViewEvents AltSubmit ,Name|Date|sortableDate|Size|sortableSize
@@ -375,6 +375,10 @@ favoritesListViewEvents:
     if (A_GuiEvent = "DoubleClick") {
         Gui, ListView, favoritesListView
         doubleClickedFolderOrFile(favoriteFolders[A_EventInfo])
+    } else if (A_GuiEvent="ColClick") {
+        path=%A_AppData%\ahk_explorer_settings\favoriteFolders.txt
+        toRun:= """" vscodePath """ """ path """"
+        run, %toRun%
     }
 return
 
@@ -1134,12 +1138,10 @@ COM_CoInitialize()
 {
 Return	DllCall("ole32\CoInitialize", "Uint", 0)
 }
-
 COM_CoUninitialize()
 {
     DllCall("ole32\CoUninitialize")
 }
-
 startWatchFolder(WatchedFolder)
 {
     global
@@ -2214,21 +2216,21 @@ renderCurrentDir()
     {
         stopSizes:=false
         
-        if (lastDir%whichSide%!=EcurrentDir%whichSide% and !cannotDirHistory%whichSide%) {
-            stopWatchFolder(EcurrentDir%whichSide%) 
+        if (lastDir%whichSide%!=EcurrentDir%whichSide%) {
+            otherSide:=(whichSide=1) ? 2 : 1
+            if (lastDir%whichSide%!=EcurrentDir%otherSide%) {
+                stopWatchFolder(lastDir%whichSide%) 
+            }
             startWatchFolder(EcurrentDir%whichSide%)
-            if (lastDir%whichSide%!="") {
+            if (lastDir%whichSide%!="" and !cannotDirHistory%whichSide%) {
                 dirHistory%whichSide%.Push(lastDir%whichSide%)
             }
         }
-        
         if cannotDirHistory%whichSide% {
             cannotDirHistory%whichSide%:=false
         }
         lastDir%whichSide%:=EcurrentDir%whichSide%
         focused=flistView
-        
-        
         
         filePaths:=[]  
         rowBak:=[]
