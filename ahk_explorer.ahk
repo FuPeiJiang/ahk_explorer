@@ -1115,6 +1115,15 @@ Return DllCall("Comctl32.dll\DefSubclassProc", "Ptr", H, "UInt", M, "Ptr", W, "P
 }
 ; ======================================================================================================================
 ;start of functions start
+bothSameDir()
+{
+    global
+    otherSide:=(whichSide=1) ? 2 : 1
+    if (lastDir%whichSide%=EcurrentDir%otherSide%)
+        return true
+return false
+}
+
 revealFileInExplorer(folderPath, files)
 {
     COM_CoUninitialize()
@@ -1194,7 +1203,8 @@ fileAdded(whichSide, Byref path) {
     Gui, ListView, vlistView%whichSide%
     SplitPath, path, OutFileName
     sortWithAr%whichSide%:=[]
-    
+    bothSameDir:=bothSameDir()
+    insertRowNum:=1
     FileGetSize, outputSize, %path%
     FileGetAttrib, OutputAttri , %path%
     stuffByName%whichSide%[OutFileName]:={date:A_Now,attri:OutputAttri,size:outputSize}
@@ -1227,7 +1237,8 @@ fileAdded(whichSide, Byref path) {
                 for k,v in objectToSort {
                     name:=v["name"]
                     if (name=OutFileName) {
-                        insertRow(whichSide, OutFileName, k, A_Now, OutputAttri,outputSize)
+                            insertRowNum:=k
+                        ; insertRow(whichSide, OutFileName, k, A_Now, OutputAttri,outputSize)
                     }
                 }
             } else {
@@ -1240,7 +1251,9 @@ fileAdded(whichSide, Byref path) {
                                 break
                             SplitPath, v,,, OutExtension
                             if (!OutExtension) {
-                                insertRow(whichSide, OutFileName, k, A_Now, OutputAttri,outputSize)
+                            insertRowNum:=k
+                                ; insertRow(whichSide, OutFileName, k, A_Now, OutputAttri,outputSize)
+                                
                             }
                         }
                     }
@@ -1262,24 +1275,27 @@ fileAdded(whichSide, Byref path) {
                     for k,v in objectToSort {
                         name:=v["name"]
                         if (name=OutFileName) {
-                            insertRow(whichSide, OutFileName, k, A_Now, OutputAttri,outputSize)
+                            insertRowNum:=k
+                            ; insertRow(whichSide, OutFileName, k, A_Now, OutputAttri,outputSize)
                         }
                     }
                 }
                 
             }
         } else {
-            insertRow(whichSide, OutFileName, 1, A_Now, OutputAttri,outputSize)
+            ; insertRow(whichSide, OutFileName, 1, A_Now, OutputAttri,outputSize)
         }
     } else if (whichsort%whichSide%="oldNew") {
         rowNums:=LV_GetCount()
-        insertRow(whichSide, OutFileName, rowNums+1, A_Now, OutputAttri,outputSize)
+        ; insertRow(whichSide, OutFileName, rowNums+1, A_Now, OutputAttri,outputSize)
+        insertRowNum:=rowNums+1
     } else if (whichsort%whichSide%="bigSmall") {
         for k, v in sortedBySize%whichSide% {
             if (k>maxRows)
                 break
             if (v=OutFileName) {
-                insertRow(whichSide, OutFileName, k, A_Now, OutputAttri,outputSize)
+                insertRowNum:=k
+                ; insertRow(whichSide, OutFileName, k, A_Now, OutputAttri,outputSize)
             }
         }
     } else if (whichsort%whichSide%="smallBig") {
@@ -1289,10 +1305,13 @@ fileAdded(whichSide, Byref path) {
             if (k>maxRows)
                 break
             if (v=OutFileName) {
-                insertRow(whichSide, OutFileName, k, A_Now, OutputAttri,outputSize)
+                insertRowNum:=k
+                ; insertRow(whichSide, OutFileName, k, A_Now, OutputAttri,outputSize)
             }
         }
     }
+    insertRow(whichSide, OutFileName, insertRowNum, A_Now, OutputAttri,outputSize)
+    
 }
 fileDeleted(whichSide, Byref path)
 {
@@ -2217,8 +2236,8 @@ renderCurrentDir()
         stopSizes:=false
         
         if (lastDir%whichSide%!=EcurrentDir%whichSide%) {
-            otherSide:=(whichSide=1) ? 2 : 1
-            if (lastDir%whichSide%!=EcurrentDir%otherSide%) {
+            if (!bothSameDir()) {
+                p(lastDir%whichSide%)
                 stopWatchFolder(lastDir%whichSide%) 
             }
             startWatchFolder(EcurrentDir%whichSide%)
