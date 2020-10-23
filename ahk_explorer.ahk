@@ -751,30 +751,30 @@ listViewEvents2:
                 sortColumn(2, "SortDesc")
             }
         } else if (A_EventInfo=3)  {
-            if (!newOld)
+            if (!oldNew%whichSide%)
             {   
-                whichsort:="newOld"
-                newOld:=true    
+                whichsort%whichSide%:="oldNew"
+                oldNew%whichSide%:=true    
                 renderFunctionsToSort(sortedByDate%whichSide%, true)
                 ; sortColumn(4, "SortDesc")
             } else {
-                whichsort:="oldNew"
-                newOld:=false    
+                whichsort%whichSide%:="newOld"
+                oldNew%whichSide%:=false    
                 renderFunctionsToSort(sortedByDate%whichSide%)
                 ; sortColumn(4, "Sort")
             }
         } else if (A_EventInfo=5) {
             if (canSortBySize%whichSide%) {
-                if (!bigSmall)
+                if (!bigSmall%whichSide%)
                 {   
-                    whichsort:="bigSmall"
-                    bigSmall:=true    
+                    whichsort%whichSide%:="bigSmall"
+                    bigSmall%whichSide%:=true    
                     renderFunctionsToSort(sortedBySize%whichSide%)
                     
                     ; sortColumn(6, "SortDesc")
                 } else {
-                    whichsort:="smallBig"
-                    bigSmall:=false    
+                    whichsort%whichSide%:="smallBig"
+                    bigSmall%whichSide%:=false    
                     renderFunctionsToSort(sortedBySize%whichSide%, true)
                     ; sortColumn(6, "Sort")
                 }
@@ -1221,7 +1221,8 @@ Watch2(Folder, Changes) {
 
 fileAdded(whichSide, Byref path) {
     global
-    return
+    Gui, main:Default
+    Gui, ListView, vlistView%whichSide%
     SplitPath, path, OutFileName
     sortWithAr%whichSide%:=[]
     
@@ -1235,24 +1236,148 @@ fileAdded(whichSide, Byref path) {
         sortWithAr%whichSide%.Push({name:value, size:stuffByName%whichSide%[value]["size"]})
     }
     sortWithAr%whichSide%.Push({name:OutFileName, size:outputSize})
-    sortArrayByArray(sizesCopy%whichSide%,sortWithAr%whichSide%,true,"date")
+    sizesCopy%whichSide%:=sortArrayByArray(sizesCopy%whichSide%,sortWithAr%whichSide%,true,"size")
     sortedBySize%whichSide%:=sizesCopy%whichSide%
-    
-        calculateStuff(v["date"],v["attri"],v["size"],name,A_Index)
-        LV_Add(,,name,var1,var2,formattedBytes,bytes)
-        LV_Colors.Cell(ListviewHwnd%whichSide%,A_Index,3,color)
-        namesForIcons%whichSide%.Push(name)
-
-    if (focused="searchCurrentDirEdit" or focused="listViewInSearch") {
-        Gui, main:Default
-        Gui, ListView, vlistView%whichSide%
-        LV_Add(, 42342342, 45354,535345)
+    if (whichsort%whichSide%="newOld") {
+        if (focused="searchCurrentDirEdit" or focused="listViewInSearch") {
+            if (SubStr(searchString%whichSide%, 1, 1)!=".") {
+                counter:=0
+                objectToSort:=[]
+                for k,v in sortedByDate%whichSide% {
+                    if (counter>maxRows)
+                        break
+                    SplitPath, v,,,, OutNameNoExt
+                    pos:=InStr(OutNameNoExt, searchString%whichSide%)
+                    if (pos) {
+                        counter++
+                        objectToSort.Push({name:v,pos:pos})
+                    }
+                }
+                objectToSort:=ObjectSort(objectToSort,"pos")
+                
+                for k,v in objectToSort {
+                    name:=v["name"]
+                    if (name=OutFileName) {
+                        insertRow(whichSide, OutFileName, k, A_Now, OutputAttri,outputSize)
+                        
+                        ; obj:=stuffByName%whichSide%[name]
+                        ; calculateStuff(obj["date"],obj["attri"],obj["size"],name,k)
+                        ; 
+                        ; LV_Insert(k,,,name,var1,var2,formattedBytes,bytes)
+                        ; LV_Colors.Cell(ListviewHwnd%whichSide%,k,3,color)
+                        ; namesForIcons%whichSide%.Push(name)
+                    }
+                }
+            } else {
+                searchFoldersOnly:=(searchString%whichSide%=".") ? true : false
+                if (searchFoldersOnly) {
+                    counter:=0
+                    for k,v in sortedByDate%whichSide% {
+                        if (v=OutFileName) {
+                            if (counter>maxRows)
+                                break
+                            SplitPath, v,,, OutExtension
+                            if (!OutExtension) {
+                                ; obj:=stuffByName%whichSide%[v]
+                                ; calculateStuff(obj["date"],obj["attri"],obj["size"],v,k)
+                                ; LV_Add(,,v,var1,var2,formattedBytes,bytes)
+                                ; LV_Colors.Cell(ListviewHwnd%whichSide%,k,3,color)
+                                ; namesForIcons%whichSide%.Push(v)
+                                
+                                insertRow(whichSide, OutFileName, k, A_Now, OutputAttri,outputSize)
+                            }
+                        }
+                    }
+                } else {
+                    searchStringBak%whichSide%:=SubStr(searchString%whichSide%, 2)
+                    counter:=0
+                    objectToSort:=[]
+                    for k,v in sortedByDate%whichSide% {
+                        if (counter>maxRows)
+                            break
+                        SplitPath, v,,, OutExtension
+                        pos:=InStr(OutExtension, searchStringBak%whichSide%)
+                        if (pos) {
+                            counter++
+                            objectToSort.Push({name:v,pos:pos})
+                        }
+                    }
+                    objectToSort:=ObjectSort(objectToSort,"pos")
+                    for k,v in objectToSort {
+                        name:=v["name"]
+                        if (name=OutFileName) {
+                            ; obj:=stuffByName%whichSide%[name]
+                            ; 
+                            ; calculateStuff(obj["date"],obj["attri"],obj["size"],name,k)
+                            ; 
+                            ; LV_Add(,,name,var1,var2,formattedBytes,bytes)
+                            ; LV_Colors.Cell(ListviewHwnd%whichSide%,k,3,color)
+                            ; namesForIcons%whichSide%.Push(name)
+                            
+                            insertRow(whichSide, OutFileName, k, A_Now, OutputAttri,outputSize)
+                            
+                        }
+                    }
+                }
+                
+            }
+        } else {
+            insertRow(whichSide, OutFileName, 1, A_Now, OutputAttri,outputSize)
+        }
+    } else if (whichsort%whichSide%="oldNew") {
+        rowNums:=LV_GetCount()
+        insertRow(whichSide, OutFileName, rowNums+1, A_Now, OutputAttri,outputSize)
+    } else if (whichsort%whichSide%="bigSmall") {
+        for k, v in sortedBySize%whichSide% {
+            if (k>maxRows)
+                break
+            if (v=OutFileName) {
+                insertRow(whichSide, OutFileName, k, A_Now, OutputAttri,outputSize)
+            }
+        }
+    } else if (whichsort%whichSide%="smallBig") {
+        lengthAddedOne:=sortedBySize%whichSide%.Length()+1
+        for k in sortedBySize%whichSide% {
+            v:=sortedBySize%whichSide%[lengthAddedOne-k]
+            if (k>maxRows)
+                break
+            if (v=OutFileName) {
+                insertRow(whichSide, OutFileName, k, A_Now, OutputAttri,outputSize)
+            }
+        }
     }
-    ; searchInCurrentDir()
-    ; stuffByName
-    ; unsorted
-    ; sortedByDate
-    ; sortedBySize
+    
+}
+
+; if (focused="searchCurrentDirEdit" or focused="listViewInSearch") {
+; Gui, main:Default
+; Gui, ListView, vlistView%whichSide%
+; LV_Add(, 42342342, 45354,535345)
+; }
+; searchInCurrentDir()
+; stuffByName
+; unsorted
+; sortedByDate
+; sortedBySize
+
+insertRow(byref whichSide,byref name,byref row,byref date,byref attri,byref size)
+{
+    global
+    calculateStuff(date,attri,size,name,row)
+    LV_Insert(row,,,name,var1,var2,formattedBytes,bytes)
+        LV_Colors.Cell(ListviewHwnd%whichSide%,row,3,color)
+    
+    hIcon := DllCall("Shell32\ExtractAssociatedIcon", UInt, 0, Str, EcurrentDir%whichSide% "\" name , UShortP, iIndex)
+    if hIcon
+    {
+        IconNumber := DllCall("ImageList_ReplaceIcon", UInt, ImageListID%whichSide%, Int, -1, UInt, hIcon) + 1
+        DllCall("DestroyIcon", Uint, hIcon)
+    }
+    else
+        IconNumber = 1
+    
+    LV_Modify(row,"Icon" . IconNumber)
+        lastIconNumber:=IconNumber
 }
 
 pasteFile()
@@ -1970,7 +2095,6 @@ searchInCurrentDir() {
         Gui, main:Default
         Gui, ListView, vlistView%whichSide%
         
-        arrLength:=stuffByName.Length()
         ignoreOut:=true
         objectToSort:=[]
         namesForIcons%whichSide%:=[]
@@ -2114,10 +2238,6 @@ renderCurrentDir()
         EcurrentDir%whichSide%:=SubStr(EcurrentDir%whichSide%, 1, StrLen(EcurrentDir%whichSide%)-1)
     Gui, ListView, vlistView%whichSide%
     
-    ; LV_ModifyCol(2,50 AlignmentRight)
-    ; GuiControl -NA, listView
-    ; GuiControl, Focus, listView ;bad code
-    
     currentDirSearch:=""
     if (InStr(fileExist(EcurrentDir%whichSide%), "D"))
     {
@@ -2185,6 +2305,8 @@ renderCurrentDir()
         ; p(stuffByName[v]["date"])
         ; }
         firstSizes%whichSide%:=true
+        whichsort%whichSide%:="newOld"
+        oldNew%whichSide%:=false    
         renderFunctionsToSort(sortedByDate%whichSide%)
         Gui, ListView, folderlistView2_%whichSide%
         LV_Delete()
