@@ -341,7 +341,6 @@ createLabel:
         } else {
             Gui, main:Default
             SoundPlay, *-1
-            renderCurrentDir()
         }
     } else {
         SoundPlay, *16
@@ -363,7 +362,6 @@ createAndOpenLabel:
             EcurrentDir%whichSide%:=toCreate
             Gui, main:Default
             SoundPlay, *-1
-            renderCurrentDir()
         }
     } else {
         SoundPlay, *16
@@ -396,43 +394,6 @@ folderlistViewEvents2_2:
         EcurrentDir%whichSide%:=parent%whichParent%DirDirs%whichSide%[A_EventInfo]
         renderCurrentDir()
     }
-return
-; folderlistViewEvents2_1:
-whichSide:=1
-Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
-
-if (A_GuiEvent="ColClick")
-{
-    EcurrentDir%whichSide%:=parent1Dir%whichSide%
-    renderCurrentDir()
-} else if (A_GuiEvent = "DoubleClick") {
-    EcurrentDir%whichSide%:=parent1DirDirs%whichSide%[A_EventInfo]
-    renderCurrentDir()
-}
-return
-; folderlistViewEvents1_2:
-whichSide:=2
-Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
-if (A_GuiEvent="ColClick")
-{
-    EcurrentDir%whichSide%:=parent2Dir%whichSide%
-    renderCurrentDir()
-} else if (A_GuiEvent = "DoubleClick") {
-    EcurrentDir%whichSide%:=parent2DirDirs%whichSide%[A_EventInfo]
-    renderCurrentDir()
-}
-return
-; folderlistViewEvents2_2:
-whichSide:=2
-Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
-if (A_GuiEvent="ColClick")
-{
-    EcurrentDir%whichSide%:=parent1Dir%whichSide%
-    renderCurrentDir()
-} else if (A_GuiEvent = "DoubleClick") {
-    EcurrentDir%whichSide%:=parent1DirDirs%whichSide%[A_EventInfo]
-    renderCurrentDir()
-}
 return
 currentDirEdit1Changed:
 currentDirEdit2Changed:
@@ -1259,13 +1220,6 @@ fileAdded(whichSide, Byref path) {
                     name:=v["name"]
                     if (name=OutFileName) {
                         insertRow(whichSide, OutFileName, k, A_Now, OutputAttri,outputSize)
-                        
-                        ; obj:=stuffByName%whichSide%[name]
-                        ; calculateStuff(obj["date"],obj["attri"],obj["size"],name,k)
-                        ; 
-                        ; LV_Insert(k,,,name,var1,var2,formattedBytes,bytes)
-                        ; LV_Colors.Cell(ListviewHwnd%whichSide%,k,3,color)
-                        ; namesForIcons%whichSide%.Push(name)
                     }
                 }
             } else {
@@ -1278,12 +1232,6 @@ fileAdded(whichSide, Byref path) {
                                 break
                             SplitPath, v,,, OutExtension
                             if (!OutExtension) {
-                                ; obj:=stuffByName%whichSide%[v]
-                                ; calculateStuff(obj["date"],obj["attri"],obj["size"],v,k)
-                                ; LV_Add(,,v,var1,var2,formattedBytes,bytes)
-                                ; LV_Colors.Cell(ListviewHwnd%whichSide%,k,3,color)
-                                ; namesForIcons%whichSide%.Push(v)
-                                
                                 insertRow(whichSide, OutFileName, k, A_Now, OutputAttri,outputSize)
                             }
                         }
@@ -1306,16 +1254,7 @@ fileAdded(whichSide, Byref path) {
                     for k,v in objectToSort {
                         name:=v["name"]
                         if (name=OutFileName) {
-                            ; obj:=stuffByName%whichSide%[name]
-                            ; 
-                            ; calculateStuff(obj["date"],obj["attri"],obj["size"],name,k)
-                            ; 
-                            ; LV_Add(,,name,var1,var2,formattedBytes,bytes)
-                            ; LV_Colors.Cell(ListviewHwnd%whichSide%,k,3,color)
-                            ; namesForIcons%whichSide%.Push(name)
-                            
                             insertRow(whichSide, OutFileName, k, A_Now, OutputAttri,outputSize)
-                            
                         }
                     }
                 }
