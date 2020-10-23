@@ -206,7 +206,7 @@ gmultiRenameApply:
     } else {
         Gui, Destroy
         setWhichSideFromDir(multiRenameDir)
-        renderCurrentDir()
+        renderCurrentDir() ;refresh
     }
 return
 gmultiRenamePreview:
@@ -251,6 +251,7 @@ TypingInRenameSimple:
 return
 grenameFileLabel:
     fromButton:=true
+    ;renameLabel
 renameFileLabel:
     if (canRename) {
         canRename:=false
@@ -585,12 +586,13 @@ listViewEvents2:
                 
                 indexes:=[]
                 selectedNames:=[]
+                index:=0
                 loop {
-                    index:=LV_GetNext(0)
+                    index:=LV_GetNext(index)
                     LV_GetText(OutputVar,index,2)
                     if (!index)
                         break
-                    LV_Delete(index)
+                    ; LV_Delete(index)
                     selectedNames.Push(OutputVar)
                 }
                 gosub, selectCurrent
@@ -645,7 +647,7 @@ listViewEvents2:
                             files:=array_ToSpacedString(getSelectedPaths()) 
                             runwait, "%peazipPath%" -add2archive %files%
                             soundplay, *-1
-                            renderCurrentDir()   
+                            renderCurrentDir() ;refresh 
                             return
                         } else if (key="v") {
                             ; if (whichSide=1) {
@@ -1166,6 +1168,8 @@ Watch1(Folder, Changes) {
     For Each, Change In Changes {
         if (Change.Action=1) {
             fileAdded(1, Change.Name)
+        } else if (Change.Action=2) {
+            fileDeleted(1, Change.Name)
         }
     }
     ; p(TickCount, Folder, Actions[Change.Action], Change.Name, Change.IsDir, Change.OldName)
@@ -1175,6 +1179,8 @@ Watch2(Folder, Changes) {
     For Each, Change In Changes {
         if (Change.Action=1) {
             fileAdded(2, Change.Name)
+        } else if (Change.Action=2) {
+            fileDeleted(2, Change.Name)
         }
     }
     ; p(TickCount, Folder, Actions[Change.Action], Change.Name, Change.IsDir, Change.OldName)
@@ -1285,7 +1291,33 @@ fileAdded(whichSide, Byref path) {
             }
         }
     }
+}
+fileDeleted(whichSide, Byref path)
+{
+    global
+    Gui, main:Default
+    Gui, ListView, vlistView%whichSide%
+    SplitPath, path, OutFileName
     
+    rowNums:=LV_GetCount()
+    loop % rowNums {
+        LV_GetText(OutputVar,A_Index,2)
+        if (OutputVar=OutFileName) {
+            LV_Delete(A_Index)
+            
+            stuffByName%whichSide%.Delete(OutFileName)
+            
+            for k, v in sortedByDate%whichSide% {
+                if (v=OutFileName)
+                    sortedByDate%whichSide%.Remove(k)
+            }
+            for k, v in sortedBySize%whichSide% {
+                if (v=OutFileName)
+                    sortedBySize%whichSide%.Remove(k)
+            }
+            break
+        }
+    }
 }
 
 ; if (focused="searchCurrentDirEdit" or focused="listViewInSearch") {
@@ -1342,7 +1374,7 @@ pasteFile()
                         }
                     }
                 }
-                renderCurrentDir()
+                ; renderCurrentDir()x
                 SoundPlay, *-1
             }
             ; action:="copy"
@@ -1369,7 +1401,7 @@ pasteFile()
                             }
                         }
                     }
-                    renderCurrentDir()
+                    renderCurrentDir() ;refresh
                     
                     if (fromOtherSide) {
                         sideBak:=whichSide
