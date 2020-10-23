@@ -398,41 +398,41 @@ folderlistViewEvents2_2:
     }
 return
 ; folderlistViewEvents2_1:
-    whichSide:=1
-    Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
-    
-    if (A_GuiEvent="ColClick")
-    {
-        EcurrentDir%whichSide%:=parent1Dir%whichSide%
-        renderCurrentDir()
-    } else if (A_GuiEvent = "DoubleClick") {
-        EcurrentDir%whichSide%:=parent1DirDirs%whichSide%[A_EventInfo]
-        renderCurrentDir()
-    }
+whichSide:=1
+Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
+
+if (A_GuiEvent="ColClick")
+{
+    EcurrentDir%whichSide%:=parent1Dir%whichSide%
+    renderCurrentDir()
+} else if (A_GuiEvent = "DoubleClick") {
+    EcurrentDir%whichSide%:=parent1DirDirs%whichSide%[A_EventInfo]
+    renderCurrentDir()
+}
 return
 ; folderlistViewEvents1_2:
-    whichSide:=2
-    Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
-    if (A_GuiEvent="ColClick")
-    {
-        EcurrentDir%whichSide%:=parent2Dir%whichSide%
-        renderCurrentDir()
-    } else if (A_GuiEvent = "DoubleClick") {
-        EcurrentDir%whichSide%:=parent2DirDirs%whichSide%[A_EventInfo]
-        renderCurrentDir()
-    }
+whichSide:=2
+Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
+if (A_GuiEvent="ColClick")
+{
+    EcurrentDir%whichSide%:=parent2Dir%whichSide%
+    renderCurrentDir()
+} else if (A_GuiEvent = "DoubleClick") {
+    EcurrentDir%whichSide%:=parent2DirDirs%whichSide%[A_EventInfo]
+    renderCurrentDir()
+}
 return
 ; folderlistViewEvents2_2:
-    whichSide:=2
-    Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
-    if (A_GuiEvent="ColClick")
-    {
-        EcurrentDir%whichSide%:=parent1Dir%whichSide%
-        renderCurrentDir()
-    } else if (A_GuiEvent = "DoubleClick") {
-        EcurrentDir%whichSide%:=parent1DirDirs%whichSide%[A_EventInfo]
-        renderCurrentDir()
-    }
+whichSide:=2
+Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
+if (A_GuiEvent="ColClick")
+{
+    EcurrentDir%whichSide%:=parent1Dir%whichSide%
+    renderCurrentDir()
+} else if (A_GuiEvent = "DoubleClick") {
+    EcurrentDir%whichSide%:=parent1DirDirs%whichSide%[A_EventInfo]
+    renderCurrentDir()
+}
 return
 currentDirEdit1Changed:
 currentDirEdit2Changed:
@@ -742,22 +742,23 @@ listViewEvents2:
                 sortColumn(1, "Sort")
             }
         } else if (A_EventInfo=2) {
-            if (!z_ASort)
+            if (!A_ZSort)
             {   
-                z_ASort:=true
-                sortColumn(2, "SortDesc")
-            } else {
-                z_ASort:=false    
+                A_ZSort:=true
                 sortColumn(2, "Sort")
+            } else {
+                A_ZSort:=false    
+                sortColumn(2, "SortDesc")
             }
         } else if (A_EventInfo=3)  {
             if (!newOld)
             {   
+                whichsort:="newOld"
                 newOld:=true    
-                
                 renderFunctionsToSort(sortedByDate%whichSide%, true)
                 ; sortColumn(4, "SortDesc")
             } else {
+                whichsort:="oldNew"
                 newOld:=false    
                 renderFunctionsToSort(sortedByDate%whichSide%)
                 ; sortColumn(4, "Sort")
@@ -766,11 +767,13 @@ listViewEvents2:
             if (canSortBySize%whichSide%) {
                 if (!bigSmall)
                 {   
+                    whichsort:="bigSmall"
                     bigSmall:=true    
                     renderFunctionsToSort(sortedBySize%whichSide%)
                     
                     ; sortColumn(6, "SortDesc")
                 } else {
+                    whichsort:="smallBig"
                     bigSmall:=false    
                     renderFunctionsToSort(sortedBySize%whichSide%, true)
                     ; sortColumn(6, "Sort")
@@ -1218,26 +1221,34 @@ Watch2(Folder, Changes) {
 
 fileAdded(whichSide, Byref path) {
     global
+    return
+    SplitPath, path, OutFileName
     sortWithAr%whichSide%:=[]
     
-    FileGetSize, outputSize, v
-    FileGetAttrib, OutputAttri , v
-    
-    stuffByName%whichSide%[v]:={date:A_Now,attri:OutputAttri,size:outputSize}
-    sortedByDate%whichSide%.InsertAt(1,v)
-    p(sortedBySize%whichSide%)
+    FileGetSize, outputSize, %path%
+    FileGetAttrib, OutputAttri , %path%
+    stuffByName%whichSide%[OutFileName]:={date:A_Now,attri:OutputAttri,size:outputSize}
+    sortedByDate%whichSide%.InsertAt(1,OutFileName)
     sizesCopy%whichSide%:=A.Clone(sortedBySize%whichSide%)
-    sizesCopy%whichSide%.Push(v)
+    sizesCopy%whichSide%.Push(OutFileName)
     for key, value in sortedBySize%whichSide% {
         sortWithAr%whichSide%.Push({name:value, size:stuffByName%whichSide%[value]["size"]})
     }
-    sortWithAr%whichSide%.Push({name:v, size:outputSize})
-    p("length " sizesCopy%whichSide%.Length() "|" sortWithAr%whichSide%.Length())
+    sortWithAr%whichSide%.Push({name:OutFileName, size:outputSize})
     sortArrayByArray(sizesCopy%whichSide%,sortWithAr%whichSide%,true,"date")
-    
-    
     sortedBySize%whichSide%:=sizesCopy%whichSide%
     
+        calculateStuff(v["date"],v["attri"],v["size"],name,A_Index)
+        LV_Add(,,name,var1,var2,formattedBytes,bytes)
+        LV_Colors.Cell(ListviewHwnd%whichSide%,A_Index,3,color)
+        namesForIcons%whichSide%.Push(name)
+
+    if (focused="searchCurrentDirEdit" or focused="listViewInSearch") {
+        Gui, main:Default
+        Gui, ListView, vlistView%whichSide%
+        LV_Add(, 42342342, 45354,535345)
+    }
+    ; searchInCurrentDir()
     ; stuffByName
     ; unsorted
     ; sortedByDate
@@ -1558,11 +1569,11 @@ renderFunctionsToSort(ByRef objectToSort, reverse:=false)
                 lastIconNumber:=IconNumber
             ; lastIconNumber:=IconNumber
         }
-        calculateStuff(v["date"],v["attri"],v["size"],name,A_Index)
         if (name=toFocus)
         {
             rowToFocus:=A_Index
         }
+        calculateStuff(v["date"],v["attri"],v["size"],name,A_Index)
         LV_Add(,,name,var1,var2,formattedBytes,bytes)
             ; LV_Add("Icon" . IconNumber,,name,var1,var2,formattedBytes,bytes)
         LV_Colors.Cell(ListviewHwnd%whichSide%,A_Index,3,color)
@@ -2621,8 +2632,8 @@ return
 
 return
 
-; $`::
-p(focused)
+$`::
+    p(focused)
 Return
 
 $^+r::
