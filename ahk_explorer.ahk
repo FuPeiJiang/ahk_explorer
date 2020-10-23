@@ -380,19 +380,24 @@ favoritesListViewEvents:
 return
 
 folderlistViewEvents1_1:
-    whichSide:=1
+folderlistViewEvents2_1:
+folderlistViewEvents1_2:
+folderlistViewEvents2_2:
+    whichSide:=SubStr(A_GuiControl, 0)
+    num:=SubStr(A_GuiControl, 15, 1)
+    whichParent:=(num=1) ? 2 : 1
     Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
     
     if (A_GuiEvent="ColClick")
     {
-        EcurrentDir%whichSide%:=parent2Dir%whichSide%
+        EcurrentDir%whichSide%:=parent%whichParent%Dir%whichSide%
         renderCurrentDir()
     } else if (A_GuiEvent = "DoubleClick") {
-        EcurrentDir%whichSide%:=parent2DirDirs%whichSide%[A_EventInfo]
+        EcurrentDir%whichSide%:=parent%whichParent%DirDirs%whichSide%[A_EventInfo]
         renderCurrentDir()
     }
 return
-folderlistViewEvents2_1:
+; folderlistViewEvents2_1:
     whichSide:=1
     Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
     
@@ -405,7 +410,7 @@ folderlistViewEvents2_1:
         renderCurrentDir()
     }
 return
-folderlistViewEvents1_2:
+; folderlistViewEvents1_2:
     whichSide:=2
     Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
     if (A_GuiEvent="ColClick")
@@ -417,7 +422,7 @@ folderlistViewEvents1_2:
         renderCurrentDir()
     }
 return
-folderlistViewEvents2_2:
+; folderlistViewEvents2_2:
     whichSide:=2
     Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
     if (A_GuiEvent="ColClick")
@@ -1169,7 +1174,6 @@ COM_CoUninitialize()
     DllCall("ole32\CoUninitialize")
 }
 
-
 startWatchFolder(WatchedFolder)
 {
     global
@@ -1214,24 +1218,30 @@ Watch2(Folder, Changes) {
 
 fileAdded(whichSide, Byref path) {
     global
-return
-sortWithAr%whichSide%:=[]
-
-FileGetSize, outputSize, v
-FileGetAttrib, OutputAttri , v
-
-stuffByName%whichSide%[v]:={date:A_Now,attri:OutputAttri,size:outputSize}
-sortedByDate%whichSide%.InsertAt(1,v)
-sizesCopy:=sortedBySize%whichSide%.Clone()
-for k, v in sortedBySize%whichSide% {
-    sortWithAr.Push({name:v, size:stuffByName%whichSide%[v]["size"]})
-}
-sortArrayByArray(unsorted%whichSide%,sortWithAr%whichSide%,true,"date")
-
-; stuffByName
-; unsorted
-; sortedByDate
-; sortedBySize
+    sortWithAr%whichSide%:=[]
+    
+    FileGetSize, outputSize, v
+    FileGetAttrib, OutputAttri , v
+    
+    stuffByName%whichSide%[v]:={date:A_Now,attri:OutputAttri,size:outputSize}
+    sortedByDate%whichSide%.InsertAt(1,v)
+    p(sortedBySize%whichSide%)
+    sizesCopy%whichSide%:=A.Clone(sortedBySize%whichSide%)
+    sizesCopy%whichSide%.Push(v)
+    for key, value in sortedBySize%whichSide% {
+        sortWithAr%whichSide%.Push({name:value, size:stuffByName%whichSide%[value]["size"]})
+    }
+    sortWithAr%whichSide%.Push({name:v, size:outputSize})
+    p("length " sizesCopy%whichSide%.Length() "|" sortWithAr%whichSide%.Length())
+    sortArrayByArray(sizesCopy%whichSide%,sortWithAr%whichSide%,true,"date")
+    
+    
+    sortedBySize%whichSide%:=sizesCopy%whichSide%
+    
+    ; stuffByName
+    ; unsorted
+    ; sortedByDate
+    ; sortedBySize
 }
 
 pasteFile()
@@ -1458,6 +1468,8 @@ applySizes() {
         Run, "%A_AhkPath%" "lib\getFolderSizes.ahk" %namesStr%,,,PID_getFolderSizes
     } else {
         Process, Close, %PID_getFolderSizes%
+        sortedBySize%whichSide%:=sortArrayByArray(unsorted%whichSide%,stuffByName%whichSide%,true,"size")
+        canSortBySize%whichSide%:=true
     }
 }
 applyIcons(byref names) {
@@ -1497,10 +1509,12 @@ renderFunctionsToSort(ByRef objectToSort, reverse:=false)
     if (reverse) {
         startPos:=length
         inc:=-1
+        reverseSort:=true
     }
     else {
         startPos:=1
         inc:=1
+        reverseSort:=false
     }
     namesForIcons%whichSide%:=[]
         namesForSizes%whichSide%:=[]
@@ -2491,9 +2505,9 @@ return
 ; revealFileInExplorer(EcurrentDir%whichSide%, getSelectedNames())
 path:=getSelectedPaths()[1]
 if (path) {
-Run, % "explorer.exe /select,""" path """"
+    Run, % "explorer.exe /select,""" path """"
 } else {
-Run, % "explorer.exe """ EcurrentDir%whichSide% """"
+    Run, % "explorer.exe """ EcurrentDir%whichSide% """"
 }
 return
 
@@ -2604,7 +2618,7 @@ $\::
 return
 
 ; tab::
-    
+
 return
 
 ; $`::
