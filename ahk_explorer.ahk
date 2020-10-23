@@ -1119,8 +1119,8 @@ bothSameDir()
 {
     global
     otherSide:=(whichSide=1) ? 2 : 1
-    if (lastDir%whichSide%=EcurrentDir%otherSide%)
-        return true
+    if (EcurrentDir%whichSide%=EcurrentDir%otherSide%)
+        return otherSide
 return false
 }
 
@@ -1203,7 +1203,6 @@ fileAdded(whichSide, Byref path) {
     Gui, ListView, vlistView%whichSide%
     SplitPath, path, OutFileName
     sortWithAr%whichSide%:=[]
-    bothSameDir:=bothSameDir()
     insertRowNum:=1
     FileGetSize, outputSize, %path%
     FileGetAttrib, OutputAttri , %path%
@@ -1237,7 +1236,7 @@ fileAdded(whichSide, Byref path) {
                 for k,v in objectToSort {
                     name:=v["name"]
                     if (name=OutFileName) {
-                            insertRowNum:=k
+                        insertRowNum:=k
                         ; insertRow(whichSide, OutFileName, k, A_Now, OutputAttri,outputSize)
                     }
                 }
@@ -1251,7 +1250,7 @@ fileAdded(whichSide, Byref path) {
                                 break
                             SplitPath, v,,, OutExtension
                             if (!OutExtension) {
-                            insertRowNum:=k
+                                insertRowNum:=k
                                 ; insertRow(whichSide, OutFileName, k, A_Now, OutputAttri,outputSize)
                                 
                             }
@@ -1311,6 +1310,13 @@ fileAdded(whichSide, Byref path) {
         }
     }
     insertRow(whichSide, OutFileName, insertRowNum, A_Now, OutputAttri,outputSize)
+    bothSameDir:=bothSameDir()
+    if (bothSameDir) {
+        p(bothSameDir)
+        insertRow(bothSameDir, OutFileName, insertRowNum, A_Now, OutputAttri,outputSize)
+        
+    }
+    
     
 }
 fileDeleted(whichSide, Byref path)
@@ -1395,7 +1401,7 @@ pasteFile()
                         }
                     }
                 }
-                ; renderCurrentDir()x
+                ; renderCurrentDir()
                 SoundPlay, *-1
             }
             ; action:="copy"
@@ -2235,12 +2241,16 @@ renderCurrentDir()
     {
         stopSizes:=false
         
-        if (lastDir%whichSide%!=EcurrentDir%whichSide%) {
+        if (lastDir%whichSide%!=EcurrentDir%whichSide% ) {
             if (!bothSameDir()) {
-                p(lastDir%whichSide%)
+                if (lastDir%whichSide%!="") {
+                    p(stop)
                 stopWatchFolder(lastDir%whichSide%) 
+                }
+                startWatchFolder(EcurrentDir%whichSide%)
             }
-            startWatchFolder(EcurrentDir%whichSide%)
+            
+            
             if (lastDir%whichSide%!="" and !cannotDirHistory%whichSide%) {
                 dirHistory%whichSide%.Push(lastDir%whichSide%)
             }
