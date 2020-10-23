@@ -15,7 +15,8 @@ FileRead, vscodePath, %A_AppData%\ahk_explorer_settings\vscodePath.txt
 FileRead, BGColorOfSelectedPane, %A_AppData%\ahk_explorer_settings\BGColorOfSelectedPane.txt
 FileRead, BGColorOfSelectedPane, %A_AppData%\ahk_explorer_settings\BGColorOfSelectedPane.txt
 
-EcurrentDir1=C:\Users\User\Downloads
+EcurrentDir1=C:\Users\Public\AHK\notes\tests\File Watcher
+; EcurrentDir1=C:\Users\User\Downloads
 EcurrentDir2=C:\Users\Public\AHK
 whichSide:=1
 fileExist:=fileExist(EcurrentDir%whichSide%)
@@ -682,26 +683,26 @@ listViewEvents2:
                             return
                         } else if (key="v") {
                             ; if (whichSide=1) {
-; 
-; gosub, selectPanel2
+                            ; 
+                            ; gosub, selectPanel2
                             ; } else {
-; gosub, selectPanel1
+                            ; gosub, selectPanel1
                             ; }
                             gui, main:default
                             whichSideBak:=whichSide
                             whichSide:=(whichSide=1) ? 2 : 1
                             Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
- ; sleep, 1000
+                            ; sleep, 1000
                             GuiControl, Focus, vlistView%whichSide% ;bad code
                             ControlFocus,, % "ahk_id " ListviewHwnd%whichSide%
                             GuiControl, +Background%BGColorOfSelectedPane%, vlistView%whichSide%
                             GuiControl, +BackgroundWhite, vlistView%whichSideBak%
-
-
+                            
+                            
                             ; p(whichSide)
-                                        ControlFocus,, % "ahk_id " ListviewHwnd%whichSide%
-            Gui, ListView, vlistView%whichSide%
-            
+                            ControlFocus,, % "ahk_id " ListviewHwnd%whichSide%
+                            Gui, ListView, vlistView%whichSide%
+                            
                             pasteFile()
                             return
                             
@@ -1139,12 +1140,105 @@ Return DllCall("Comctl32.dll\DefSubclassProc", "Ptr", H, "UInt", M, "Ptr", W, "P
 }
 ; ======================================================================================================================
 ;start of functions start
+revealFileInExplorer(folderPath, files)
+{
+    COM_CoUninitialize()
+    COM_CoInitialize()
+    DllCall("shell32\SHParseDisplayName", "Wstr", folderPath, "Uint", 0, "Ptr*", pidl, "Uint", 0, "Uint", 0)
+    DllCall("shell32\SHBindToObject","Ptr",0,"Ptr",pidl,"Ptr",0,"Ptr",GUID4String(IID_IShellFolder,"{000214E6-0000-0000-C000-000000000046}"),"Ptr*",pIShellFolder)
+    length:=files.Length()
+    VarSetCapacity(apidl, length * A_PtrSize, 0)
+    for k, v in files {
+        ;IShellFolder:ParseDisplayName 
+        DllCall(VTable(pIShellFolder,3),"Ptr", pIShellFolder,"Ptr",win_hwnd,"Ptr",0,"Wstr",v,"Uint*",0,"Ptr*",tmpPIDL,"Uint*",0)
+        NumPut(tmpPIDL, apidl, (k - 1)*A_PtrSize, "Ptr")
+    }
+    ; DllCall(140733176445120, "Ptr", pidl, "UINT", length, "Ptr", &apidl, "Uint", 0)
+    DllCall("shell32\SHOpenFolderAndSelectItems", "Ptr", pidl, "UINT", length, "Ptr", &apidl, "Uint", 0)
+    
+    ; "Uint",length,"Ptr",&apidl,"Ptr",GUID4String(IID_IContextMenu,"{000214E4-0000-0000-C000-000000000046}"),"UINT*",0,"Ptr*",pIContextMenu)
+    COM_CoUninitialize()
+}
+COM_CoInitialize()
+{
+Return	DllCall("ole32\CoInitialize", "Uint", 0)
+}
+
+COM_CoUninitialize()
+{
+    DllCall("ole32\CoUninitialize")
+}
+
+
+startWatchFolder(WatchedFolder)
+{
+    global
+    If !WatchFolder(WatchedFolder, "Watch" whichSide, 0, 3) { ;files and folders
+        MsgBox, 0, Error, Call of WatchFolder() failed!
+        Return
+    }
+}
+stopWatchFolder(WatchedFolder) 
+{
+    global
+    WatchFolder(WatchedFolder, "**DEL")
+}
+pauseWatchFolder(WatchedFolder) 
+{
+    global
+    WatchFolder("**PAUSE", True)
+}
+resumeWatchFolder(WatchedFolder) 
+{
+    global
+    WatchFolder("**PAUSE", False)
+}
+Watch1(Folder, Changes) {
+    Static Actions := ["1 (added)", "2 (removed)", "3 (modified)", "4 (renamed)"]
+    For Each, Change In Changes {
+        if (Change.Action=1) {
+            fileAdded(1, Change.Name)
+        }
+    }
+    ; p(TickCount, Folder, Actions[Change.Action], Change.Name, Change.IsDir, Change.OldName)
+}
+Watch2(Folder, Changes) {
+    Static Actions := ["1 (added)", "2 (removed)", "3 (modified)", "4 (renamed)"]
+    For Each, Change In Changes {
+        if (Change.Action=1) {
+            fileAdded(2, Change.Name)
+        }
+    }
+    ; p(TickCount, Folder, Actions[Change.Action], Change.Name, Change.IsDir, Change.OldName)
+}
+
+fileAdded(whichSide, Byref path) {
+    global
+return
+sortWithAr%whichSide%:=[]
+
+FileGetSize, outputSize, v
+FileGetAttrib, OutputAttri , v
+
+stuffByName%whichSide%[v]:={date:A_Now,attri:OutputAttri,size:outputSize}
+sortedByDate%whichSide%.InsertAt(1,v)
+sizesCopy:=sortedBySize%whichSide%.Clone()
+for k, v in sortedBySize%whichSide% {
+    sortWithAr.Push({name:v, size:stuffByName%whichSide%[v]["size"]})
+}
+sortArrayByArray(unsorted%whichSide%,sortWithAr%whichSide%,true,"date")
+
+; stuffByName
+; unsorted
+; sortedByDate
+; sortedBySize
+}
 
 pasteFile()
 {
     global
     ; action:=false
-
+    
     if (DllCall("IsClipboardFormatAvailable", "UInt", CF_HDROP := 15)) { ; file being copied
     if (DllCall("IsClipboardFormatAvailable", "UInt", dropEffectFormat)) {
         if (DllCall("OpenClipboard", "Ptr", A_ScriptHwnd)) {
@@ -1551,7 +1645,9 @@ WM_COPYDATA_READ(wp, lp)  {
         receivedFolderSize(match1)
     } else if (match2=3) {
         sortedBySize%whichSide%:=sortArrayByArray(unsorted%whichSide%,stuffByName%whichSide%,true,"size")
-        
+        ; for k, v in sortedBySize%whichSide% {
+        ; p(stuffByName%whichSide%[v])
+        ; }
         ; p(sortedBySize)
         canSortBySize%whichSide%:=true
     }  else if (match2=4) {
@@ -2002,13 +2098,21 @@ renderCurrentDir()
     {
         stopSizes:=false
         
-        if (lastDir%whichSide%!=EcurrentDir%whichSide% and lastDir%whichSide%!="" and !cannotDirHistory%whichSide%)
-            dirHistory%whichSide%.Push(lastDir%whichSide%)
-        if cannotDirHistory {
-            cannotDirHistory:=false
+        if (lastDir%whichSide%!=EcurrentDir%whichSide% and !cannotDirHistory%whichSide%) {
+            stopWatchFolder(EcurrentDir%whichSide%) 
+            startWatchFolder(EcurrentDir%whichSide%)
+            if (lastDir%whichSide%!="") {
+                dirHistory%whichSide%.Push(lastDir%whichSide%)
+            }
+        }
+        
+        if cannotDirHistory%whichSide% {
+            cannotDirHistory%whichSide%:=false
         }
         lastDir%whichSide%:=EcurrentDir%whichSide%
         focused=flistView
+        
+        
         
         filePaths:=[]  
         rowBak:=[]
@@ -2049,6 +2153,7 @@ renderCurrentDir()
         ; }
         ; p(stuffByName)
         ; sortedByDate:=sortArrayByArray(unsorted,stuffByName,,"date")
+        ; p(stuffByName%whichSide%)
         sortedByDate%whichSide%:=sortArrayByArray(unsorted%whichSide%,stuffByName%whichSide%,true,"date")
         ; for k, v in sortedByDate
         ; {
@@ -2382,7 +2487,16 @@ $^+enter::
 return
 
 #if winactive("ahk_explorer ahk_class AutoHotkeyGUI")
-    
+^e::
+; revealFileInExplorer(EcurrentDir%whichSide%, getSelectedNames())
+path:=getSelectedPaths()[1]
+if (path) {
+Run, % "explorer.exe /select,""" path """"
+} else {
+Run, % "explorer.exe """ EcurrentDir%whichSide% """"
+}
+return
+
 #d::
     if (focused="changePath") {
         focused:="flistView"
@@ -2489,7 +2603,7 @@ $\::
     
 return
 
-tab::
+; tab::
     
 return
 
