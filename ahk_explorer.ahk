@@ -263,20 +263,20 @@ renameFileLabel:
             if (stuffByName[RenamingSimple].Count()) {
                 p("file with same name")
             } else {
-                LV_Modify(row,,, RenamingSimple)
-                    stuffByName[RenamingSimple]:=stuffByName[TextBeingRenamed]
-                stuffByName.Delete(TextBeingRenamed)
-                for k, v in stuffByName {
-                    if (v=TextBeingRenamed) {
-                        stuffByName.RemoveAt(k)
-                        stuffByName.InsertAt(k, RenamingSimple)
-                    }
-                }
-                for k, v in sortedByDate {
-                    if (sortedByDate[k]["name"]=TextBeingRenamed) {
-                        sortedByDate[k]["name"]:=RenamingSimple
-                    }
-                }
+                ; LV_Modify(row,,, RenamingSimple)
+                    ; stuffByName[RenamingSimple]:=stuffByName[TextBeingRenamed]
+                ; stuffByName.Delete(TextBeingRenamed)
+                ; for k, v in stuffByName {
+                    ; if (v=TextBeingRenamed) {
+                        ; stuffByName.RemoveAt(k)
+                        ; stuffByName.InsertAt(k, RenamingSimple)
+                    ; }
+                ; }
+                ; for k, v in sortedByDate {
+                    ; if (sortedByDate[k]["name"]=TextBeingRenamed) {
+                        ; sortedByDate[k]["name"]:=RenamingSimple
+                    ; }
+                ; }
                 SourcePath:=EcurrentDir%whichSide% "\" TextBeingRenamed
                 DestPath:=EcurrentDir%whichSide% "\" RenamingSimple
                 fileExist:=FileExist(SourcePath)
@@ -1175,6 +1175,7 @@ resumeWatchFolder(WatchedFolder)
     WatchFolder("**PAUSE", False)
 }
 Watch1(Folder, Changes) {
+    global
     Static Actions := ["1 (added)", "2 (removed)", "3 (modified)", "4 (renamed)"]
     For Each, Change In Changes {
         if (Change.Action=1) {
@@ -1185,13 +1186,18 @@ Watch1(Folder, Changes) {
                 fileDeleted(2, Change.Name)
             }
         } else if (Change.Action=4) {
-            fileAdded(1, Change.Name)
-            SplitPath, % Change.Name,, OutDirNew
-            SplitPath, % Change.OldName,, OutDirOld
+            SplitPath, % Change.Name, OutFileNameNew, OutDirNew
+            SplitPath, % Change.OldName, OutFileNameOld, OutDirOld
+            p(OutDirNew " " EcurrentDir1)
             if (OutDirNew=EcurrentDir1) {
-                fileDeleted(1, Change.OldName)
+                
+                fileRenamed(1, OutFileNameNew, OutFileNameOld)
+                
             } else if (OutDirOld=EcurrentDir2) {
-                fileDeleted(2, Change.OldName)
+                ; fileDeleted(2, Change.OldName)
+            } else {
+                ; fileAdded(2, Change.Name)
+                ; fileRenamed(2)
             }
         }
     }
@@ -1202,20 +1208,24 @@ Watch2(Folder, Changes) {
     For Each, Change In Changes {
         if (Change.Action=1) {
             fileAdded(2, Change.Name)
-            
         } else if (Change.Action=2) {
             fileDeleted(2, Change.Name)
             if (bothSameDir(2)) {
                 fileDeleted(1, Change.Name)
             }
         } else if (Change.Action=4) {
-            fileAdded(1, Change.Name)
-            SplitPath, % Change.Name,, OutDirNew
-            SplitPath, % Change.OldName,, OutDirOld
-            if (OutDirNew=EcurrentDir1) {
-                fileDeleted(1, Change.OldName)
+            SplitPath, % Change.Name, OutFileNameNew, OutDirNew
+            SplitPath, % Change.OldName, OutFileNameOld, OutDirOld
+            
+            if (OutDirNew=EcurrentDir2) {
+                
+                fileRenamed(2, OutFileNameNew, OutFileNameOld)
+                
             } else if (OutDirOld=EcurrentDir2) {
-                fileDeleted(2, Change.OldName)
+                ; fileDeleted(2, Change.OldName)
+            } else {
+                ; fileAdded(2, Change.Name)
+                ; fileRenamed(2)
             }
         }
     }
@@ -1223,7 +1233,33 @@ Watch2(Folder, Changes) {
 }
 fileRenamed(whichSide, Byref renameFrom,Byref renameInto)
 {
-
+    global
+        Gui, main:Default
+    Gui, ListView, vlistView%whichSide%
+    stuffByName%whichSide%[renameInto]:=stuffByName%whichSide%[renameFrom]
+    stuffByName%whichSide%.Delete(renameFrom)
+    rowNums:=LV_GetCount()
+    loop % rowNums {
+        LV_GetText(OutputVar,A_Index,2)
+        p(OutputVar " " renameFrom)
+        if (OutputVar=renameFrom) {
+            
+            LV_Modify(A_Index,, ,renameInto,renameInto)
+            justOneIcon(renameInto,A_Index,whichSide)
+            
+            ; stuffByName%whichSide%.Delete(OutFileName)
+            
+            ; for k, v in sortedByDate%whichSide% {
+                ; if (v=OutFileName)
+                    ; sortedByDate%whichSide%.Remove(k)
+            ; }
+            ; for k, v in sortedBySize%whichSide% {
+                ; if (v=OutFileName)
+                    ; sortedBySize%whichSide%.Remove(k)
+            ; }
+            break
+        }
+    }
 }
 fileAdded(whichSide, Byref path) {
     global
@@ -1267,8 +1303,6 @@ fileDeleted(whichSide, Byref path)
     Gui, main:Default
     Gui, ListView, vlistView%whichSide%
     SplitPath, path, OutFileName
-    
-    
     
     rowNums:=LV_GetCount()
     loop % rowNums {
