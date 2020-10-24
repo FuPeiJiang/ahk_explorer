@@ -1115,7 +1115,7 @@ Return DllCall("Comctl32.dll\DefSubclassProc", "Ptr", H, "UInt", M, "Ptr", W, "P
 }
 ; ======================================================================================================================
 ;start of functions start
-bothSameDir()
+bothSameDir(whichSide)
 {
     global
     otherSide:=(whichSide=1) ? 2 : 1
@@ -1181,6 +1181,18 @@ Watch1(Folder, Changes) {
             fileAdded(1, Change.Name)
         } else if (Change.Action=2) {
             fileDeleted(1, Change.Name)
+            if (bothSameDir(1)) {
+                fileDeleted(2, Change.Name)
+            }
+        } else if (Change.Action=4) {
+            fileAdded(1, Change.Name)
+            SplitPath, % Change.Name,, OutDirNew
+            SplitPath, % Change.OldName,, OutDirOld
+            if (OutDirNew=EcurrentDir1) {
+                fileDeleted(1, Change.OldName)
+            } else if (OutDirOld=EcurrentDir2) {
+                fileDeleted(2, Change.OldName)
+            }
         }
     }
     ; p(TickCount, Folder, Actions[Change.Action], Change.Name, Change.IsDir, Change.OldName)
@@ -1190,20 +1202,35 @@ Watch2(Folder, Changes) {
     For Each, Change In Changes {
         if (Change.Action=1) {
             fileAdded(2, Change.Name)
+            
         } else if (Change.Action=2) {
             fileDeleted(2, Change.Name)
+            if (bothSameDir(2)) {
+                fileDeleted(1, Change.Name)
+            }
+        } else if (Change.Action=4) {
+            fileAdded(1, Change.Name)
+            SplitPath, % Change.Name,, OutDirNew
+            SplitPath, % Change.OldName,, OutDirOld
+            if (OutDirNew=EcurrentDir1) {
+                fileDeleted(1, Change.OldName)
+            } else if (OutDirOld=EcurrentDir2) {
+                fileDeleted(2, Change.OldName)
+            }
         }
     }
     ; p(TickCount, Folder, Actions[Change.Action], Change.Name, Change.IsDir, Change.OldName)
 }
+fileRenamed(whichSide, Byref renameFrom,Byref renameInto)
+{
 
+}
 fileAdded(whichSide, Byref path) {
     global
     Gui, main:Default
     Gui, ListView, vlistView%whichSide%
     SplitPath, path, OutFileName
     sortWithAr%whichSide%:=[]
-    insertRowNum:=1
     FileGetSize, outputSize, %path%
     FileGetAttrib, OutputAttri , %path%
     stuffByName%whichSide%[OutFileName]:={date:A_Now,attri:OutputAttri,size:outputSize}
@@ -1216,106 +1243,21 @@ fileAdded(whichSide, Byref path) {
     sortWithAr%whichSide%.Push({name:OutFileName, size:outputSize})
     sizesCopy%whichSide%:=sortArrayByArray(sizesCopy%whichSide%,sortWithAr%whichSide%,true,"size")
     sortedBySize%whichSide%:=sizesCopy%whichSide%
-    if (whichsort%whichSide%="newOld") {
-        if (focused="searchCurrentDirEdit" or focused="listViewInSearch") {
-            if (SubStr(searchString%whichSide%, 1, 1)!=".") {
-                counter:=0
-                objectToSort:=[]
-                for k,v in sortedByDate%whichSide% {
-                    if (counter>maxRows)
-                        break
-                    SplitPath, v,,,, OutNameNoExt
-                    pos:=InStr(OutNameNoExt, searchString%whichSide%)
-                    if (pos) {
-                        counter++
-                        objectToSort.Push({name:v,pos:pos})
-                    }
-                }
-                objectToSort:=ObjectSort(objectToSort,"pos")
-                
-                for k,v in objectToSort {
-                    name:=v["name"]
-                    if (name=OutFileName) {
-                        insertRowNum:=k
-                        ; insertRow(whichSide, OutFileName, k, A_Now, OutputAttri,outputSize)
-                    }
-                }
-            } else {
-                searchFoldersOnly:=(searchString%whichSide%=".") ? true : false
-                if (searchFoldersOnly) {
-                    counter:=0
-                    for k,v in sortedByDate%whichSide% {
-                        if (v=OutFileName) {
-                            if (counter>maxRows)
-                                break
-                            SplitPath, v,,, OutExtension
-                            if (!OutExtension) {
-                                insertRowNum:=k
-                                ; insertRow(whichSide, OutFileName, k, A_Now, OutputAttri,outputSize)
-                                
-                            }
-                        }
-                    }
-                } else {
-                    searchStringBak%whichSide%:=SubStr(searchString%whichSide%, 2)
-                    counter:=0
-                    objectToSort:=[]
-                    for k,v in sortedByDate%whichSide% {
-                        if (counter>maxRows)
-                            break
-                        SplitPath, v,,, OutExtension
-                        pos:=InStr(OutExtension, searchStringBak%whichSide%)
-                        if (pos) {
-                            counter++
-                            objectToSort.Push({name:v,pos:pos})
-                        }
-                    }
-                    objectToSort:=ObjectSort(objectToSort,"pos")
-                    for k,v in objectToSort {
-                        name:=v["name"]
-                        if (name=OutFileName) {
-                            insertRowNum:=k
-                            ; insertRow(whichSide, OutFileName, k, A_Now, OutputAttri,outputSize)
-                        }
-                    }
-                }
-                
-            }
-        } else {
-            ; insertRow(whichSide, OutFileName, 1, A_Now, OutputAttri,outputSize)
-        }
-    } else if (whichsort%whichSide%="oldNew") {
-        rowNums:=LV_GetCount()
-        ; insertRow(whichSide, OutFileName, rowNums+1, A_Now, OutputAttri,outputSize)
-        insertRowNum:=rowNums+1
-    } else if (whichsort%whichSide%="bigSmall") {
-        for k, v in sortedBySize%whichSide% {
-            if (k>maxRows)
-                break
-            if (v=OutFileName) {
-                insertRowNum:=k
-                ; insertRow(whichSide, OutFileName, k, A_Now, OutputAttri,outputSize)
-            }
-        }
-    } else if (whichsort%whichSide%="smallBig") {
-        lengthAddedOne:=sortedBySize%whichSide%.Length()+1
-        for k in sortedBySize%whichSide% {
-            v:=sortedBySize%whichSide%[lengthAddedOne-k]
-            if (k>maxRows)
-                break
-            if (v=OutFileName) {
-                insertRowNum:=k
-                ; insertRow(whichSide, OutFileName, k, A_Now, OutputAttri,outputSize)
-            }
-        }
+    
+    
+    whereToAddFile(whichSide, OutFileName, A_Now, OutputAttri,outputSize)
+    
+    
+    if (bothSameDir(whichSide)) {
+        stuffByName%otherSide%[OutFileName]:=stuffByName%whichSide%[OutFileName]
+        sortedBySize%otherSide%:= A.Clone(sortedBySize%whichSide%)
+        sortedByDate%otherSide%:=A.Clone(sortedByDate%whichSide%)
+        whereToAddFile(otherSide, OutFileName, A_Now, OutputAttri,outputSize)
     }
-    insertRow(whichSide, OutFileName, insertRowNum, A_Now, OutputAttri,outputSize)
-    bothSameDir:=bothSameDir()
-    if (bothSameDir) {
-        p(bothSameDir)
-        insertRow(bothSameDir, OutFileName, insertRowNum, A_Now, OutputAttri,outputSize)
-        
-    }
+    
+    
+    
+    
     
     
 }
@@ -1325,6 +1267,8 @@ fileDeleted(whichSide, Byref path)
     Gui, main:Default
     Gui, ListView, vlistView%whichSide%
     SplitPath, path, OutFileName
+    
+    
     
     rowNums:=LV_GetCount()
     loop % rowNums {
@@ -1358,24 +1302,145 @@ fileDeleted(whichSide, Byref path)
 ; sortedByDate
 ; sortedBySize
 
-insertRow(byref whichSide,byref name,byref row,byref date,byref attri,byref size)
+whereToAddFile(byref whichSide, byref OutFileName,byref date,byref attri,byref size) {
+    global
+    Gui, main:Default
+    Gui, ListView, vlistView%whichSide%
+    insertNum:=0
+    
+    if (whichsort%whichSide%="newOld") {
+        if (focused="searchCurrentDirEdit" or focused="listViewInSearch") {
+            if (SubStr(searchString%whichSide%, 1, 1)!=".") {
+                counter:=0
+                objectToSort:=[]
+                for k,v in sortedByDate%whichSide% {
+                    if (counter>maxRows)
+                        break
+                    SplitPath, v,,,, OutNameNoExt
+                    
+                    pos:=InStr(OutNameNoExt, searchString%whichSide%)
+                    if (pos) {
+                        counter++
+                        objectToSort.Push({name:v,pos:pos})
+                    }
+                }
+                objectToSort:=ObjectSort(objectToSort,"pos")
+                
+                for k,v in objectToSort {
+                    name:=v["name"]
+                    if (name=OutFileName) {
+                        insertNum:=k
+                        
+                        ; insertRow(whichSide, OutFileName, k, A_Now, OutputAttri,outputSize)
+                    }
+                }
+            } else {
+                searchFoldersOnly:=(searchString%whichSide%=".") ? true : false
+                if (searchFoldersOnly) {
+                    counter:=0
+                    for k,v in sortedByDate%whichSide% {
+                        if (v=OutFileName) {
+                            if (counter>maxRows)
+                                break
+                            SplitPath, v,,, OutExtension
+                            if (!OutExtension) {
+                                insertNum:=k
+                                ; insertRow(whichSide, OutFileName, k, A_Now, OutputAttri,outputSize)
+                                
+                            }
+                        }
+                    }
+                } else {
+                    searchStringBak%whichSide%:=SubStr(searchString%whichSide%, 2)
+                    counter:=0
+                    objectToSort:=[]
+                    for k,v in sortedByDate%whichSide% {
+                        if (counter>maxRows)
+                            break
+                        SplitPath, v,,, OutExtension
+                        pos:=InStr(OutExtension, searchStringBak%whichSide%)
+                        if (pos) {
+                            counter++
+                            objectToSort.Push({name:v,pos:pos})
+                        }
+                    }
+                    objectToSort:=ObjectSort(objectToSort,"pos")
+                    for k,v in objectToSort {
+                        name:=v["name"]
+                        if (name=OutFileName) {
+                            insertNum:=k
+                            ; insertRow(whichSide, OutFileName, k, A_Now, OutputAttri,outputSize)
+                        }
+                    }
+                }
+                
+            }
+        } else {
+            ; insertRow(whichSide, OutFileName, 1, A_Now, OutputAttri,outputSize)
+            insertNum:=1
+        }
+    } else if (whichsort%whichSide%="oldNew") {
+        rowNums:=LV_GetCount()
+        ; insertRow(whichSide, OutFileName, rowNums+1, A_Now, OutputAttri,outputSize)
+        insertNum:=rowNums+1
+    } else if (whichsort%whichSide%="bigSmall") {
+        for k, v in sortedBySize%whichSide% {
+            if (k>maxRows)
+                break
+            if (v=OutFileName) {
+                insertNum:=k
+                ; insertRow(whichSide, OutFileName, k, A_Now, OutputAttri,outputSize)
+            }
+        }
+    } else if (whichsort%whichSide%="smallBig") {
+        lengthAddedOne:=sortedBySize%whichSide%.Length()+1
+        for k in sortedBySize%whichSide% {
+            v:=sortedBySize%whichSide%[lengthAddedOne-k]
+            if (k>maxRows)
+                break
+            if (v=OutFileName) {
+                insertNum:=k
+                ; insertRow(whichSide, OutFileName, k, A_Now, OutputAttri,outputSize)
+            }
+        }
+    }
+    
+    
+    
+    if (insertNum) {
+        insertRow(whichSide, OutFileName, insertNum, date, attri,size)
+    }
+}
+
+insertRow(byref whichSide, byref OutFileName,byref row,byref date,byref attri,byref size)
 {
     global
-    calculateStuff(date,attri,size,name,row)
-    LV_Insert(row,,,name,var1,var2,formattedBytes,bytes)
+    
+    Gui, main:Default
+    Gui, ListView, vlistView%whichSide%
+    calculateStuff(date,attri,size,OutFileName,row)
+    LV_Insert(row,,,OutFileName,var1,var2,formattedBytes,bytes)
         LV_Colors.Cell(ListviewHwnd%whichSide%,row,3,color)
     
-    hIcon := DllCall("Shell32\ExtractAssociatedIcon", UInt, 0, Str, EcurrentDir%whichSide% "\" name , UShortP, iIndex)
-    if hIcon
-    {
-        IconNumber := DllCall("ImageList_ReplaceIcon", UInt, ImageListID%whichSide%, Int, -1, UInt, hIcon) + 1
-        DllCall("DestroyIcon", Uint, hIcon)
-    }
-    else
-        IconNumber = 1
+    justOneIcon(OutFileName,row,whichSide)
+    ; hIcon := DllCall("Shell32\ExtractAssociatedIcon", UInt, 0, Str, EcurrentDir%whichSide% "\" name , UShortP, iIndex)
+    ; if hIcon
+    ; {
+    ; IconNumber := DllCall("ImageList_ReplaceIcon", UInt, ImageListID%whichSide%, Int, -1, UInt, hIcon) + 1
+    ; DllCall("DestroyIcon", Uint, hIcon)
+    ; }
+    ; else
+    ; IconNumber = 1
+    ; LV_Modify(row,"Icon" . IconNumber)
+    ; lastIconNumber:=IconNumber
+    ; sleep, 3000
     
-    LV_Modify(row,"Icon" . IconNumber)
-        lastIconNumber:=IconNumber
+    ; if (bothSides) {
+    ; Gui, ListView, vlistView%otherSide%
+    ; LV_Insert(row,,,name,var1,var2,formattedBytes,bytes)
+    ; LV_Colors.Cell(ListviewHwnd%otherSide%,row,3,color)
+    ; applyIcons([name])
+    ; }
 }
 
 pasteFile()
@@ -1408,14 +1473,14 @@ pasteFile()
             else if (effect & DROPEFFECT_MOVE) {
                 files:=StrSplit(clipboard, "`r`n")
                 if (files.Length()) {
-                    fromOtherSide:=false
-                    otherSide:=(whichSide=1) ? 2 : 1
+                    fromOtherPanel:=false
+                    otherPanel:=(whichSide=1) ? 2 : 1
                     for k, v in files {
                         fileExist:=FileExist(v)
                         if (fileExist) {
                             SplitPath, v , OutFileName, OutDir
-                            if (Outdir=EcurrentDir%otherSide%) {
-                                fromOtherSide:=true
+                            if (Outdir=EcurrentDir%otherPanel%) {
+                                fromOtherPanel:=true
                             }
                             if (InStr(fileExist, "D")) {
                                 FileMoveDir, %v%, % EcurrentDir%whichSide% "\" OutFileName
@@ -1430,9 +1495,9 @@ pasteFile()
                     }
                     renderCurrentDir() ;refresh
                     
-                    if (fromOtherSide) {
+                    if (fromOtherPanel) {
                         sideBak:=whichSide
-                        whichSide:=otherSide
+                        whichSide:=otherPanel
                         renderCurrentDir()
                         whichSide:=sideBak
                         ControlFocus,, % "ahk_id " ListviewHwnd%sideBak%
@@ -1606,6 +1671,25 @@ applySizes() {
         canSortBySize%whichSide%:=true
     }
 }
+justOneIcon(byref name,byref row, byref whichSide) {
+    global
+    if (doIcons) {
+        hIcon := DllCall("Shell32\ExtractAssociatedIcon", UInt, 0, Str, EcurrentDir%whichSide% "\" name , UShortP, iIndex)
+        if hIcon
+        {
+            ; DllCall("ImageList_ReplaceIcon", UInt, ImageListID1, Int, -1, UInt, hIcon)
+            IconNumber := DllCall("ImageList_ReplaceIcon", UInt, ImageListID%whichSide%, Int, -1, UInt, hIcon) + 1
+            DllCall("DestroyIcon", Uint, hIcon)
+        }
+        else
+            IconNumber = 1
+        
+        LV_Modify(row,"Icon" . IconNumber)
+            lastIconNumber:=IconNumber
+    }
+    
+}
+
 applyIcons(byref names) {
     global
     if (doIcons) {
@@ -2242,14 +2326,16 @@ renderCurrentDir()
         stopSizes:=false
         
         if (lastDir%whichSide%!=EcurrentDir%whichSide% ) {
-            if (!bothSameDir()) {
-                if (lastDir%whichSide%!="") {
-                    p(stop)
-                stopWatchFolder(lastDir%whichSide%) 
-                }
+            bothSameDir:=bothSameDir(whichSide)
+            if (!bothSameDir) {
+                
+                ; p("started " EcurrentDir%whichSide% )
                 startWatchFolder(EcurrentDir%whichSide%)
             }
-            
+            if (lastDir%whichSide%!="" and EcurrentDir%otherSide%!=lastDir%whichSide%) {
+                ; p("stopped " lastDir%whichSide% )
+                stopWatchFolder(lastDir%whichSide%) 
+            }
             
             if (lastDir%whichSide%!="" and !cannotDirHistory%whichSide%) {
                 dirHistory%whichSide%.Push(lastDir%whichSide%)
