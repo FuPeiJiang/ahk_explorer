@@ -792,7 +792,7 @@ Class LV_Colors {
     ; +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     ; PUBLIC PROPERTIES  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     ; +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    Static Critical := 0
+    Static Critical := 100
     ; +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     ; META FUNCTIONS ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     ; +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -2405,8 +2405,6 @@ renderCurrentDir()
         if (lastIconNumber)
             rememberIconNumber:=lastIconNumber
         
-        ; Entries := new Trie(500)
-        ; ExtEntries := new Trie(500)
         unsorted%whichSide%:=[]
         sortedByDate%whichSide%:=[]
         sortedBySize%whichSide%:=[]
@@ -2414,30 +2412,15 @@ renderCurrentDir()
         stuffByName%whichSide%:={}
         Loop, Files, % EcurrentDir%whichSide% "\*", DF
         {
-            ; sortedByDate.Push({name:A_LoopFileName,date:A_LoopFileTimeAccessed,attri:A_LoopFileAttrib,size:A_LoopFileSize})
             stuffByName%whichSide%[A_LoopFileName]:={date:A_LoopFileTimeAccessed,attri:A_LoopFileAttrib,size:A_LoopFileSize}
-                ; stuffByName[A_LoopFileName]:={date:A_LoopFileTimeAccessed,attri:A_LoopFileAttrib,size:A_LoopFileSize}
-            ; fileNames.Push(A_LoopFileName)
             
         }
         for k in stuffByName%whichSide% {
             unsorted%whichSide%.Push(k)
         }
         
-        ; count:=0
-        ; for k, v in stuffByName {
-        ; count++
-        ; p(k)
-        ; p(unsorted[count])
-        ; }
-        ; p(stuffByName)
-        ; sortedByDate:=sortArrayByArray(unsorted,stuffByName,,"date")
-        ; p(stuffByName%whichSide%)
         sortedByDate%whichSide%:=sortArrayByArray(unsorted%whichSide%,stuffByName%whichSide%,true,"date")
-        ; for k, v in sortedByDate
-        ; {
-        ; p(stuffByName[v]["date"])
-        ; }
+
         firstSizes%whichSide%:=true
         whichsort%whichSide%:="newOld"
         oldNew%whichSide%:=false    
