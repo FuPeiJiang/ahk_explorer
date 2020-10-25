@@ -1801,21 +1801,7 @@ renderFunctionsToSort(ByRef objectToSort, reverse:=false)
     loop % rowsToLoop {
         name:=objectToSort[k]
         v:=stuffByName%whichSide%[name]
-        if (!quickFixIcon) {
-            quickFixIcon:=true
-            hIcon:=DllCall("Shell32\ExtractAssociatedIcon", UInt, 0, Str, "", UShortP, iIndex)
-            if hIcon
-            {
-                ; DllCall("ImageList_ReplaceIcon", UInt, ImageListID1, Int, -1, UInt, hIcon)
-                IconNumber := DllCall("ImageList_ReplaceIcon", UInt, ImageListID1, Int, -1, UInt, hIcon) + 1
-                DllCall("DestroyIcon", Uint, hIcon)
-            }
-            else
-                IconNumber = 1
-            LV_Modify(k,"Icon" . IconNumber)
-                lastIconNumber:=IconNumber
-            ; lastIconNumber:=IconNumber
-        }
+
         if (name=toFocus)
         {
             rowToFocus:=A_Index
@@ -1825,6 +1811,23 @@ renderFunctionsToSort(ByRef objectToSort, reverse:=false)
             ; LV_Add("Icon" . IconNumber,,name,var1,var2,formattedBytes,bytes)
         LV_Colors.Cell(ListviewHwnd%whichSide%,A_Index,3,color)
         namesForIcons%whichSide%.Push(name)
+
+        if (!quickFixIcon%whichSide%) {
+            quickFixIcon%whichSide%:=true
+            hIcon:=DllCall("Shell32\ExtractAssociatedIcon", UInt, 0, Str, "", UShortP, iIndex)
+            if hIcon
+            {
+                ; DllCall("ImageList_ReplaceIcon", UInt, ImageListID1, Int, -1, UInt, hIcon)
+                IconNumber := DllCall("ImageList_ReplaceIcon", UInt, ImageListID1, Int, -1, UInt, hIcon) + 1
+                DllCall("DestroyIcon", Uint, hIcon)
+            }
+            else
+                IconNumber = 1
+            LV_Modify(A_Index,"Icon" . IconNumber)
+                lastIconNumber:=IconNumber
+            ; lastIconNumber:=IconNumber
+        }
+
             k+=inc
     }
     if (toFocus)
@@ -2412,7 +2415,7 @@ renderCurrentDir()
         stuffByName%whichSide%:={}
         Loop, Files, % EcurrentDir%whichSide% "\*", DF
         {
-            stuffByName%whichSide%[A_LoopFileName]:={date:A_LoopFileTimeAccessed,attri:A_LoopFileAttrib,size:A_LoopFileSize}
+            stuffByName%whichSide%[A_LoopFileName]:={date:A_LoopFileTimeModified,attri:A_LoopFileAttrib,size:A_LoopFileSize}
             
         }
         for k in stuffByName%whichSide% {
