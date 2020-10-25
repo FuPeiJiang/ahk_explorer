@@ -15,13 +15,18 @@ FileRead, vscodePath, %A_AppData%\ahk_explorer_settings\vscodePath.txt
 FileRead, BGColorOfSelectedPane, %A_AppData%\ahk_explorer_settings\BGColorOfSelectedPane.txt
 FileRead, BGColorOfSelectedPane, %A_AppData%\ahk_explorer_settings\BGColorOfSelectedPane.txt
 
-EcurrentDir1=C:\Users\Public\AHK\notes\tests\File Watcher
+
+EcurrentDir1=C:\NewTextFile3.txt
+; EcurrentDir1=C:\Windows\System32\cmd.exe
+; EcurrentDir1=C:\Users\Public\AHK\notes\tests\File Watcher
 ; EcurrentDir1=C:\Users\User\Downloads
 EcurrentDir2=C:\Users\Public\AHK
 whichSide:=1
-fileExist:=fileExist(EcurrentDir%whichSide%)
-if (!InStr(fileExist, "D"))
-    EcurrentDir%whichSide%:="C:"
+
+lastDir1:="C:"
+; fileExist:=fileExist(EcurrentDir%whichSide%)
+; if (!InStr(fileExist, "D"))
+    ; EcurrentDir%whichSide%:="C:"
 
 for n, param in A_Args  ; For each parameter:
 {
@@ -1778,7 +1783,8 @@ renderFunctionsToSort(ByRef objectToSort, reverse:=false)
         rowsToLoop:=maxRows
         if (toFocus) {
             loop % length {
-                if (toFocus=objectToSort[k]) {
+                ; p(objectToSort[A_Index])
+                if (toFocus=objectToSort[A_Index]) {
                     if (length - A_Index<maxRows - 1) {
                         startPos:=length - maxRows + 1
                         if (startPos<1)
@@ -1791,6 +1797,7 @@ renderFunctionsToSort(ByRef objectToSort, reverse:=false)
             }
         }
     }
+    ; p(startPos)
     k:=startPos
     loop % rowsToLoop {
         name:=objectToSort[k]
@@ -1923,8 +1930,6 @@ WM_COPYDATA_READ(wp, lp)  {
     } else {
         p("something went wrong")
     }
-    
-    
 }
 
 submitAndRenderDir()
@@ -2177,7 +2182,6 @@ HandleMessage( p_w, p_l, p_m, p_hw )
                     }
                     else if (focused="changePath") {
                         
-                        focused:="flistView"
                         
                         MouseGetPos,,, OutputVarWin
                         GuiControl, Focus, vlistView%whichSide%
@@ -2185,6 +2189,7 @@ HandleMessage( p_w, p_l, p_m, p_hw )
                         ; static EM_SETSEL   := 0x00B1
                         ; static EN_SETFOCUS := 0x0100
                         submitAndRenderDir()
+                        focused:="flistView"
                     }
                     else 
                     {
@@ -2364,7 +2369,7 @@ renderCurrentDir()
             if (!bothSameDir) {
                 
                 ; p("started " EcurrentDir%whichSide% )
-                startWatchFolder(EcurrentDir%whichSide%)
+                ; startWatchFolder(EcurrentDir%whichSide%)
             }
             if (lastDir%whichSide%!="" and EcurrentDir%otherSide%!=lastDir%whichSide%) {
                 ; p("stopped " lastDir%whichSide% )
@@ -2429,7 +2434,9 @@ renderCurrentDir()
         firstSizes%whichSide%:=true
         whichsort%whichSide%:="newOld"
         oldNew%whichSide%:=false    
+
         renderFunctionsToSort(sortedByDate%whichSide%)
+
         Gui, ListView, folderlistView2_%whichSide%
         LV_Delete()
         parent1DirDirs%whichSide%:=[]
@@ -2493,6 +2500,10 @@ renderCurrentDir()
                 ; p(fileExist(currentDir))
                 EcurrentDir%whichSide%:=lastDir%whichSide%
                 GuiControl, Text,vcurrentDirEdit%whichSide%, % EcurrentDir%whichSide%
+
+                if (focused!="changePath") {
+                renderCurrentDir()
+                }
                 ; lastDir:=currentDir
             } 
             
@@ -3069,6 +3080,10 @@ $up::
         }
 return
 $+home::
+    if (focused="changePath" or focused="searchCurrentDirEdit") {
+        send, +{home}
+        return
+    }
     Gui, main:Default
     Gui, ListView, vlistView%whichSide%
     selectedRow:=LV_GetNext()
@@ -3078,6 +3093,10 @@ $+home::
     
 return
 $+end::
+    if (focused="changePath" or focused="searchCurrentDirEdit") {
+        send, +{end}
+        return
+    }
     Gui, main:Default
     Gui, ListView, vlistView%whichSide%
     selectedRow:=LV_GetNext()
