@@ -16,8 +16,7 @@ FileRead, BGColorOfSelectedPane, %A_AppData%\ahk_explorer_settings\BGColorOfSele
 FileRead, BGColorOfSelectedPane, %A_AppData%\ahk_explorer_settings\BGColorOfSelectedPane.txt
 
 
-EcurrentDir1=C:\NewTextFile3.txt
-; EcurrentDir1=C:\Windows\System32\cmd.exe
+EcurrentDir1=C:\Windows\System32\where.exe
 ; EcurrentDir1=C:\Users\Public\AHK\notes\tests\File Watcher
 ; EcurrentDir1=C:\Users\User\Downloads
 EcurrentDir2=C:\Users\Public\AHK
@@ -1783,7 +1782,6 @@ renderFunctionsToSort(ByRef objectToSort, reverse:=false)
         rowsToLoop:=maxRows
         if (toFocus) {
             loop % length {
-                ; p(objectToSort[A_Index])
                 if (toFocus=objectToSort[A_Index]) {
                     if (length - A_Index<maxRows - 1) {
                         startPos:=length - maxRows + 1
