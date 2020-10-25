@@ -16,8 +16,7 @@ FileRead, BGColorOfSelectedPane, %A_AppData%\ahk_explorer_settings\BGColorOfSele
 FileRead, BGColorOfSelectedPane, %A_AppData%\ahk_explorer_settings\BGColorOfSelectedPane.txt
 
 
-EcurrentDir1=C:\Windows\System32\where.exe
-; EcurrentDir1=C:\Users\Public\AHK\notes\tests\File Watcher
+EcurrentDir1=C:\Users\Public\AHK\notes\tests\File Watcher
 ; EcurrentDir1=C:\Users\User\Downloads
 EcurrentDir2=C:\Users\Public\AHK
 whichSide:=1
@@ -47,6 +46,8 @@ for n, param in A_Args  ; For each parameter:
     break
 }
 ;vars
+watching1:=[]
+watching2:=[]
 maxRows:=50
 rememberIconNumber:=0
 lastInputSearchCurrentDir:=false
@@ -87,7 +88,7 @@ Gui, Add, Button, h40 w%favoritesListViewWidth% gDriveButtonEvents vDriveButton 
 ; Gui, Add, ListView, 0x2000 h28 w%favoritesListViewWidth% +WantF2 -ReadOnly vdriveSpace AltSubmit ,C:\ `r`n7.06 GB/232.24 GB
 ; Gui, Add, ListView, r1 w%favoritesListViewWidth% y220 +WantF2 -ReadOnly vdriveSpace gdriveSpaceEvent AltSubmit ,Please enter your name:
 favoritesLenght:=favoriteFolders.Length()
-Gui, Add, ListView, r%favoritesLenght% w%favoritesListViewWidth% y+200 nosort vfavoritesListView gfavoritesListViewEvents AltSubmit ,Favorites
+Gui, Add, ListView, r%favoritesLenght% w%favoritesListViewWidth% y+200 nosort vfavoritesListView ggfavoritesListView AltSubmit ,Favorites
 
 Gui, Add, ListView, r10 w%folderListViewWidth% y0 x+0 vfolderListView1_1 gfolderlistViewEvents1_1 AltSubmit ,Name
 Gui, Add, ListView, r10 w%folderListViewWidth% x+0 y0 vfolderlistView2_1 gfolderlistViewEvents2_1 AltSubmit ,Name
@@ -375,7 +376,7 @@ createAndOpenLabel:
     }
 return
 
-favoritesListViewEvents:
+gfavoritesListView:
     if (A_GuiEvent = "DoubleClick") {
         Gui, ListView, favoritesListView
         doubleClickedFolderOrFile(favoriteFolders[A_EventInfo])
@@ -791,7 +792,7 @@ Class LV_Colors {
     ; +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     ; PUBLIC PROPERTIES  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     ; +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    Static Critical := 100
+    Static Critical := 0
     ; +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     ; META FUNCTIONS ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     ; +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -2364,15 +2365,23 @@ renderCurrentDir()
         
         if (lastDir%whichSide%!=EcurrentDir%whichSide% ) {
             bothSameDir:=bothSameDir(whichSide)
-            if (!bothSameDir) {
-                
-                ; p("started " EcurrentDir%whichSide% )
-                ; startWatchFolder(EcurrentDir%whichSide%)
-            }
             if (lastDir%whichSide%!="" and EcurrentDir%otherSide%!=lastDir%whichSide%) {
+                for k, v in watching%whichSide% {
+                    if (v=lastDir%whichSide%)
+                    watching%whichSide%.Remove(k)
+                    break
+                }
                 ; p("stopped " lastDir%whichSide% )
                 stopWatchFolder(lastDir%whichSide%) 
             }
+
+            if (!bothSameDir) {
+                
+                ; p("started " EcurrentDir%whichSide% )
+                watching%whichSide%.Push(EcurrentDir%whichSide%)
+                startWatchFolder(EcurrentDir%whichSide%)
+            }
+
             
             if (lastDir%whichSide%!="" and !cannotDirHistory%whichSide%) {
                 dirHistory%whichSide%.Push(lastDir%whichSide%)
@@ -2886,7 +2895,9 @@ return
 return
 
 $`::
-    p(focused)
+p(watching1,watching2)
+; p(watching2)
+    ; p(focused)
 Return
 
 $^+r::
