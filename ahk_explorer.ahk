@@ -15,7 +15,6 @@ FileRead, vscodePath, %A_AppData%\ahk_explorer_settings\vscodePath.txt
 FileRead, BGColorOfSelectedPane, %A_AppData%\ahk_explorer_settings\BGColorOfSelectedPane.txt
 FileRead, BGColorOfSelectedPane, %A_AppData%\ahk_explorer_settings\BGColorOfSelectedPane.txt
 
-
 EcurrentDir1=C:\Users\Public\AHK\notes\tests\File Watcher
 ; EcurrentDir1=C:\Users\User\Downloads
 EcurrentDir2=C:\Users\Public\AHK
@@ -24,7 +23,7 @@ whichSide:=1
 lastDir1:="C:"
 ; fileExist:=fileExist(EcurrentDir%whichSide%)
 ; if (!InStr(fileExist, "D"))
-    ; EcurrentDir%whichSide%:="C:"
+; EcurrentDir%whichSide%:="C:"
 
 for n, param in A_Args  ; For each parameter:
 {
@@ -269,18 +268,18 @@ renameFileLabel:
                 p("file with same name")
             } else {
                 ; LV_Modify(row,,, RenamingSimple)
-                    ; stuffByName[RenamingSimple]:=stuffByName[TextBeingRenamed]
+                ; stuffByName[RenamingSimple]:=stuffByName[TextBeingRenamed]
                 ; stuffByName.Delete(TextBeingRenamed)
                 ; for k, v in stuffByName {
-                    ; if (v=TextBeingRenamed) {
-                        ; stuffByName.RemoveAt(k)
-                        ; stuffByName.InsertAt(k, RenamingSimple)
-                    ; }
+                ; if (v=TextBeingRenamed) {
+                ; stuffByName.RemoveAt(k)
+                ; stuffByName.InsertAt(k, RenamingSimple)
+                ; }
                 ; }
                 ; for k, v in sortedByDate {
-                    ; if (sortedByDate[k]["name"]=TextBeingRenamed) {
-                        ; sortedByDate[k]["name"]:=RenamingSimple
-                    ; }
+                ; if (sortedByDate[k]["name"]=TextBeingRenamed) {
+                ; sortedByDate[k]["name"]:=RenamingSimple
+                ; }
                 ; }
                 SourcePath:=EcurrentDir%whichSide% "\" TextBeingRenamed
                 DestPath:=EcurrentDir%whichSide% "\" RenamingSimple
@@ -623,10 +622,12 @@ listViewEvents2:
                         if (key="c") {
                             selectedPaths:=getSelectedPaths()
                             FileToClipboard(selectedPaths)
+                            SoundPlay, *-1
                         }
                         else if (key="x") {
                             selectedPaths:=getSelectedPaths()
                             FileToClipboard(selectedPaths, "cut")
+                            SoundPlay, *-1
                         } else if (key="v") 
                         {
                             pasteFile()
@@ -665,95 +666,139 @@ listViewEvents2:
                             ; } else {
                             ; gosub, selectPanel1
                             ; }
-                            gui, main:default
-                            whichSideBak:=whichSide
-                            whichSide:=(whichSide=1) ? 2 : 1
-                            Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
-                            ; sleep, 1000
-                            GuiControl, Focus, vlistView%whichSide% ;bad code
-                            ControlFocus,, % "ahk_id " ListviewHwnd%whichSide%
-                            GuiControl, +Background%BGColorOfSelectedPane%, vlistView%whichSide%
-                            GuiControl, +BackgroundWhite, vlistView%whichSideBak%
                             
                             
-                            ; p(whichSide)
-                            ControlFocus,, % "ahk_id " ListviewHwnd%whichSide%
-                            Gui, ListView, vlistView%whichSide%
                             
-                            pasteFile()
-                            return
                             
-                        } 
+                            
+                            
+                            
+                            ; action:=false
+                            
+                            if (DllCall("IsClipboardFormatAvailable", "UInt", CF_HDROP := 15)) { ; file being copied
+                            if (DllCall("IsClipboardFormatAvailable", "UInt", dropEffectFormat)) {
+                                if (DllCall("OpenClipboard", "Ptr", A_ScriptHwnd)) {
+                                    if (data := DllCall("GetClipboardData", "UInt", dropEffectFormat, "Ptr")) {
+                                        if (effect := DllCall("GlobalLock", "Ptr", data, "UInt*")) {
+                                    if (effect & DROPEFFECT_COPY) {
+                                        files:=StrSplit(clipboard, "`r`n")
+                                        for k, v in files {
+                                            fileExist:=FileExist(v)
+                                            if (fileExist) {
+                                                SplitPath, v , OutFileName
+                                                dest:=EcurrentDir%whichSide%
+                                                Run, TeraCopy.exe Copy "%v%" "%dest%"
+                                            }
+                                        }
+                                        ; renderCurrentDir()
+                                        SoundPlay, *-1
+                                    }
+                                    ; action:="copy"
+                                    else if (effect & DROPEFFECT_MOVE) {
+                                        p("no move")
+                                    }
+                                    ; action:="move"
+                                    DllCall("GlobalUnlock", "Ptr", data)
+                                }
+                            }
+                            DllCall("CloseClipboard")
+                        }
                     }
-                    if (CtrlIsDown or ShiftIsDown)
-                        return
-                    
-                    focused=searchCurrentDirEdit
-                    ; focused=searchCurrentDirEdit%whichSide%
-                    GuiControl, Focus, vcurrentDirEdit%whichSide%
-                    GuiControl, Text, vcurrentDirEdit%whichSide%,% searchString%whichSide% key
-                    SendMessage, 0xB1, -2, -1,, % "ahk_id " Edithwnd%whichSide%
                 }
+                
+                
+                
+                /* 
+                gui, main:default
+                whichSideBak:=whichSide
+                whichSide:=(whichSide=1) ? 2 : 1
+                Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
+                ; sleep, 1000
+                GuiControl, Focus, vlistView%whichSide% ;bad code
+                ControlFocus,, % "ahk_id " ListviewHwnd%whichSide%
+                GuiControl, +Background%BGColorOfSelectedPane%, vlistView%whichSide%
+                GuiControl, +BackgroundWhite, vlistView%whichSideBak%
+                
+                
+                ; p(whichSide)
+                ControlFocus,, % "ahk_id " ListviewHwnd%whichSide%
+                Gui, ListView, vlistView%whichSide%
+                
+                pasteFile()
+                */
+                return
+                
             } 
         }
+        if (CtrlIsDown or ShiftIsDown)
+            return
+        
+        focused=searchCurrentDirEdit
+        ; focused=searchCurrentDirEdit%whichSide%
+        GuiControl, Focus, vcurrentDirEdit%whichSide%
+        GuiControl, Text, vcurrentDirEdit%whichSide%,% searchString%whichSide% key
+        SendMessage, 0xB1, -2, -1,, % "ahk_id " Edithwnd%whichSide%
     }
-    else if (A_GuiEvent="RightClick") {
-        selectedNames:=getSelectedNames()
-        ShellContextMenu(EcurrentDir%whichSide%,selectedNames)
-    }
-    else if (A_GuiEvent="ColClick")
-    {
-        columnsToSort:=[1,2,4,6]
-        if (A_EventInfo=1) {
-            if (!foldersFirst)
+} 
+}
+}
+else if (A_GuiEvent="RightClick") {
+    selectedNames:=getSelectedNames()
+    ShellContextMenu(EcurrentDir%whichSide%,selectedNames)
+}
+else if (A_GuiEvent="ColClick")
+{
+    columnsToSort:=[1,2,4,6]
+    if (A_EventInfo=1) {
+        if (!foldersFirst)
+        {   
+            foldersFirst:=true
+            sortColumn(1, "SortDesc")
+        } else {
+            foldersFirst:=false    
+            sortColumn(1, "Sort")
+        }
+    } else if (A_EventInfo=2) {
+        if (!A_ZSort)
+        {   
+            A_ZSort:=true
+            sortColumn(2, "Sort")
+        } else {
+            A_ZSort:=false    
+            sortColumn(2, "SortDesc")
+        }
+    } else if (A_EventInfo=3)  {
+        if (!oldNew%whichSide%)
+        {   
+            whichsort%whichSide%:="oldNew"
+            oldNew%whichSide%:=true    
+            renderFunctionsToSort(sortedByDate%whichSide%, true)
+            ; sortColumn(4, "SortDesc")
+        } else {
+            whichsort%whichSide%:="newOld"
+            oldNew%whichSide%:=false    
+            renderFunctionsToSort(sortedByDate%whichSide%)
+            ; sortColumn(4, "Sort")
+        }
+    } else if (A_EventInfo=5) {
+        if (canSortBySize%whichSide%) {
+            if (!bigSmall%whichSide%)
             {   
-                foldersFirst:=true
-                sortColumn(1, "SortDesc")
+                whichsort%whichSide%:="bigSmall"
+                bigSmall%whichSide%:=true    
+                renderFunctionsToSort(sortedBySize%whichSide%)
+                
+                ; sortColumn(6, "SortDesc")
             } else {
-                foldersFirst:=false    
-                sortColumn(1, "Sort")
-            }
-        } else if (A_EventInfo=2) {
-            if (!A_ZSort)
-            {   
-                A_ZSort:=true
-                sortColumn(2, "Sort")
-            } else {
-                A_ZSort:=false    
-                sortColumn(2, "SortDesc")
-            }
-        } else if (A_EventInfo=3)  {
-            if (!oldNew%whichSide%)
-            {   
-                whichsort%whichSide%:="oldNew"
-                oldNew%whichSide%:=true    
-                renderFunctionsToSort(sortedByDate%whichSide%, true)
-                ; sortColumn(4, "SortDesc")
-            } else {
-                whichsort%whichSide%:="newOld"
-                oldNew%whichSide%:=false    
-                renderFunctionsToSort(sortedByDate%whichSide%)
-                ; sortColumn(4, "Sort")
-            }
-        } else if (A_EventInfo=5) {
-            if (canSortBySize%whichSide%) {
-                if (!bigSmall%whichSide%)
-                {   
-                    whichsort%whichSide%:="bigSmall"
-                    bigSmall%whichSide%:=true    
-                    renderFunctionsToSort(sortedBySize%whichSide%)
-                    
-                    ; sortColumn(6, "SortDesc")
-                } else {
-                    whichsort%whichSide%:="smallBig"
-                    bigSmall%whichSide%:=false    
-                    renderFunctionsToSort(sortedBySize%whichSide%, true)
-                    ; sortColumn(6, "Sort")
-                }
+                whichsort%whichSide%:="smallBig"
+                bigSmall%whichSide%:=false    
+                renderFunctionsToSort(sortedBySize%whichSide%, true)
+                ; sortColumn(6, "Sort")
             }
         }
     }
-    
+}
+
 return
 ;includes
 #include <biga>
@@ -1120,6 +1165,27 @@ Return DllCall("Comctl32.dll\DefSubclassProc", "Ptr", H, "UInt", M, "Ptr", W, "P
 }
 ; ======================================================================================================================
 ;start of functions start
+sortSizes()
+{
+    global
+    
+    for k, v in sortedByDate%whichSide% {
+        
+        oSize:=stuffByName[A_LoopFileTimeModified]["size"]
+        if (sortedDates%whichSide%.HasKey(oSize))
+            sortedDates%whichSide%[oSize].Push(v)
+        else 
+            sortedDates%whichSide%[oSize]:=[v]
+        
+    }
+    
+    for k, v in sortedSize%whichSide% {
+        for key ,value in v {
+            sortedBySize%whichSide%.Insert(1, value)
+        }
+    }
+}
+
 bothSameDir(whichSide)
 {
     global
@@ -1239,28 +1305,28 @@ Watch2(Folder, Changes) {
 fileRenamed(whichSide, Byref renameFrom,Byref renameInto)
 {
     global
-        Gui, main:Default
+    Gui, main:Default
     Gui, ListView, vlistView%whichSide%
     stuffByName%whichSide%[renameInto]:=stuffByName%whichSide%[renameFrom]
     stuffByName%whichSide%.Delete(renameFrom)
     rowNums:=LV_GetCount()
     loop % rowNums {
         LV_GetText(OutputVar,A_Index,2)
-        p(OutputVar " " renameFrom)
+        ; p(OutputVar " " renameFrom)
         if (OutputVar=renameFrom) {
             
             LV_Modify(A_Index,, ,renameInto,renameInto)
-            justOneIcon(renameInto,A_Index,whichSide)
+                justOneIcon(renameInto,A_Index,whichSide)
             
             ; stuffByName%whichSide%.Delete(OutFileName)
             
             ; for k, v in sortedByDate%whichSide% {
-                ; if (v=OutFileName)
-                    ; sortedByDate%whichSide%.Remove(k)
+            ; if (v=OutFileName)
+            ; sortedByDate%whichSide%.Remove(k)
             ; }
             ; for k, v in sortedBySize%whichSide% {
-                ; if (v=OutFileName)
-                    ; sortedBySize%whichSide%.Remove(k)
+            ; if (v=OutFileName)
+            ; sortedBySize%whichSide%.Remove(k)
             ; }
             break
         }
@@ -1622,7 +1688,8 @@ getMultiRenameNames()
             nameInstance:=StrReplace(nameInstance, value , actualNum,, 1)
         }
         SplitPath, v,,, OutExtension
-        nameInstance:=StrReplace(nameInstance, "<ext>" , OutExtension)
+        nameInstance:=StrReplace(nameInstance, "<name>", v)
+        nameInstance:=StrReplace(nameInstance, "<ext>", OutExtension)
         
         fileExist:=fileExist(multiRenameDir "\" v)
         if (InStr(fileExist, "D" )) {
@@ -1656,26 +1723,26 @@ calculateStuff(ByRef date,ByRef attri, ByRef size, ByRef name, Byref k) {
         EnvSub, var1Num, %var2%, Minutes
         var1:=var1Num "’"
         color=0xFF0000 ;red
-        if (var1Num>525599) {
+        if (Abs(var1Num)>525599) {
             var1Num := now
             EnvSub, var1Num, %var2%, Days
             var1Num:=Floor(var1Num/365.25) ;the average days in a month
             var1:=var1Num " y"
             color=0x808080 ;grey ; pink
         }
-        else if (var1Num>86399) {
+        else if (Abs(var1Num)>86399) {
             var1Num := now
             EnvSub, var1Num, %var2%, Days
             var1Num:=Floor(var1Num/30.44) ;the average days in a month
             var1:=var1Num " m"
             color=0x00FFFF ;AQUA
         }
-        else if (var1Num>1439) {
+        else if (Abs(var1Num)>1439) {
             var1Num := now
             EnvSub, var1Num, %var2%, Days
             var1:=var1Num " d"
             color=0x00FF00 ;lime green
-        } else if (var1Num>59) {
+        } else if (Abs(var1Num)>59) {
             var1Num := now
             EnvSub, var1Num, %var2%, Hours
             var1:=var1Num " h"
@@ -1706,7 +1773,7 @@ applySizes() {
         Run, "%A_AhkPath%" "lib\getFolderSizes.ahk" %namesStr%,,,PID_getFolderSizes
     } else {
         Process, Close, %PID_getFolderSizes%
-        sortedBySize%whichSide%:=sortArrayByArray(unsorted%whichSide%,stuffByName%whichSide%,true,"size")
+        ; sortedBySize%whichSide%:=sortArrayByArray(unsorted%whichSide%,stuffByName%whichSide%,true,"size")
         canSortBySize%whichSide%:=true
     }
 }
@@ -1801,7 +1868,7 @@ renderFunctionsToSort(ByRef objectToSort, reverse:=false)
     loop % rowsToLoop {
         name:=objectToSort[k]
         v:=stuffByName%whichSide%[name]
-
+        
         if (name=toFocus)
         {
             rowToFocus:=A_Index
@@ -1811,7 +1878,7 @@ renderFunctionsToSort(ByRef objectToSort, reverse:=false)
             ; LV_Add("Icon" . IconNumber,,name,var1,var2,formattedBytes,bytes)
         LV_Colors.Cell(ListviewHwnd%whichSide%,A_Index,3,color)
         namesForIcons%whichSide%.Push(name)
-
+            
         if (!quickFixIcon%whichSide%) {
             quickFixIcon%whichSide%:=true
             hIcon:=DllCall("Shell32\ExtractAssociatedIcon", UInt, 0, Str, "", UShortP, iIndex)
@@ -1827,8 +1894,8 @@ renderFunctionsToSort(ByRef objectToSort, reverse:=false)
                 lastIconNumber:=IconNumber
             ; lastIconNumber:=IconNumber
         }
-
-            k+=inc
+        
+        k+=inc
     }
     if (toFocus)
     {
@@ -2371,20 +2438,20 @@ renderCurrentDir()
             if (lastDir%whichSide%!="" and EcurrentDir%otherSide%!=lastDir%whichSide%) {
                 for k, v in watching%whichSide% {
                     if (v=lastDir%whichSide%)
-                    watching%whichSide%.Remove(k)
+                        watching%whichSide%.Remove(k)
                     break
                 }
                 ; p("stopped " lastDir%whichSide% )
                 stopWatchFolder(lastDir%whichSide%) 
             }
-
+            
             if (!bothSameDir) {
                 
                 ; p("started " EcurrentDir%whichSide% )
                 watching%whichSide%.Push(EcurrentDir%whichSide%)
                 startWatchFolder(EcurrentDir%whichSide%)
             }
-
+            
             
             if (lastDir%whichSide%!="" and !cannotDirHistory%whichSide%) {
                 dirHistory%whichSide%.Push(lastDir%whichSide%)
@@ -2413,23 +2480,34 @@ renderCurrentDir()
         sortedBySize%whichSide%:=[]
         canSortBySize%whichSide%:=false
         stuffByName%whichSide%:={}
+        sortedDates%whichSide%:={}
+        sortedSizes%whichSide%:=[]
         Loop, Files, % EcurrentDir%whichSide% "\*", DF
         {
             stuffByName%whichSide%[A_LoopFileName]:={date:A_LoopFileTimeModified,attri:A_LoopFileAttrib,size:A_LoopFileSize}
-            
-        }
-        for k in stuffByName%whichSide% {
-            unsorted%whichSide%.Push(k)
+                if (sortedDates%whichSide%.HasKey(A_LoopFileTimeModified))
+                sortedDates%whichSide%[A_LoopFileTimeModified].Push(A_LoopFileName)
+                else 
+                sortedDates%whichSide%[A_LoopFileTimeModified]:=[A_LoopFileName]
+            }
+        ; for k in stuffByName%whichSide% {
+        ; unsorted%whichSide%.Push(k)
+        ; }
+        
+        for k, v in sortedDates%whichSide% {
+            for key ,value in v {
+                sortedByDate%whichSide%.Insert(1, value)
+            }
         }
         
-        sortedByDate%whichSide%:=sortArrayByArray(unsorted%whichSide%,stuffByName%whichSide%,true,"date")
-
+        ; sortedByDate%whichSide%:=sortArrayByArray(unsorted%whichSide%,stuffByName%whichSide%,true,"date")
+        
         firstSizes%whichSide%:=true
         whichsort%whichSide%:="newOld"
         oldNew%whichSide%:=false    
-
+        
         renderFunctionsToSort(sortedByDate%whichSide%)
-
+        
         Gui, ListView, folderlistView2_%whichSide%
         LV_Delete()
         parent1DirDirs%whichSide%:=[]
@@ -2493,9 +2571,9 @@ renderCurrentDir()
                 ; p(fileExist(currentDir))
                 EcurrentDir%whichSide%:=lastDir%whichSide%
                 GuiControl, Text,vcurrentDirEdit%whichSide%, % EcurrentDir%whichSide%
-
+                
                 if (focused!="changePath") {
-                renderCurrentDir()
+                    renderCurrentDir()
                 }
                 ; lastDir:=currentDir
             } 
@@ -2881,8 +2959,8 @@ return
 return
 
 $`::
-p(watching1,watching2)
-; p(watching2)
+    p(watching1,watching2)
+    ; p(watching2)
     ; p(focused)
 Return
 
@@ -2891,7 +2969,8 @@ $^+r::
     multiRenameDir:=EcurrentDir%whichSide%
     multiRenamelength:=namesToMultiRename.Length()
     Gui, multiRenameGui:Default
-    Gui,Font, s10, Segoe UI
+    ; Gui,Font, s10, Segoe UI
+    Gui,Font, s10, Consolas
     
     Gui, Add, Edit, w400 vmultiRenameTheName
     Gui, Add, Edit, x+5 w300 vmultiRenameStartingNums 
