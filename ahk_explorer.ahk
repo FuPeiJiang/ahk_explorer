@@ -1170,16 +1170,14 @@ sortSizes()
     global
     
     for k, v in sortedByDate%whichSide% {
-        
-        oSize:=stuffByName[A_LoopFileTimeModified]["size"]
-        if (sortedDates%whichSide%.HasKey(oSize))
-            sortedDates%whichSide%[oSize].Push(v)
+        oSize:=stuffByName%whichSide%[v]["size"]
+        if (sortedSizes%whichSide%.HasKey(oSize))
+            sortedSizes%whichSide%[oSize].Push(v)
         else 
-            sortedDates%whichSide%[oSize]:=[v]
-        
+            sortedSizes%whichSide%[oSize]:=[v]
     }
     
-    for k, v in sortedSize%whichSide% {
+    for k, v in sortedSizes%whichSide% {
         for key ,value in v {
             sortedBySize%whichSide%.Insert(1, value)
         }
@@ -1340,16 +1338,39 @@ fileAdded(whichSide, Byref path) {
     sortWithAr%whichSide%:=[]
     FileGetSize, outputSize, %path%
     FileGetAttrib, OutputAttri , %path%
+    
+    
     stuffByName%whichSide%[OutFileName]:={date:A_Now,attri:OutputAttri,size:outputSize}
+    
+    if (sortedDates%whichSide%.HasKey(A_Now))
+        sortedDates%whichSide%[A_Now].Push(OutFileName)
+    else 
+        sortedDates%whichSide%[A_Now]:=[OutFileName]
     sortedByDate%whichSide%.InsertAt(1,OutFileName)
-    sizesCopy%whichSide%:=A.Clone(sortedBySize%whichSide%)
-    sizesCopy%whichSide%.Push(OutFileName)
-    for key, value in sortedBySize%whichSide% {
-        sortWithAr%whichSide%.Push({name:value, size:stuffByName%whichSide%[value]["size"]})
+    
+    if (sortedSizes%whichSide%.HasKey(outputSize))
+        sortedSizes%whichSide%[outputSize].Push(OutFileName)
+    else 
+        sortedSizes%whichSide%[outputSize]:=[OutFileName]
+    
+    index:=1
+    for k, v in sortedSizes%whichSide% {
+        for key ,value in v {
+            if (value=OutFileName) {
+                sortedBySize%whichSide%.Insert(sortedBySize%whichSide%.Length()-index+2, value)
+                break 2
+            }
+            index++
+        }
     }
-    sortWithAr%whichSide%.Push({name:OutFileName, size:outputSize})
-    sizesCopy%whichSide%:=sortArrayByArray(sizesCopy%whichSide%,sortWithAr%whichSide%,true,"size")
-    sortedBySize%whichSide%:=sizesCopy%whichSide%
+    ; sizesCopy%whichSide%:=A.Clone(sortedBySize%whichSide%)
+    ; sizesCopy%whichSide%.Push(OutFileName)
+    ; for key, value in sortedBySize%whichSide% {
+    ; sortWithAr%whichSide%.Push({name:value, size:stuffByName%whichSide%[value]["size"]})
+    ; }
+    ; sortWithAr%whichSide%.Push({name:OutFileName, size:outputSize})
+    ; sizesCopy%whichSide%:=sortArrayByArray(sizesCopy%whichSide%,sortWithAr%whichSide%,true,"size")
+    ; sortedBySize%whichSide%:=sizesCopy%whichSide%
     
     
     whereToAddFile(whichSide, OutFileName, A_Now, OutputAttri,outputSize)
@@ -1774,6 +1795,7 @@ applySizes() {
     } else {
         Process, Close, %PID_getFolderSizes%
         ; sortedBySize%whichSide%:=sortArrayByArray(unsorted%whichSide%,stuffByName%whichSide%,true,"size")
+sortSizes()
         canSortBySize%whichSide%:=true
     }
 }
@@ -1986,7 +2008,8 @@ WM_COPYDATA_READ(wp, lp)  {
         ; p(match1)
         receivedFolderSize(match1)
     } else if (match2=3) {
-        sortedBySize%whichSide%:=sortArrayByArray(unsorted%whichSide%,stuffByName%whichSide%,true,"size")
+sortSizes()
+        ; sortedBySize%whichSide%:=sortArrayByArray(unsorted%whichSide%,stuffByName%whichSide%,true,"size")
         ; for k, v in sortedBySize%whichSide% {
         ; p(stuffByName%whichSide%[v])
         ; }
@@ -2959,7 +2982,8 @@ return
 return
 
 $`::
-    p(watching1,watching2)
+    ; p(watching1,watching2)
+    p(sortedSizes1,sortedBySize1)
     ; p(watching2)
     ; p(focused)
 Return
