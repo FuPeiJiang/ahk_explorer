@@ -254,17 +254,19 @@ TypingInRenameSimple:
     }
 return
 grenameFileLabel:
-    fromButton:=true
-    ;renameLabel
+fromButton:=true
+; p(777)
+;renameLabel
 renameFileLabel:
     if (canRename) {
-        canRename:=false
         gui, renameSimple:Default
         gui, submit
         gui, main:Default
+        noRenameError:=true
         
         if (TextBeingRenamed!=RenamingSimple) {
             if (stuffByName[RenamingSimple].Count()) {
+                noRenameError:=false
                 p("file with same name")
             } else {
                 ; LV_Modify(row,,, RenamingSimple)
@@ -293,21 +295,35 @@ renameFileLabel:
                         ; p("FileMove")
                         FileMove, %SourcePath%, %DestPath%
                     }
-                    if ErrorLevel
-                        p("file could not be moved")
+                    if ErrorLevel {
+                        noRenameError:=false
+                        p("file could not be renamed:illegal name or file in use")
+                    }
                     SoundPlay, *-1
                 }
             }
         }
-        gui, renameSimple:Default
-        
-        gui, destroy
-        gui, main:Default
-        if (fromButton) {
-            fromButton:=false
-            ControlFocus,, % "ahk_id " ListviewHwnd%whichSide%
+        if (noRenameError)
+        {
+            canRename:=false
+            gui, renameSimple:Default
+            gui, destroy
+            
+            gui, main:Default
+            if (fromButton) {
+                ; fromButton:=false
+                ControlFocus,, % "ahk_id " ListviewHwnd%whichSide%
+            }
+        } else {
+            ; canRename:=true
+            gui, main:Default
+                
+            gui, show
+                
+            gui, renameSimple:Default
+            gui, show,,renamingWinTitle
         }
-        
+        fromButton:=false
     }
 return
 
@@ -481,6 +497,7 @@ listViewEvents2:
         }
     } else if (A_GuiEvent = "DoubleClick")
     {
+        if (!canRename)
         doubleClickedNormal(A_EventInfo)
     }
     else if (A_GuiEvent=="K") ;key pressed
@@ -539,7 +556,6 @@ listViewEvents2:
                 sleep, 500
                 
                 return
-                
                 
                 LV_GetText(OutputVar,A_EventInfo,2)
                 SplitPath, OutputVar, , , OutExtension, OutNameNoExt
@@ -1306,7 +1322,6 @@ WatchN(whichSide, Folder, Changes) {
     GuiControl, +Redraw, vlistView%whichSide%
     if (bothSameDir)
         GuiControl, +Redraw, vlistView%otherSide%
-    ; p(TickCount, Folder, Actions[Change.Action], Change.Name, Change.IsDir, Change.OldName)
     
 }
 fileRenamed(whichSide, Byref renameFrom,Byref renameInto)
@@ -1373,7 +1388,6 @@ fileRenamed(whichSide, Byref renameFrom,Byref renameInto)
         LV_GetText(OutputVar,A_Index,2)
         if (OutputVar=renameFrom) {
             calculateStuff(,outputSize,OutputVar,A_Index)
-            ; p(outputSize,formattedBytes)
             
             LV_Modify(A_Index,, ,renameInto,,,formattedBytes,bytes)
                 
@@ -2376,6 +2390,7 @@ HandleMessage( p_w, p_l, p_m, p_hw )
                         ; 
                     }
                 } else if ( p_l = RenameHwnd ) {
+                    if (!fromButton)
                     gosub, renameFileLabel
                 }
             } 
@@ -2919,21 +2934,29 @@ sortArrayByArray(toSort, sortWith, reverse=false, key=false)
 
 ;end of functions
 ;hotkeys
-#if winactive("renamingWinTitle ahk_class AutoHotkeyGUI")
-    $esc::
-    if (focused="flistView")
-    if (canRename) {
-        canRename:=false
-        gui, renameSimple:Default
-        gui, submit
-        gui, main:Default
-        ControlFocus,, % "ahk_id " ListviewHwnd%whichSide%
-        
-        gui, renameSimple:Default
-        gui, destroy
+; #if winactive("renamingWinTitle ahk_class AutoHotkeyGUI")
+    ; $enter::
+    ; WinGetTitle, OutputVar , A
+    ; p(OutputVar)
+    ; fromButton:=true
+    ; gosub, renameFileLabel
+; return
+
+$esc::
+    if (focused="flistView") {
+        if (canRename) {
+            canRename:=false
+            ; gui, renameSimple:Default
+            ; gui, submit
+            gui, main:Default
+            ControlFocus,, % "ahk_id " ListviewHwnd%whichSide%
+            
+            gui, renameSimple:Default
+            gui, destroy
+        }
+        return
     }
-    else
-        send, {enter}
+    send, {enter}
 return
 #if winactive("create_folder ahk_class AutoHotkeyGUI")
 $enter::
@@ -3380,14 +3403,19 @@ return
 ;sign out and sign in fixed it
 $enter::
     Gui, main:Default
-    if (focused="flistView" or focused="searchCurrentDirEdit" or focused="listViewInSearch") {
-        stopSizes:=false
-        gui, ListView, vlistView%whichSide%
-        row:=LV_GetNext("")
-        doubleClickedNormal(row)
-        ControlFocus,, % "ahk_id " ListviewHwnd%whichSide%
-    }  else if (focused="changePath" or focused="renaming") {
-        ControlFocus,, % "ahk_id " ListviewHwnd%whichSide%
+    if (!canRename) {
+        if (focused="flistView" or focused="searchCurrentDirEdit" or focused="listViewInSearch") {
+            stopSizes:=false
+            gui, ListView, vlistView%whichSide%
+            row:=LV_GetNext("")
+            doubleClickedNormal(row)
+            ControlFocus,, % "ahk_id " ListviewHwnd%whichSide%
+        }  else if (focused="changePath" or focused="renaming") {
+            ControlFocus,, % "ahk_id " ListviewHwnd%whichSide%
+        }
+    } else {
+        send, {enter}
     }
+    
 return
 
