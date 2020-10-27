@@ -596,27 +596,33 @@ listViewEvents2:
                 ; selectedNames:=[]
                 ; index:=0
                 ; loop {
-                    ; index:=LV_GetNext(index)
-                    ; LV_GetText(OutputVar,index,2)
-                    ; if (!index)
-                        ; break
-                    ; selectedNames.Push(OutputVar)
+                ; index:=LV_GetNext(index)
+                ; LV_GetText(OutputVar,index,2)
+                ; if (!index)
+                ; break
+                ; selectedNames.Push(OutputVar)
                 ; }
                 selectedNames:=getSelectedNames()
-
+                
                 ; gosub, selectCurrent
-
-                finalStr:="""" A_AhkPath """ ""lib\fileRecycle.ahk"" """ EcurrentDir%whichSide% """ " array_tospacedstring(selectedNames)
+                
+                ; finalStr:="""" A_AhkPath """ ""lib\fileRecycle.ahk"" """ EcurrentDir%whichSide% """ " array_tospacedstring(selectedNames)
+                
+                for k, v in getSelectedNames() {
+                    finalStr:="""" A_AhkPath """ ""lib\fileRecycle_one.ahk"" """ EcurrentDir%whichSide% "\" v """" 
+                    ; p(finalStr)
+                run, %finalStr%
+                }
+                
                 ; clipboard:=finalStr
                 ; p(finalStr)
-                run, %finalStr%
                 ; Run, 
                 ; for k, v in selectedNames {
-                    ; FileRecycle, % EcurrentDir%whichSide% "\" v
-                    ; if (ErrorLevel=1) {
-                        ; p("File is in use or Requires PERMISSION to delete")
-                        ; return
-                    ; }
+                ; FileRecycle, % EcurrentDir%whichSide% "\" v
+                ; if (ErrorLevel=1) {
+                ; p("File is in use or Requires PERMISSION to delete")
+                ; return
+                ; }
                 ; }
                 ; SoundPlay, *-1
                 
