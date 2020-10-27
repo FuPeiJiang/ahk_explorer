@@ -603,7 +603,7 @@ listViewEvents2:
                 ; selectedNames.Push(OutputVar)
                 ; }
                 selectedNames:=getSelectedNames()
-                
+                deleteCount%whichSide%:=selectedNames.Length()
                 ; gosub, selectCurrent
                 
                 ; finalStr:="""" A_AhkPath """ ""lib\fileRecycle.ahk"" """ EcurrentDir%whichSide% """ " array_tospacedstring(selectedNames)
@@ -611,7 +611,7 @@ listViewEvents2:
                 for k, v in getSelectedNames() {
                     finalStr:="""" A_AhkPath """ ""lib\fileRecycle_one.ahk"" """ EcurrentDir%whichSide% "\" v """" 
                     ; p(finalStr)
-                run, %finalStr%
+                    run, %finalStr%
                 }
                 
                 ; clipboard:=finalStr
@@ -625,7 +625,7 @@ listViewEvents2:
                 ; }
                 ; }
                 ; SoundPlay, *-1
-                
+                return
             } else {
                 if (focused!="searchCurrentDirEdit")
                 {
@@ -752,7 +752,7 @@ listViewEvents2:
         GuiControl, Text, vcurrentDirEdit%whichSide%,% searchString%whichSide% key
         SendMessage, 0xB1, -2, -1,, % "ahk_id " Edithwnd%whichSide%
     }
-} 
+}
 }
 }
 else if (A_GuiEvent="RightClick") {
@@ -1257,63 +1257,52 @@ resumeWatchFolder(WatchedFolder)
     WatchFolder("**PAUSE", False)
 }
 Watch1(Folder, Changes) {
-    global
-    Static Actions := ["1 (added)", "2 (removed)", "3 (modified)", "4 (renamed)"]
-    For Each, Change In Changes {
-        if (Change.Action=1) {
-            fileAdded(1, Change.Name)
-        } else if (Change.Action=2) {
-            fileDeleted(1, Change.Name)
-            if (bothSameDir(1)) {
-                fileDeleted(2, Change.Name)
-            }
-        } else if (Change.Action=4) {
-            return
-            SplitPath, % Change.Name, OutFileNameNew, OutDirNew
-            SplitPath, % Change.OldName, OutFileNameOld, OutDirOld
-            p(OutDirNew " " EcurrentDir1)
-            if (OutDirNew=EcurrentDir1) {
-                
-                fileRenamed(1, OutFileNameNew, OutFileNameOld)
-                
-            } else if (OutDirOld=EcurrentDir2) {
-                ; fileDeleted(2, Change.OldName)
-            } else {
-                ; fileAdded(2, Change.Name)
-                ; fileRenamed(2)
-            }
-        }
-    }
-    ; p(TickCount, Folder, Actions[Change.Action], Change.Name, Change.IsDir, Change.OldName)
+    WatchN(1,Folder, Changes)
 }
 Watch2(Folder, Changes) {
+    WatchN(2,Folder, Changes)
+}
+WatchN(whichSide, Folder, Changes) {
+    global
     Static Actions := ["1 (added)", "2 (removed)", "3 (modified)", "4 (renamed)"]
+    otherSide:=bothSameDir(whichSide)
+    GuiControl, -Redraw, vlistView%whichSide%
+    if (otherSide)
+        GuiControl, -Redraw, vlistView%otherSide%
+    
     For Each, Change In Changes {
         if (Change.Action=1) {
-            fileAdded(2, Change.Name)
+            fileAdded(whichSide, Change.Name)
         } else if (Change.Action=2) {
-            fileDeleted(2, Change.Name)
-            if (bothSameDir(2)) {
-                fileDeleted(1, Change.Name)
+            fileDeleted(whichSide, Change.Name)
+            if (bothSameDir) {
+                fileDeleted(otherSide, Change.Name)
             }
         } else if (Change.Action=4) {
-            return
             SplitPath, % Change.Name, OutFileNameNew, OutDirNew
             SplitPath, % Change.OldName, OutFileNameOld, OutDirOld
-            
-            if (OutDirNew=EcurrentDir2) {
+            ; p(OutDirNew " " EcurrentDir%whichSide%)
+            if (OutDirNew=EcurrentDir%whichSide%) { ;renamed
+                fileRenamed(whichSide, OutFileNameOld, OutFileNameNew)
+                if (otherSide) {
+                    fileRenamed(otherSide, OutFileNameOld, OutFileNameNew)
+                }
+            } else if (OutDirOld=EcurrentDir%otherSide%) { ;moved from other Side
+                ; fileDeleted(otherSide, Change.OldName)
+            } else { ;moved
                 
-                fileRenamed(2, OutFileNameNew, OutFileNameOld)
-                
-            } else if (OutDirOld=EcurrentDir2) {
-                ; fileDeleted(2, Change.OldName)
-            } else {
-                ; fileAdded(2, Change.Name)
-                ; fileRenamed(2)
+                fileAdded(whichSide, Change.Name)
+                if (otherSide) {
+                    fileAdded(otherSide, Change.Name)
+                }
             }
         }
     }
+    GuiControl, +Redraw, vlistView%whichSide%
+    if (bothSameDir)
+        GuiControl, +Redraw, vlistView%otherSide%
     ; p(TickCount, Folder, Actions[Change.Action], Change.Name, Change.IsDir, Change.OldName)
+    
 }
 fileRenamed(whichSide, Byref renameFrom,Byref renameInto)
 {
@@ -1321,29 +1310,46 @@ fileRenamed(whichSide, Byref renameFrom,Byref renameInto)
     Gui, main:Default
     Gui, ListView, vlistView%whichSide%
     stuffByName%whichSide%[renameInto]:=stuffByName%whichSide%[renameFrom]
+    obj:=stuffByName%whichSide%[renameInto]
     stuffByName%whichSide%.Delete(renameFrom)
     rowNums:=LV_GetCount()
     loop % rowNums {
         LV_GetText(OutputVar,A_Index,2)
-        ; p(OutputVar " " renameFrom)
         if (OutputVar=renameFrom) {
             
-            LV_Modify(A_Index,, ,renameInto,renameInto)
-                justOneIcon(renameInto,A_Index,whichSide)
-            
-            ; stuffByName%whichSide%.Delete(OutFileName)
-            
-            ; for k, v in sortedByDate%whichSide% {
-            ; if (v=OutFileName)
-            ; sortedByDate%whichSide%.Remove(k)
-            ; }
-            ; for k, v in sortedBySize%whichSide% {
-            ; if (v=OutFileName)
-            ; sortedBySize%whichSide%.Remove(k)
-            ; }
+            LV_Modify(A_Index,, ,renameInto)
+                ; justOneIcon(renameInto,A_Index,whichSide)
+
             break
         }
     }
+    for k, v in sortedByDate%whichSide% {
+        if (v=renameFrom) {
+            sortedByDate%whichSide%[k]:=renameInto
+            break
+        }
+    }
+    for k, v in sortedBySize%whichSide% {
+        if (v=renameFrom) {
+            sortedBySize%whichSide%[k]:=renameInto
+            break
+        }
+    }
+    
+    ar:=sortedDates%whichSide%[obj.date]
+    for k, v in ar {
+        if (v=renameFrom) {
+            sortedDates%whichSide%[obj.date][k]:=renameInto
+            break
+        }
+    }
+    ar:=sortedSizes%whichSide%[obj.size]
+    for k, v in ar {
+        if (v=renameFrom)
+            sortedSizes%whichSide%[obj.date][k]:=renameInto
+            break
+    }
+    
 }
 fileAdded(whichSide, Byref path) {
     global
@@ -1409,22 +1415,36 @@ fileDeleted(whichSide, Byref path)
     Gui, main:Default
     Gui, ListView, vlistView%whichSide%
     SplitPath, path, OutFileName
+    GuiControl, -Redraw, vlistView%whichSide% 
     
     rowNums:=LV_GetCount()
     loop % rowNums {
         LV_GetText(OutputVar,A_Index,2)
         if (OutputVar=OutFileName) {
-            GuiControl, -Redraw, vlistView%whichSide% 
+            
             LV_Delete(A_Index)
-            GuiControl, +Redraw, vlistView%whichSide% 
+            deleteCount%whichSide%--
+            if (deleteCount%whichSide%=0) {
+                deleteCount%whichSide%:=-1
+                if (A_Index=rowNums and A_Index>1) {
+                    LV_Modify(A_Index-1, "+Select +Focus Vis") ; select
+                    }
+                else
+                    LV_Modify(A_Index, "+Select +Focus Vis") ; select
+                }
+            ; GuiControl, +Redraw, vlistView%whichSide% 
             
             for k, v in sortedByDate%whichSide% {
-                if (v=OutFileName)
+                if (v=OutFileName) {
                     sortedByDate%whichSide%.Remove(k)
+                    break
+                }
             }
             for k, v in sortedBySize%whichSide% {
-                if (v=OutFileName)
+                if (v=OutFileName) {
                     sortedBySize%whichSide%.Remove(k)
+                    break
+                }
             }
             
             obj:=stuffByName%whichSide%[OutFileName]
@@ -1434,8 +1454,10 @@ fileDeleted(whichSide, Byref path)
                 stuffByName%whichSide%.Delete(obj.date)
             } else {
                 for k, v in ar {
-                    if (v=OutFileName)
+                    if (v=OutFileName) {
                         sortedDates%whichSide%[obj.date].Remove(k)
+                        break
+                    }
                 }
             }
             ar:=sortedSizes%whichSide%[obj.size]
@@ -1443,8 +1465,10 @@ fileDeleted(whichSide, Byref path)
                 stuffByName%whichSide%.Delete(obj.size)
             } else {
                 for k, v in ar {
-                    if (v=OutFileName)
+                    if (v=OutFileName) {
                         sortedSizes%whichSide%[obj.size].Remove(k)
+                        break
+                    }
                 }
             }
             
