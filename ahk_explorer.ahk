@@ -592,26 +592,33 @@ listViewEvents2:
             }
             else if (key="NumpadDel") {
                 
-                indexes:=[]
-                selectedNames:=[]
-                index:=0
-                loop {
-                    index:=LV_GetNext(index)
-                    LV_GetText(OutputVar,index,2)
-                    if (!index)
-                        break
-                    ; LV_Delete(index)
-                    selectedNames.Push(OutputVar)
-                }
-                gosub, selectCurrent
-                for k, v in selectedNames {
-                    FileRecycle, % EcurrentDir%whichSide% "\" v
-                    if (ErrorLevel=1) {
-                        p("File is in use or Requires PERMISSION to delete")
-                        return
-                    }
-                }
-                SoundPlay, *-1
+                ; indexes:=[]
+                ; selectedNames:=[]
+                ; index:=0
+                ; loop {
+                    ; index:=LV_GetNext(index)
+                    ; LV_GetText(OutputVar,index,2)
+                    ; if (!index)
+                        ; break
+                    ; selectedNames.Push(OutputVar)
+                ; }
+                selectedNames:=getSelectedNames()
+
+                ; gosub, selectCurrent
+
+                finalStr:="""" A_AhkPath """ ""lib\fileRecycle.ahk"" """ EcurrentDir%whichSide% """ " array_tospacedstring(selectedNames)
+                ; clipboard:=finalStr
+                ; p(finalStr)
+                run, %finalStr%
+                ; Run, 
+                ; for k, v in selectedNames {
+                    ; FileRecycle, % EcurrentDir%whichSide% "\" v
+                    ; if (ErrorLevel=1) {
+                        ; p("File is in use or Requires PERMISSION to delete")
+                        ; return
+                    ; }
+                ; }
+                ; SoundPlay, *-1
                 
             } else {
                 if (focused!="searchCurrentDirEdit")
@@ -1255,6 +1262,7 @@ Watch1(Folder, Changes) {
                 fileDeleted(2, Change.Name)
             }
         } else if (Change.Action=4) {
+            return
             SplitPath, % Change.Name, OutFileNameNew, OutDirNew
             SplitPath, % Change.OldName, OutFileNameOld, OutDirOld
             p(OutDirNew " " EcurrentDir1)
@@ -1283,6 +1291,7 @@ Watch2(Folder, Changes) {
                 fileDeleted(1, Change.Name)
             }
         } else if (Change.Action=4) {
+            return
             SplitPath, % Change.Name, OutFileNameNew, OutDirNew
             SplitPath, % Change.OldName, OutFileNameOld, OutDirOld
             
@@ -1372,7 +1381,6 @@ fileAdded(whichSide, Byref path) {
     ; sizesCopy%whichSide%:=sortArrayByArray(sizesCopy%whichSide%,sortWithAr%whichSide%,true,"size")
     ; sortedBySize%whichSide%:=sizesCopy%whichSide%
     
-    
     whereToAddFile(whichSide, OutFileName, A_Now, OutputAttri,outputSize)
     
     
@@ -1400,9 +1408,9 @@ fileDeleted(whichSide, Byref path)
     loop % rowNums {
         LV_GetText(OutputVar,A_Index,2)
         if (OutputVar=OutFileName) {
+            GuiControl, -Redraw, vlistView%whichSide% 
             LV_Delete(A_Index)
-            
-            stuffByName%whichSide%.Delete(OutFileName)
+            GuiControl, +Redraw, vlistView%whichSide% 
             
             for k, v in sortedByDate%whichSide% {
                 if (v=OutFileName)
@@ -1412,6 +1420,30 @@ fileDeleted(whichSide, Byref path)
                 if (v=OutFileName)
                     sortedBySize%whichSide%.Remove(k)
             }
+            
+            obj:=stuffByName%whichSide%[OutFileName]
+            
+            ar:=sortedDates%whichSide%[obj.date]
+            if (ar.Length()=1) {
+                stuffByName%whichSide%.Delete(obj.date)
+            } else {
+                for k, v in ar {
+                    if (v=OutFileName)
+                        sortedDates%whichSide%[obj.date].Remove(k)
+                }
+            }
+            ar:=sortedSizes%whichSide%[obj.size]
+            if (ar.Length()=1) {
+                stuffByName%whichSide%.Delete(obj.size)
+            } else {
+                for k, v in ar {
+                    if (v=OutFileName)
+                        sortedSizes%whichSide%[obj.size].Remove(k)
+                }
+            }
+            
+            stuffByName%whichSide%.Delete(OutFileName)
+            
             break
         }
     }
@@ -1545,10 +1577,12 @@ insertRow(byref whichSide, byref OutFileName,byref row,byref date,byref attri,by
     Gui, main:Default
     Gui, ListView, vlistView%whichSide%
     calculateStuff(date,attri,size,OutFileName,row)
+    GuiControl, -Redraw, vlistView%whichSide% 
     LV_Insert(row,,,OutFileName,var1,var2,formattedBytes,bytes)
         LV_Colors.Cell(ListviewHwnd%whichSide%,row,3,color)
     
     justOneIcon(OutFileName,row,whichSide)
+    GuiControl, +Redraw, vlistView%whichSide% 
     ; hIcon := DllCall("Shell32\ExtractAssociatedIcon", UInt, 0, Str, EcurrentDir%whichSide% "\" name , UShortP, iIndex)
     ; if hIcon
     ; {
@@ -1795,7 +1829,7 @@ applySizes() {
     } else {
         Process, Close, %PID_getFolderSizes%
         ; sortedBySize%whichSide%:=sortArrayByArray(unsorted%whichSide%,stuffByName%whichSide%,true,"size")
-sortSizes()
+        sortSizes()
         canSortBySize%whichSide%:=true
     }
 }
@@ -2008,7 +2042,7 @@ WM_COPYDATA_READ(wp, lp)  {
         ; p(match1)
         receivedFolderSize(match1)
     } else if (match2=3) {
-sortSizes()
+        sortSizes()
         ; sortedBySize%whichSide%:=sortArrayByArray(unsorted%whichSide%,stuffByName%whichSide%,true,"size")
         ; for k, v in sortedBySize%whichSide% {
         ; p(stuffByName%whichSide%[v])
