@@ -631,6 +631,7 @@ listViewEvents2:
                 {
                     ShiftIsDown := GetKeyState("Shift")
                         CtrlIsDown := GetKeyState("Ctrl")
+                    
                     if (CtrlIsDown and !ShiftIsDown) {
                         if (key="c") {
                             selectedPaths:=getSelectedPaths()
@@ -653,7 +654,11 @@ listViewEvents2:
                             }
                         }
                         return
-                        
+                    } else if (ShiftIsDown and !CtrlIsDown) {
+                        if (key="F10") {
+                            selectedNames:=getSelectedNames()
+                            ShellContextMenu(EcurrentDir%whichSide%,selectedNames)
+                        }
                     } else if (CtrlIsDown and ShiftIsDown) {
                         if (key="x") {
                             for k, v in getSelectedNames() ;extract using 7zip, 7-zip
@@ -1309,33 +1314,19 @@ fileRenamed(whichSide, Byref renameFrom,Byref renameInto)
     global
     Gui, main:Default
     Gui, ListView, vlistView%whichSide%
+    clipboard:=EcurrentDir%whichSide% "\" renameInto
+    FileGetSize, outputSize, % EcurrentDir%whichSide% "\" renameInto
+    obj:=stuffByName%whichSide%[renameFrom]
     stuffByName%whichSide%[renameInto]:=stuffByName%whichSide%[renameFrom]
-    obj:=stuffByName%whichSide%[renameInto]
     stuffByName%whichSide%.Delete(renameFrom)
-    rowNums:=LV_GetCount()
-    loop % rowNums {
-        LV_GetText(OutputVar,A_Index,2)
-        if (OutputVar=renameFrom) {
-            
-            LV_Modify(A_Index,, ,renameInto)
-                ; justOneIcon(renameInto,A_Index,whichSide)
-
-            break
-        }
-    }
+    stuffByName%whichSide%[renameInto]["size"]:=outputSize
+    
     for k, v in sortedByDate%whichSide% {
         if (v=renameFrom) {
             sortedByDate%whichSide%[k]:=renameInto
             break
         }
     }
-    for k, v in sortedBySize%whichSide% {
-        if (v=renameFrom) {
-            sortedBySize%whichSide%[k]:=renameInto
-            break
-        }
-    }
-    
     ar:=sortedDates%whichSide%[obj.date]
     for k, v in ar {
         if (v=renameFrom) {
@@ -1343,13 +1334,54 @@ fileRenamed(whichSide, Byref renameFrom,Byref renameInto)
             break
         }
     }
-    ar:=sortedSizes%whichSide%[obj.size]
-    for k, v in ar {
-        if (v=renameFrom)
-            sortedSizes%whichSide%[obj.date][k]:=renameInto
+    
+    for k, v in sortedBySize%whichSide% {
+        if (v=OutFileName) {
+            sortedBySize%whichSide%.Remove(k)
             break
+        }
+    }
+    ar:=sortedSizes%whichSide%[obj.size]
+    if (ar.Length()=1) {
+        stuffByName%whichSide%.Delete(obj.size)
+    } else {
+        for k, v in ar {
+            if (v=OutFileName) {
+                sortedSizes%whichSide%[obj.size].Remove(k)
+                break
+            }
+        }
     }
     
+    if (sortedSizes%whichSide%.HasKey(outputSize))
+        sortedSizes%whichSide%[outputSize].Push(OutFileName)
+    else 
+        sortedSizes%whichSide%[outputSize]:=[OutFileName]
+    
+    index:=1
+    for k, v in sortedSizes%whichSide% {
+        for key ,value in v {
+            if (value=OutFileName) {
+                sortedBySize%whichSide%.Insert(sortedBySize%whichSide%.Length()-index+2, value)
+                break 2
+            }
+            index++
+        }
+    }
+    rowNums:=LV_GetCount()
+    loop % rowNums {
+        LV_GetText(OutputVar,A_Index,2)
+        if (OutputVar=renameFrom) {
+            calculateStuff(,outputSize,OutputVar,A_Index)
+            ; p(outputSize,formattedBytes)
+            
+            LV_Modify(A_Index,, ,renameInto,,,formattedBytes,bytes)
+                
+            justOneIcon(renameInto,A_Index,whichSide)
+            
+            break
+        }
+    }
 }
 fileAdded(whichSide, Byref path) {
     global
@@ -1359,7 +1391,6 @@ fileAdded(whichSide, Byref path) {
     sortWithAr%whichSide%:=[]
     FileGetSize, outputSize, %path%
     FileGetAttrib, OutputAttri , %path%
-    
     
     stuffByName%whichSide%[OutFileName]:={date:A_Now,attri:OutputAttri,size:outputSize}
     
@@ -1393,20 +1424,15 @@ fileAdded(whichSide, Byref path) {
     ; sizesCopy%whichSide%:=sortArrayByArray(sizesCopy%whichSide%,sortWithAr%whichSide%,true,"size")
     ; sortedBySize%whichSide%:=sizesCopy%whichSide%
     
-    whereToAddFile(whichSide, OutFileName, A_Now, OutputAttri,outputSize)
+    whereToAddFile(whichSide, OutFileName, A_Now,outputSize)
     
     
     if (bothSameDir(whichSide)) {
         stuffByName%otherSide%[OutFileName]:=stuffByName%whichSide%[OutFileName]
         sortedBySize%otherSide%:= A.Clone(sortedBySize%whichSide%)
         sortedByDate%otherSide%:=A.Clone(sortedByDate%whichSide%)
-        whereToAddFile(otherSide, OutFileName, A_Now, OutputAttri,outputSize)
+        whereToAddFile(otherSide, OutFileName, A_Now,outputSize)
     }
-    
-    
-    
-    
-    
     
 }
 fileDeleted(whichSide, Byref path)
@@ -1433,6 +1459,7 @@ fileDeleted(whichSide, Byref path)
                     LV_Modify(A_Index, "+Select +Focus Vis") ; select
                 }
             ; GuiControl, +Redraw, vlistView%whichSide% 
+            obj:=stuffByName%whichSide%[OutFileName]
             
             for k, v in sortedByDate%whichSide% {
                 if (v=OutFileName) {
@@ -1440,15 +1467,6 @@ fileDeleted(whichSide, Byref path)
                     break
                 }
             }
-            for k, v in sortedBySize%whichSide% {
-                if (v=OutFileName) {
-                    sortedBySize%whichSide%.Remove(k)
-                    break
-                }
-            }
-            
-            obj:=stuffByName%whichSide%[OutFileName]
-            
             ar:=sortedDates%whichSide%[obj.date]
             if (ar.Length()=1) {
                 stuffByName%whichSide%.Delete(obj.date)
@@ -1458,6 +1476,13 @@ fileDeleted(whichSide, Byref path)
                         sortedDates%whichSide%[obj.date].Remove(k)
                         break
                     }
+                }
+            }
+            
+            for k, v in sortedBySize%whichSide% {
+                if (v=OutFileName) {
+                    sortedBySize%whichSide%.Remove(k)
+                    break
                 }
             }
             ar:=sortedSizes%whichSide%[obj.size]
@@ -1490,7 +1515,7 @@ fileDeleted(whichSide, Byref path)
 ; sortedByDate
 ; sortedBySize
 
-whereToAddFile(byref whichSide, byref OutFileName,byref date,byref attri,byref size) {
+whereToAddFile(byref whichSide, byref OutFileName,byref date,byref size) {
     global
     Gui, main:Default
     Gui, ListView, vlistView%whichSide%
@@ -1596,17 +1621,17 @@ whereToAddFile(byref whichSide, byref OutFileName,byref date,byref attri,byref s
     
     
     if (insertNum) {
-        insertRow(whichSide, OutFileName, insertNum, date, attri,size)
+        insertRow(whichSide, OutFileName, insertNum, date,size)
     }
 }
 
-insertRow(byref whichSide, byref OutFileName,byref row,byref date,byref attri,byref size)
+insertRow(byref whichSide, byref OutFileName,byref row,byref date,byref size)
 {
     global
     
     Gui, main:Default
     Gui, ListView, vlistView%whichSide%
-    calculateStuff(date,attri,size,OutFileName,row)
+    calculateStuff(date,size,OutFileName,row)
     GuiControl, -Redraw, vlistView%whichSide% 
     LV_Insert(row,,,OutFileName,var1,var2,formattedBytes,bytes)
         LV_Colors.Cell(ListviewHwnd%whichSide%,row,3,color)
@@ -1799,53 +1824,50 @@ getTextWidth(text)
     Gui,Fake:Destroy
 return posw
 }
-calculateStuff(ByRef date,ByRef attri, ByRef size, ByRef name, Byref k) {
-    global
-    if (calculateDates) {
-        now:=A_Now
+calculateStuff(ByRef date:="", ByRef size:="", ByRef name:="", Byref k:="") {
+global
+if (calculateDates and date!="") {
+    now:=A_Now
+    var1Num := now
+    var2 := date
+    EnvSub, var1Num, %var2%, Minutes
+    var1:=var1Num "’"
+    color=0xFF0000 ;red
+    if (Abs(var1Num)>525599) {
         var1Num := now
-        var2 := date
-        EnvSub, var1Num, %var2%, Minutes
-        var1:=var1Num "’"
-        color=0xFF0000 ;red
-        if (Abs(var1Num)>525599) {
-            var1Num := now
-            EnvSub, var1Num, %var2%, Days
-            var1Num:=Floor(var1Num/365.25) ;the average days in a month
-            var1:=var1Num " y"
-            color=0x808080 ;grey ; pink
-        }
-        else if (Abs(var1Num)>86399) {
-            var1Num := now
-            EnvSub, var1Num, %var2%, Days
-            var1Num:=Floor(var1Num/30.44) ;the average days in a month
-            var1:=var1Num " m"
-            color=0x00FFFF ;AQUA
-        }
-        else if (Abs(var1Num)>1439) {
-            var1Num := now
-            EnvSub, var1Num, %var2%, Days
-            var1:=var1Num " d"
-            color=0x00FF00 ;lime green
-        } else if (Abs(var1Num)>59) {
-            var1Num := now
-            EnvSub, var1Num, %var2%, Hours
-            var1:=var1Num " h"
-            color=0xFFFF00 ;yellow
-        }
+        EnvSub, var1Num, %var2%, Days
+        var1Num:=Floor(var1Num/365.25) ;the average days in a month
+        var1:=var1Num " y"
+        color=0x808080 ;grey ; pink
     }
-    if (calculatefileSizes) {
-        bytes:=""
-        formattedBytes:=""
-            ; isDir:=""
-        ; if (InStr(attri,"D")) {
+    else if (Abs(var1Num)>86399) {
+        var1Num := now
+        EnvSub, var1Num, %var2%, Days
+        var1Num:=Floor(var1Num/30.44) ;the average days in a month
+        var1:=var1Num " m"
+        color=0x00FFFF ;AQUA
+    }
+    else if (Abs(var1Num)>1439) {
+        var1Num := now
+        EnvSub, var1Num, %var2%, Days
+        var1:=var1Num " d"
+        color=0x00FF00 ;lime green
+    } else if (Abs(var1Num)>59) {
+        var1Num := now
+        EnvSub, var1Num, %var2%, Hours
+        var1:=var1Num " h"
+        color=0xFFFF00 ;yellow
+    }
+}
+if (calculatefileSizes and size!="") {
+    bytes:=""
+    formattedBytes:=""
         
-        ; } else {
-        bytes:=size
-        ; }
-        if (bytes!="")
-            formattedBytes:=autoByteFormat(bytes)
-        } 
+    bytes:=size
+    
+    if (bytes!="")
+        formattedBytes:=autoByteFormat(bytes)
+    } 
 }
 applySizes() {
     global
@@ -1959,7 +1981,7 @@ renderFunctionsToSort(ByRef objectToSort, reverse:=false)
         {
             rowToFocus:=A_Index
         }
-        calculateStuff(v["date"],v["attri"],v["size"],name,A_Index)
+        calculateStuff(v["date"],v["size"],name,A_Index)
         LV_Add(,,name,var1,var2,formattedBytes,bytes)
             ; LV_Add("Icon" . IconNumber,,name,var1,var2,formattedBytes,bytes)
         LV_Colors.Cell(ListviewHwnd%whichSide%,A_Index,3,color)
@@ -2396,7 +2418,7 @@ searchInCurrentDir() {
             for k,v in objectToSort {
                 name:=v["name"]
                 obj:=stuffByName%whichSide%[name]
-                calculateStuff(obj["date"],obj["attri"],obj["size"],name,k)
+                calculateStuff(obj["date"],obj["size"],name,k)
                 
                 LV_Add(,,name,var1,var2,formattedBytes,bytes)
                     LV_Colors.Cell(ListviewHwnd%whichSide%,k,3,color)
@@ -2413,7 +2435,7 @@ searchInCurrentDir() {
                     if (!OutExtension) {
                         obj:=stuffByName%whichSide%[v]
                         
-                        calculateStuff(obj["date"],obj["attri"],obj["size"],v,k)
+                        calculateStuff(obj["date"],obj["size"],v,k)
                         
                         LV_Add(,,v,var1,var2,formattedBytes,bytes)
                             LV_Colors.Cell(ListviewHwnd%whichSide%,k,3,color)
@@ -2445,7 +2467,7 @@ searchInCurrentDir() {
                     name:=v["name"]
                     obj:=stuffByName%whichSide%[name]
                     
-                    calculateStuff(obj["date"],obj["attri"],obj["size"],name,k)
+                    calculateStuff(obj["date"],obj["size"],name,k)
                     
                     LV_Add(,,name,var1,var2,formattedBytes,bytes)
                         LV_Colors.Cell(ListviewHwnd%whichSide%,k,3,color)
