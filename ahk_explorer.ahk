@@ -16,7 +16,6 @@ FileRead, BGColorOfSelectedPane, %A_AppData%\ahk_explorer_settings\BGColorOfSele
 FileRead, BGColorOfSelectedPane, %A_AppData%\ahk_explorer_settings\BGColorOfSelectedPane.txt
 
 EcurrentDir1=C:\Users\Public\AHK\notes\tests\New Folder
-
 ; EcurrentDir1=C:\Users\Public\AHK\notes\tests\File Watcher
 ; EcurrentDir1=C:\Users\User\Downloads
 ; EcurrentDir2=C:\Users\Public\AHK
@@ -445,7 +444,7 @@ currentDirEdit1ChangedTimer:
 return
 listViewEvents1:
 listViewEvents2:
-    whichSide:=SubStr(A_GuiControl, 0)
+    ; whichSide:=SubStr(A_GuiControl, 0)
     if (A_GuiEvent=="D") {
         selectedPaths:=getSelectedPaths()
         
@@ -458,6 +457,7 @@ listViewEvents2:
         DoDragDrop(Cursors)
     }
     else if (A_GuiEvent=="F") {
+        whichSide:=SubStr(A_GuiControl, 0)
         Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
         
         If (ICELV%whichSide%["Changed"]) {
@@ -467,6 +467,7 @@ listViewEvents2:
         }
     }
     else if (A_GuiEvent=="e") {
+        whichSide:=SubStr(A_GuiControl, 0)
         focused:="flistView"
         LV_GetText(OutputVar,A_EventInfo,2)
         
@@ -505,6 +506,7 @@ listViewEvents2:
     else if (A_GuiEvent=="K") ;key pressed
     {
         if (!dontSearch) {
+            whichSide:=SubStr(A_GuiControl, 0)
             ControlFocus,, % "ahk_id " ListviewHwnd%whichSide%
             Gui, ListView, vlistView%whichSide%
             
@@ -1729,7 +1731,7 @@ pasteFile()
                             }
                         }
                     }
-
+                    
                     
                     SoundPlay, *-1
                 }
@@ -2284,7 +2286,6 @@ doubleClickedNormal(ByRef index)
     Gui, ListView, vlistView%whichSide%
     
     LV_GetText(filename,index,2)
-    ; tooltip, % filename
     path:=EcurrentDir%whichSide% "\" filename
     doubleClickedFolderOrFile(path) 
 }
@@ -2327,6 +2328,7 @@ HandleMessage( p_w, p_l, p_m, p_hw )
     if (!ignoreOut) {
         if (p_w=0x1000007) {
             ; p(p_l)
+            
             whichSide:=1
             Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
             if (focused="flistView") ; if listView for instance
@@ -2337,6 +2339,7 @@ HandleMessage( p_w, p_l, p_m, p_hw )
             }
         }
         else if (p_w=0x100000B) {
+            
             whichSide:=2
             Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
             if (focused="flistView") ; if listView for instance
@@ -2351,10 +2354,12 @@ HandleMessage( p_w, p_l, p_m, p_hw )
         else if ( p_w & 0x2000000 )
         {
             if (p_w=0x2000007) {
+                
                 whichSide:=1
                 Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
             }
             else if (p_w=0x200000B) {
+                
                 whichSide:=2
                 Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
             }
