@@ -1781,7 +1781,7 @@ getMultiRenameNames()
         charIndex:=1
         
         length:=StrLen(nameInstance)
-        
+        lessGreaters:=[]
         asterisksAndQmarks:=[]
         while (charIndex<=length) {
             char:=SubStr(nameInstance, charIndex, 1)
@@ -1798,29 +1798,52 @@ getMultiRenameNames()
                 }
                 asterisksAndQmarks.Push(string_Multiply("?",questionMarkCounter))
                 continue
-            } 
+            } else if (char="<") {
+                savedIndex:=charIndex
+                while (char!=">") {
+                    charIndex++
+                    char:=SubStr(nameInstance, charIndex, 1)
+                }
+                subLen:=charIndex - savedIndex + 1
+                asterisksAndQmarks.Push(SubStr(nameInstance, savedIndex, subLen))
+                lessGreaters.Insert(1, [savedIndex,subLen])
+                continue
+            }
             charIndex++
         }
+        for key, value in lessGreaters {
+            nameInstance:=SubStr(nameInstance, 1, value[1]-1) SubStr(nameInstance, value[1] + value[2])
+        }
+        
+        SplitPath, v,,, OutExtension
+        nameInstance:=StrReplace(nameInstance, "|name", v)
+        nameInstance:=StrReplace(nameInstance, "|ext", OutExtension)
+        
+        fileExist:=fileExist(multiRenameDir "\" v)
+        if (InStr(fileExist, "D" )) {
+            nameInstance:=StrReplace(nameInstance, "|Dext" , "")
+            nameInstance:=StrReplace(nameInstance, "|.Dext" , "")
+        } else {
+            nameInstance:=StrReplace(nameInstance, "|Dext" , OutExtension)
+            nameInstance:=StrReplace(nameInstance, "|.Dext" , "." OutExtension)
+        }
+        
         for key, value in asterisksAndQmarks {
             num:=(startingNums[key]) ? startingNums[key] : 1
             actualNum:=num+k-1
             if (InStr(value, "?" )) {
                 actualNum:=paddedNumber(actualNum, StrLen(value))
+            } else if (InStr(value, "<" )) {
+                inside:=SubStr(value, 2, StrLen(value)-2)
+                nameInstance:=StrReplace(nameInstance, inside, "",, num)
+                if (num<0) {
+                    p("oof")
+                }
+                continue
             }
             nameInstance:=StrReplace(nameInstance, value , actualNum,, 1)
         }
-        SplitPath, v,,, OutExtension
-        nameInstance:=StrReplace(nameInstance, "<name>", v)
-        nameInstance:=StrReplace(nameInstance, "<ext>", OutExtension)
         
-        fileExist:=fileExist(multiRenameDir "\" v)
-        if (InStr(fileExist, "D" )) {
-            nameInstance:=StrReplace(nameInstance, "<Dext>" , "")
-            nameInstance:=StrReplace(nameInstance, "<.Dext>" , "")
-        } else {
-            nameInstance:=StrReplace(nameInstance, "<Dext>" , OutExtension)
-            nameInstance:=StrReplace(nameInstance, "<.Dext>" , "." OutExtension)
-        }
         previewNames.Push(nameInstance)
         
     }
