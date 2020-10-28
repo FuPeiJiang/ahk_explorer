@@ -15,9 +15,12 @@ FileRead, vscodePath, %A_AppData%\ahk_explorer_settings\vscodePath.txt
 FileRead, BGColorOfSelectedPane, %A_AppData%\ahk_explorer_settings\BGColorOfSelectedPane.txt
 FileRead, BGColorOfSelectedPane, %A_AppData%\ahk_explorer_settings\BGColorOfSelectedPane.txt
 
-EcurrentDir1=C:\Users\Public\AHK\notes\tests\File Watcher
+EcurrentDir1=C:\Users\Public\AHK\notes\tests\New Folder
+
+; EcurrentDir1=C:\Users\Public\AHK\notes\tests\File Watcher
 ; EcurrentDir1=C:\Users\User\Downloads
-EcurrentDir2=C:\Users\Public\AHK
+; EcurrentDir2=C:\Users\Public\AHK
+EcurrentDir2=C:\Users\Public\AHK\notes\tests\New Folder 3
 whichSide:=1
 
 lastDir1:="C:"
@@ -150,7 +153,6 @@ for k, v in favoriteFolders {
     LV_Add(, OutFileName)
     ; }
 }
-whichSide:=1
 renderCurrentDir()
 
 ; sleep, 1000
@@ -254,9 +256,9 @@ TypingInRenameSimple:
     }
 return
 grenameFileLabel:
-fromButton:=true
-; p(777)
-;renameLabel
+    fromButton:=true
+    ; p(777)
+    ;renameLabel
 renameFileLabel:
     if (canRename) {
         gui, renameSimple:Default
@@ -317,9 +319,9 @@ renameFileLabel:
         } else {
             ; canRename:=true
             gui, main:Default
-                
+            
             gui, show
-                
+            
             gui, renameSimple:Default
             gui, show,,renamingWinTitle
         }
@@ -498,7 +500,7 @@ listViewEvents2:
     } else if (A_GuiEvent = "DoubleClick")
     {
         if (!canRename)
-        doubleClickedNormal(A_EventInfo)
+            doubleClickedNormal(A_EventInfo)
     }
     else if (A_GuiEvent=="K") ;key pressed
     {
@@ -1309,7 +1311,8 @@ WatchN(whichSide, Folder, Changes) {
                     fileRenamed(otherSide, OutFileNameOld, OutFileNameNew)
                 }
             } else if (OutDirOld=EcurrentDir%otherSide%) { ;moved from other Side
-                ; fileDeleted(otherSide, Change.OldName)
+                fileAdded(whichSide, Change.Name)
+                fileDeleted(otherSide, Change.OldName)
             } else { ;moved
                 
                 fileAdded(whichSide, Change.Name)
@@ -1676,7 +1679,6 @@ pasteFile()
 {
     global
     ; action:=false
-    
     if (DllCall("IsClipboardFormatAvailable", "UInt", CF_HDROP := 15)) { ; file being copied
     if (DllCall("IsClipboardFormatAvailable", "UInt", dropEffectFormat)) {
         if (DllCall("OpenClipboard", "Ptr", A_ScriptHwnd)) {
@@ -1693,6 +1695,10 @@ pasteFile()
                         } else {
                             FileCopy, %v%, % EcurrentDir%whichSide%
                         }
+                        if (ErrorLevel) {
+                            p("couldn't copy file " v)
+                            break
+                        }
                     }
                 }
                 ; renderCurrentDir()
@@ -1702,15 +1708,16 @@ pasteFile()
             else if (effect & DROPEFFECT_MOVE) {
                 files:=StrSplit(clipboard, "`r`n")
                 if (files.Length()) {
-                    fromOtherPanel:=false
-                    otherPanel:=(whichSide=1) ? 2 : 1
+                    ; fromOtherPanel:=false
+                    ; otherPanel:=(whichSide=1) ? 2 : 1
                     for k, v in files {
                         fileExist:=FileExist(v)
                         if (fileExist) {
-                            SplitPath, v , OutFileName, OutDir
-                            if (Outdir=EcurrentDir%otherPanel%) {
-                                fromOtherPanel:=true
-                            }
+                            SplitPath, v , OutFileName
+                            ; SplitPath, v , OutFileName, OutDir
+                            ; if (Outdir=EcurrentDir%otherPanel%) {
+                            ; fromOtherPanel:=true
+                            ; }
                             if (InStr(fileExist, "D")) {
                                 FileMoveDir, %v%, % EcurrentDir%whichSide% "\" OutFileName
                             } else {
@@ -1722,18 +1729,7 @@ pasteFile()
                             }
                         }
                     }
-                    renderCurrentDir() ;refresh
-                    
-                    if (fromOtherPanel) {
-                        sideBak:=whichSide
-                        whichSide:=otherPanel
-                        renderCurrentDir()
-                        whichSide:=sideBak
-                        ControlFocus,, % "ahk_id " ListviewHwnd%sideBak%
-                        Gui, ListView, vlistView%sideBak%
-                        whichSide:=sideBak
-                        Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
-                    }
+
                     
                     SoundPlay, *-1
                 }
@@ -2391,7 +2387,7 @@ HandleMessage( p_w, p_l, p_m, p_hw )
                     }
                 } else if ( p_l = RenameHwnd ) {
                     if (!fromButton)
-                    gosub, renameFileLabel
+                        gosub, renameFileLabel
                 }
             } 
         }
@@ -2550,6 +2546,7 @@ renderCurrentDir()
     lastChar:=SubStr(EcurrentDir%whichSide%, 0)
     if (lastChar="\")
         EcurrentDir%whichSide%:=SubStr(EcurrentDir%whichSide%, 1, StrLen(EcurrentDir%whichSide%)-1)
+    EcurrentDir%whichSide%:=Rtrim(EcurrentDir%whichSide%," ")
     Gui, ListView, vlistView%whichSide%
     
     currentDirSearch:=""
@@ -2935,11 +2932,11 @@ sortArrayByArray(toSort, sortWith, reverse=false, key=false)
 ;end of functions
 ;hotkeys
 ; #if winactive("renamingWinTitle ahk_class AutoHotkeyGUI")
-    ; $enter::
-    ; WinGetTitle, OutputVar , A
-    ; p(OutputVar)
-    ; fromButton:=true
-    ; gosub, renameFileLabel
+; $enter::
+; WinGetTitle, OutputVar , A
+; p(OutputVar)
+; fromButton:=true
+; gosub, renameFileLabel
 ; return
 
 $esc::
@@ -3092,7 +3089,8 @@ return
 
 $`::
     ; p(watching1,watching2)
-    p(sortedSizes1,sortedBySize1)
+    ; p(sortedSizes1,sortedBySize1)
+    p(whichSide)
     ; p(watching2)
     ; p(focused)
 Return
