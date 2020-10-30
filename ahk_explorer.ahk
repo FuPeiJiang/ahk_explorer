@@ -83,13 +83,13 @@ folderListViewWidth:=250
 favoritesListViewWidth:=130
 
 listViewWidth:=500
-Gui, Add, Button, h40 w%favoritesListViewWidth% gDriveButtonEvents vDriveButton Left,
+; Gui, Add, Button, h40 w%favoritesListViewWidth% gDriveButtonEvents vDriveButton Left,
 ; Gui, Add, Button,  w80, C:\`r`n7.06 GB/232.24 GB
 
 ; Gui, Add, ListView, 0x2000 h28 w%favoritesListViewWidth% +WantF2 -ReadOnly vdriveSpace AltSubmit ,C:\ `r`n7.06 GB/232.24 GB
 ; Gui, Add, ListView, r1 w%favoritesListViewWidth% y220 +WantF2 -ReadOnly vdriveSpace gdriveSpaceEvent AltSubmit ,Please enter your name:
 favoritesLenght:=favoriteFolders.Length()
-Gui, Add, ListView, r%favoritesLenght% w%favoritesListViewWidth% y+200 nosort vfavoritesListView ggfavoritesListView AltSubmit ,Favorites
+Gui, Add, ListView, r%favoritesLenght% w%favoritesListViewWidth% x0 y240 nosort vfavoritesListView ggfavoritesListView AltSubmit ,Favorites
 
 Gui, Add, ListView, r10 w%folderListViewWidth% y0 x+0 vfolderListView1_1 gfolderlistViewEvents1_1 AltSubmit ,Name
 Gui, Add, ListView, r10 w%folderListViewWidth% x+0 y0 vfolderlistView2_1 gfolderlistViewEvents2_1 AltSubmit ,Name
@@ -168,6 +168,10 @@ Exitapp
 return
 
 ;labels
+gChangeDrive:
+    index:=SubStr(A_GuiControl, 0)
+    p(drives[index])
+return
 multiRenameGuiGuiClose:
     Gui, Destroy
 return
@@ -2571,6 +2575,7 @@ return rowBak[index]+1
 renderCurrentDir()
 {
     global
+    Gui, main:Default
     lastChar:=SubStr(EcurrentDir%whichSide%, 0)
     if (lastChar="\")
         EcurrentDir%whichSide%:=SubStr(EcurrentDir%whichSide%, 1, StrLen(EcurrentDir%whichSide%)-1)
@@ -2705,9 +2710,34 @@ renderCurrentDir()
         {
             LV_ModifyCol(1,"NoSort", "")
             } 
-        DriveGet, totalSpace, Capacity, C:
-        DriveSpaceFree, freeSpace, C:
-            GuiControl Text, DriveButton, % "C:\             " Round(100-100*freeSpace/totalSpace, 2)  "%`r`n" autoMegaByteFormat(freeSpace) "/" autoMegaByteFormat(totalSpace)
+        
+        DriveGet, OutputVar, List
+        drives:=StrSplit(OutputVar,"")
+        length:=drives.Length()
+        
+        for i, drive in drives {
+            y:=40*(i-1)
+            DriveGet, totalSpace, Capacity, %drive%:
+            DriveSpaceFree, freeSpace, %drive%:
+                
+                text:=drive ":\             " Round(100-100*freeSpace/totalSpace, 2)  "%`r`n" autoMegaByteFormat(freeSpace) "/" autoMegaByteFormat(totalSpace)
+                if (i>numberOfDrives)  {
+                    gui, add, button,h40 y%y% w%favoritesListViewWidth% vDrive%i% x0 Left ggChangeDrive, % text
+                }
+                else {
+                    GuiControl, Show, Drive%i%
+                    GuiControl, Text, Drive%i%, % text
+                }
+            }
+            
+            loop % numberOfDrives {
+                if (A_Index>length) {
+                    GuiControl, Hide, Drive%A_Index%
+                }
+            }
+            
+            if (length>numberOfDrives)
+                numberOfDrives:=length
         } else {
             SplitPath, EcurrentDir%whichSide%, OutFileName%whichSide%, OutDir%whichSide%
             if (InStr(fileExist(OutDir%whichSide%), "D")) {
@@ -2758,176 +2788,176 @@ renderCurrentDir()
     ShellContextMenu(folderPath, files, win_hwnd = 0 )
     {
         if ( !folderPath  )
+            return
+        if !win_hwnd
+        {
+            Gui,SHELL_CONTEXT:New, +hwndwin_hwnd
+            Gui,Show
+        }
+        
+        If sPath Is Not Integer
+            DllCall("shell32\SHParseDisplayName", "Wstr", folderPath, "Ptr", 0, "Ptr*", pidl, "Uint", 0, "Uint", 0)
+        else
+            DllCall("shell32\SHGetFolderLocation", "Ptr", 0, "int", folderPath, "Ptr", 0, "Uint", 0, "Ptr*", pidl)
+        DllCall("shell32\SHBindToObject","Ptr",0,"Ptr",pidl,"Ptr",0,"Ptr",GUID4String(IID_IShellFolder,"{000214E6-0000-0000-C000-000000000046}"),"Ptr*",pIShellFolder)
+        
+        length:=files.Length()
+        VarSetCapacity(apidl, length * A_PtrSize, 0)
+        for k, v in files {
+            ;IShellFolder:ParseDisplayName 
+            DllCall(VTable(pIShellFolder,3),"Ptr", pIShellFolder,"Ptr",win_hwnd,"Ptr",0,"Wstr",v,"Uint*",0,"Ptr*",tmpPIDL,"Uint*",0)
+            NumPut(tmpPIDL, apidl, (k - 1)*A_PtrSize, "Ptr")
+        }
+        ;IShellFolder->GetUIObjectOf
+        DllCall(VTable(pIShellFolder,10),"Ptr",pIShellFolder,"Ptr",win_hwnd,"Uint",length,"Ptr",&apidl,"Ptr",GUID4String(IID_IContextMenu,"{000214E4-0000-0000-C000-000000000046}"),"UINT*",0,"Ptr*",pIContextMenu)
+        
+        ObjRelease(pIShellFolder)
+        CoTaskMemFree(pidl)
+        
+        hMenu := DllCall("CreatePopupMenu")
+        ;IContextMenu->QueryContextMenu
+        ;http://msdn.microsoft.com/en-us/library/bb776097%28v=VS.85%29.aspx
+        DllCall(VTable(pIContextMenu, 3), "Ptr", pIContextMenu, "Ptr", hMenu, "Uint", 0, "Uint", 3, "Uint", 0x7FFF, "Uint", 0x100)   ;CMF_EXTENDEDVERBS
+        ; p(hMenu)
+        ComObjError(0)
+        global pIContextMenu2 := ComObjQuery(pIContextMenu, IID_IContextMenu2:="{000214F4-0000-0000-C000-000000000046}")
+        global pIContextMenu3 := ComObjQuery(pIContextMenu, IID_IContextMenu3:="{BCFCE0A0-EC17-11D0-8D10-00A0C90F2719}")
+        e := A_LastError ;GetLastError()
+        ComObjError(1)
+        if (e != 0)
+            goTo, StopContextMenu
+        Global   WPOld:= DllCall("SetWindowLongPtr", "Ptr", win_hwnd, "int",-4, "Ptr",RegisterCallback("WindowProc"),"UPtr")
+        DllCall("GetCursorPos", "int64*", pt)
+        ; DllCall("InsertMenu", "Ptr", hMenu, "Uint", 0, "Uint", 0x0400|0x800, "Ptr", 2, "Ptr", 0)
+        ; DllCall("InsertMenu", "Ptr", hMenu, "Uint", 0, "Uint", 0x0400|0x002, "Ptr", 1, "Ptr", &sPath)
+        idn := DllCall("TrackPopupMenuEx", "Ptr", hMenu, "Uint", 0x0100|0x0001, "int", pt << 32 >> 32, "int", pt >> 32, "Ptr", win_hwnd, "Uint", 0)
+        ; p(idn)
+        ; return
+        /*
+        typedef struct _CMINVOKECOMMANDINFOEX {
+            DWORD   cbSize;          0
+            DWORD   fMask;           4
+            HWND    hwnd;            8
+            LPCSTR  lpVerb;          8+A_PtrSize
+            LPCSTR  lpParameters;    8+2*A_PtrSize
+            LPCSTR  lpDirectory;     8+3*A_PtrSize
+            int     nShow;           8+4*A_PtrSize
+            DWORD   dwHotKey;        12+4*A_PtrSize
+            HANDLE  hIcon;           16+4*A_PtrSize
+            LPCSTR  lpTitle;         16+5*A_PtrSize
+            LPCWSTR lpVerbW;         16+6*A_PtrSize
+            LPCWSTR lpParametersW;   16+7*A_PtrSize
+            LPCWSTR lpDirectoryW;    16+8*A_PtrSize
+            LPCWSTR lpTitleW;        16+9*A_PtrSize
+            POINT   ptInvoke;        16+10*A_PtrSize
+        } CMINVOKECOMMANDINFOEX, *LPCMINVOKECOMMANDINFOEX;
+        http://msdn.microsoft.com/en-us/library/bb773217%28v=VS.85%29.aspx
+        */
+        struct_size  :=  16+11*A_PtrSize
+        VarSetCapacity(pici,struct_size,0)
+        NumPut(struct_size,pici,0,"Uint")         ;cbSize
+        NumPut(0x4000|0x20000000|0x00100000,pici,4,"Uint")   ;fMask
+        NumPut(win_hwnd,pici,8,"UPtr")       ;hwnd
+        NumPut(1,pici,8+4*A_PtrSize,"Uint")       ;nShow
+        NumPut(idn-3,pici,8+A_PtrSize,"UPtr")     ;lpVerb
+        NumPut(idn-3,pici,16+6*A_PtrSize,"UPtr")  ;lpVerbW
+        NumPut(pt,pici,16+10*A_PtrSize,"Uptr")    ;ptInvoke
+        
+        DllCall(VTable(pIContextMenu, 4), "Ptr", pIContextMenu, "Ptr", &pici)   ; InvokeCommand
+        
+        DllCall("GlobalFree", "Ptr", DllCall("SetWindowLongPtr", "Ptr", win_hwnd, "int", -4, "Ptr", WPOld,"UPtr"))
+        DllCall("DestroyMenu", "Ptr", hMenu)
+        StopContextMenu:
+            ObjRelease(pIContextMenu3)
+            ObjRelease(pIContextMenu2)
+            ObjRelease(pIContextMenu)
+            pIContextMenu2:=pIContextMenu3:=WPOld:=0
+            Gui,SHELL_CONTEXT:Destroy
+        return idn
+    }
+    WindowProc(hWnd, nMsg, wParam, lParam)
+    {
+        Global   pIContextMenu2, pIContextMenu3, WPOld
+        If   pIContextMenu3
+        {    ;IContextMenu3->HandleMenuMsg2
+            If   !DllCall(VTable(pIContextMenu3, 7), "Ptr", pIContextMenu3, "Uint", nMsg, "Ptr", wParam, "Ptr", lParam, "Ptr*", lResult)
+                Return   lResult
+        }
+        Else If   pIContextMenu2
+        {    ;IContextMenu2->HandleMenuMsg
+            If   !DllCall(VTable(pIContextMenu2, 6), "Ptr", pIContextMenu2, "Uint", nMsg, "Ptr", wParam, "Ptr", lParam)
+                Return   0
+        }
+        Return   DllCall("user32.dll\CallWindowProcW", "Ptr", WPOld, "Ptr", hWnd, "Uint", nMsg, "Ptr", wParam, "Ptr", lParam)
+    }
+    VTable(ppv, idx)
+    {
+        Return   NumGet(NumGet(1*ppv)+A_PtrSize*idx)
+    }
+    GUID4String(ByRef CLSID, String)
+    {
+        VarSetCapacity(CLSID, 16,0)
+        return DllCall("ole32\CLSIDFromString", "wstr", String, "Ptr", &CLSID) >= 0 ? &CLSID : ""
+    }
+    CoTaskMemFree(pv)
+    {
+        Return   DllCall("ole32\CoTaskMemFree", "Ptr", pv)
+    }
+    FileToClipboard(PathToCopy,Method="copy")
+    {
+        FileCount:=0
+        PathLength:=0
+        FileCount:=PathToCopy.Length()
+        ; Count files and total string length
+        
+        for k, v in PathToCopy {
+            PathLength+=StrLen(v)
+        }
+        ; Loop,Parse,PathToCopy,`n,`r
+        ; {
+        ; PathLength+=StrLen(A_LoopField)
+        ; }
+        
+        pid:=DllCall("GetCurrentProcessId","uint")
+        hwnd:=WinExist("ahk_pid " . pid)
+        ; 0x42 = GMEM_MOVEABLE(0x2) | GMEM_ZEROINIT(0x40)
+        hPath := DllCall("GlobalAlloc","uint",0x42,"uint",20 + (PathLength + FileCount + 1) * 2,"UPtr")
+        pPath := DllCall("GlobalLock","UPtr",hPath)
+        NumPut(20,pPath+0),pPath += 16 ; DROPFILES.pFiles = offset of file list
+        NumPut(1,pPath+0),pPath += 4 ; fWide = 0 -->ANSI,fWide = 1 -->Unicode
+        Offset:=0
+        for k, v in PathToCopy {
+            offset += StrPut(v,pPath+offset,StrLen(v)+1,"UTF-16") * 2
+        }
+        ; Loop,Parse,PathToCopy,`n,`r ; Rows are delimited by linefeeds (`r`n).
+        ; offset += StrPut(A_LoopField,pPath+offset,StrLen(A_LoopField)+1,"UTF-16") * 2
+        ; 
+        DllCall("GlobalUnlock","UPtr",hPath)
+        DllCall("OpenClipboard","UPtr",hwnd)
+        DllCall("EmptyClipboard")
+        DllCall("SetClipboardData","uint",0xF,"UPtr",hPath) ; 0xF = CF_HDROP
+        
+        ; Write Preferred DropEffect structure to clipboard to switch between copy/cut operations
+        ; 0x42 = GMEM_MOVEABLE(0x2) | GMEM_ZEROINIT(0x40)
+        mem := DllCall("GlobalAlloc","uint",0x42,"uint",4,"UPtr")
+        str := DllCall("GlobalLock","UPtr",mem)
+        
+        if (Method="copy")
+            DllCall("RtlFillMemory","UPtr",str,"uint",1,"UChar",0x05)
+        else if (Method="cut")
+            DllCall("RtlFillMemory","UPtr",str,"uint",1,"UChar",0x02)
+        else
+        {
+            DllCall("CloseClipboard")
         return
-    if !win_hwnd
-    {
-        Gui,SHELL_CONTEXT:New, +hwndwin_hwnd
-        Gui,Show
     }
     
-    If sPath Is Not Integer
-        DllCall("shell32\SHParseDisplayName", "Wstr", folderPath, "Ptr", 0, "Ptr*", pidl, "Uint", 0, "Uint", 0)
-    else
-        DllCall("shell32\SHGetFolderLocation", "Ptr", 0, "int", folderPath, "Ptr", 0, "Uint", 0, "Ptr*", pidl)
-    DllCall("shell32\SHBindToObject","Ptr",0,"Ptr",pidl,"Ptr",0,"Ptr",GUID4String(IID_IShellFolder,"{000214E6-0000-0000-C000-000000000046}"),"Ptr*",pIShellFolder)
+    DllCall("GlobalUnlock","UPtr",mem)
     
-    length:=files.Length()
-    VarSetCapacity(apidl, length * A_PtrSize, 0)
-    for k, v in files {
-        ;IShellFolder:ParseDisplayName 
-        DllCall(VTable(pIShellFolder,3),"Ptr", pIShellFolder,"Ptr",win_hwnd,"Ptr",0,"Wstr",v,"Uint*",0,"Ptr*",tmpPIDL,"Uint*",0)
-        NumPut(tmpPIDL, apidl, (k - 1)*A_PtrSize, "Ptr")
-    }
-    ;IShellFolder->GetUIObjectOf
-    DllCall(VTable(pIShellFolder,10),"Ptr",pIShellFolder,"Ptr",win_hwnd,"Uint",length,"Ptr",&apidl,"Ptr",GUID4String(IID_IContextMenu,"{000214E4-0000-0000-C000-000000000046}"),"UINT*",0,"Ptr*",pIContextMenu)
-    
-    ObjRelease(pIShellFolder)
-    CoTaskMemFree(pidl)
-    
-    hMenu := DllCall("CreatePopupMenu")
-    ;IContextMenu->QueryContextMenu
-    ;http://msdn.microsoft.com/en-us/library/bb776097%28v=VS.85%29.aspx
-    DllCall(VTable(pIContextMenu, 3), "Ptr", pIContextMenu, "Ptr", hMenu, "Uint", 0, "Uint", 3, "Uint", 0x7FFF, "Uint", 0x100)   ;CMF_EXTENDEDVERBS
-    ; p(hMenu)
-    ComObjError(0)
-    global pIContextMenu2 := ComObjQuery(pIContextMenu, IID_IContextMenu2:="{000214F4-0000-0000-C000-000000000046}")
-    global pIContextMenu3 := ComObjQuery(pIContextMenu, IID_IContextMenu3:="{BCFCE0A0-EC17-11D0-8D10-00A0C90F2719}")
-    e := A_LastError ;GetLastError()
-    ComObjError(1)
-    if (e != 0)
-        goTo, StopContextMenu
-    Global   WPOld:= DllCall("SetWindowLongPtr", "Ptr", win_hwnd, "int",-4, "Ptr",RegisterCallback("WindowProc"),"UPtr")
-    DllCall("GetCursorPos", "int64*", pt)
-    ; DllCall("InsertMenu", "Ptr", hMenu, "Uint", 0, "Uint", 0x0400|0x800, "Ptr", 2, "Ptr", 0)
-    ; DllCall("InsertMenu", "Ptr", hMenu, "Uint", 0, "Uint", 0x0400|0x002, "Ptr", 1, "Ptr", &sPath)
-    idn := DllCall("TrackPopupMenuEx", "Ptr", hMenu, "Uint", 0x0100|0x0001, "int", pt << 32 >> 32, "int", pt >> 32, "Ptr", win_hwnd, "Uint", 0)
-    ; p(idn)
-    ; return
-    /*
-    typedef struct _CMINVOKECOMMANDINFOEX {
-        DWORD   cbSize;          0
-        DWORD   fMask;           4
-        HWND    hwnd;            8
-        LPCSTR  lpVerb;          8+A_PtrSize
-        LPCSTR  lpParameters;    8+2*A_PtrSize
-        LPCSTR  lpDirectory;     8+3*A_PtrSize
-        int     nShow;           8+4*A_PtrSize
-        DWORD   dwHotKey;        12+4*A_PtrSize
-        HANDLE  hIcon;           16+4*A_PtrSize
-        LPCSTR  lpTitle;         16+5*A_PtrSize
-        LPCWSTR lpVerbW;         16+6*A_PtrSize
-        LPCWSTR lpParametersW;   16+7*A_PtrSize
-        LPCWSTR lpDirectoryW;    16+8*A_PtrSize
-        LPCWSTR lpTitleW;        16+9*A_PtrSize
-        POINT   ptInvoke;        16+10*A_PtrSize
-    } CMINVOKECOMMANDINFOEX, *LPCMINVOKECOMMANDINFOEX;
-    http://msdn.microsoft.com/en-us/library/bb773217%28v=VS.85%29.aspx
-    */
-    struct_size  :=  16+11*A_PtrSize
-    VarSetCapacity(pici,struct_size,0)
-    NumPut(struct_size,pici,0,"Uint")         ;cbSize
-    NumPut(0x4000|0x20000000|0x00100000,pici,4,"Uint")   ;fMask
-    NumPut(win_hwnd,pici,8,"UPtr")       ;hwnd
-    NumPut(1,pici,8+4*A_PtrSize,"Uint")       ;nShow
-    NumPut(idn-3,pici,8+A_PtrSize,"UPtr")     ;lpVerb
-    NumPut(idn-3,pici,16+6*A_PtrSize,"UPtr")  ;lpVerbW
-    NumPut(pt,pici,16+10*A_PtrSize,"Uptr")    ;ptInvoke
-    
-    DllCall(VTable(pIContextMenu, 4), "Ptr", pIContextMenu, "Ptr", &pici)   ; InvokeCommand
-    
-    DllCall("GlobalFree", "Ptr", DllCall("SetWindowLongPtr", "Ptr", win_hwnd, "int", -4, "Ptr", WPOld,"UPtr"))
-    DllCall("DestroyMenu", "Ptr", hMenu)
-    StopContextMenu:
-        ObjRelease(pIContextMenu3)
-        ObjRelease(pIContextMenu2)
-        ObjRelease(pIContextMenu)
-        pIContextMenu2:=pIContextMenu3:=WPOld:=0
-        Gui,SHELL_CONTEXT:Destroy
-    return idn
-}
-WindowProc(hWnd, nMsg, wParam, lParam)
-{
-    Global   pIContextMenu2, pIContextMenu3, WPOld
-    If   pIContextMenu3
-    {    ;IContextMenu3->HandleMenuMsg2
-        If   !DllCall(VTable(pIContextMenu3, 7), "Ptr", pIContextMenu3, "Uint", nMsg, "Ptr", wParam, "Ptr", lParam, "Ptr*", lResult)
-            Return   lResult
-    }
-    Else If   pIContextMenu2
-    {    ;IContextMenu2->HandleMenuMsg
-        If   !DllCall(VTable(pIContextMenu2, 6), "Ptr", pIContextMenu2, "Uint", nMsg, "Ptr", wParam, "Ptr", lParam)
-            Return   0
-    }
-    Return   DllCall("user32.dll\CallWindowProcW", "Ptr", WPOld, "Ptr", hWnd, "Uint", nMsg, "Ptr", wParam, "Ptr", lParam)
-}
-VTable(ppv, idx)
-{
-    Return   NumGet(NumGet(1*ppv)+A_PtrSize*idx)
-}
-GUID4String(ByRef CLSID, String)
-{
-    VarSetCapacity(CLSID, 16,0)
-    return DllCall("ole32\CLSIDFromString", "wstr", String, "Ptr", &CLSID) >= 0 ? &CLSID : ""
-}
-CoTaskMemFree(pv)
-{
-    Return   DllCall("ole32\CoTaskMemFree", "Ptr", pv)
-}
-FileToClipboard(PathToCopy,Method="copy")
-{
-    FileCount:=0
-    PathLength:=0
-    FileCount:=PathToCopy.Length()
-    ; Count files and total string length
-    
-    for k, v in PathToCopy {
-        PathLength+=StrLen(v)
-    }
-    ; Loop,Parse,PathToCopy,`n,`r
-    ; {
-    ; PathLength+=StrLen(A_LoopField)
-    ; }
-    
-    pid:=DllCall("GetCurrentProcessId","uint")
-    hwnd:=WinExist("ahk_pid " . pid)
-    ; 0x42 = GMEM_MOVEABLE(0x2) | GMEM_ZEROINIT(0x40)
-    hPath := DllCall("GlobalAlloc","uint",0x42,"uint",20 + (PathLength + FileCount + 1) * 2,"UPtr")
-    pPath := DllCall("GlobalLock","UPtr",hPath)
-    NumPut(20,pPath+0),pPath += 16 ; DROPFILES.pFiles = offset of file list
-    NumPut(1,pPath+0),pPath += 4 ; fWide = 0 -->ANSI,fWide = 1 -->Unicode
-    Offset:=0
-    for k, v in PathToCopy {
-        offset += StrPut(v,pPath+offset,StrLen(v)+1,"UTF-16") * 2
-    }
-    ; Loop,Parse,PathToCopy,`n,`r ; Rows are delimited by linefeeds (`r`n).
-    ; offset += StrPut(A_LoopField,pPath+offset,StrLen(A_LoopField)+1,"UTF-16") * 2
-    ; 
-    DllCall("GlobalUnlock","UPtr",hPath)
-    DllCall("OpenClipboard","UPtr",hwnd)
-    DllCall("EmptyClipboard")
-    DllCall("SetClipboardData","uint",0xF,"UPtr",hPath) ; 0xF = CF_HDROP
-    
-    ; Write Preferred DropEffect structure to clipboard to switch between copy/cut operations
-    ; 0x42 = GMEM_MOVEABLE(0x2) | GMEM_ZEROINIT(0x40)
-    mem := DllCall("GlobalAlloc","uint",0x42,"uint",4,"UPtr")
-    str := DllCall("GlobalLock","UPtr",mem)
-    
-    if (Method="copy")
-        DllCall("RtlFillMemory","UPtr",str,"uint",1,"UChar",0x05)
-    else if (Method="cut")
-        DllCall("RtlFillMemory","UPtr",str,"uint",1,"UChar",0x02)
-    else
-    {
+    cfFormat := DllCall("RegisterClipboardFormat","Str","Preferred DropEffect")
+        DllCall("SetClipboardData","uint",cfFormat,"UPtr",mem)
         DllCall("CloseClipboard")
     return
-}
-
-DllCall("GlobalUnlock","UPtr",mem)
-
-cfFormat := DllCall("RegisterClipboardFormat","Str","Preferred DropEffect")
-    DllCall("SetClipboardData","uint",cfFormat,"UPtr",mem)
-    DllCall("CloseClipboard")
-return
 }
 
 sortArrayByArray(toSort, sortWith, reverse=false, key=false)
@@ -3255,7 +3285,7 @@ $backspace::
             send, {backspace}
         }
     } else if (focused="flistView") {
-gosub,goToParentDir
+        gosub,goToParentDir
     }
 return
 $^+up::
