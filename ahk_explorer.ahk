@@ -3205,7 +3205,7 @@ copySelectedPaths:
 return
 
 return
-
+goToParentDir:
 $!left::
     Gui, main:Default
     SplitPath, % EcurrentDir%whichSide%,, ParentDir1
@@ -3240,7 +3240,7 @@ $backspace::
     Gui, main:Default
     if (focused="changePath" or focused="renaming") {
         send, {backspace}
-    } else if (focused="listViewInSearch" or focused="flistView") {
+    } else if (focused="listViewInSearch") {
         if (searchString%whichSide%="") {
             stopSearching()
         } else {
@@ -3254,6 +3254,8 @@ $backspace::
         } else {
             send, {backspace}
         }
+    } else if (focused="flistView") {
+gosub,goToParentDir
     }
 return
 $^+up::
