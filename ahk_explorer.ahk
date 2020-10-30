@@ -170,7 +170,8 @@ return
 ;labels
 gChangeDrive:
     index:=SubStr(A_GuiControl, 0)
-    p(drives[index])
+        EcurrentDir%whichSide%:=drives[index] ":"
+    renderCurrentDir()
 return
 multiRenameGuiGuiClose:
     Gui, Destroy
@@ -330,11 +331,6 @@ renameFileLabel:
         }
         fromButton:=false
     }
-return
-
-DriveButtonEvents:
-    EcurrentDir%whichSide%:="C:"
-    renderCurrentDir()
 return
 
 mainGuiClose:
