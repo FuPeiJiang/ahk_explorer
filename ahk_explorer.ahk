@@ -350,7 +350,8 @@ couldNotCreateFolder()
     gui, createFolder: show,, create_folder
     dontSearch:=false
 }
-
+;new folder
+;create folder
 createLabel:
     gui, createFolder: submit
     toCreate:=EcurrentDir%whichSide% "\" createFolderName
@@ -383,6 +384,7 @@ createAndOpenLabel:
         } else {
             EcurrentDir%whichSide%:=toCreate
             Gui, main:Default
+            renderCurrentDir()
             SoundPlay, *-1
         }
     } else {
@@ -2985,7 +2987,7 @@ sortArrayByArray(toSort, sortWith, reverse=false, key=false)
 
 ;end of functions
 ;hotkeys
-; #if winactive("renamingWinTitle ahk_class AutoHotkeyGUI")
+#if winactive("renamingWinTitle ahk_class AutoHotkeyGUI")
 ; $enter::
 ; WinGetTitle, OutputVar , A
 ; p(OutputVar)
@@ -3009,7 +3011,10 @@ $esc::
     }
     send, {enter}
 return
+
 #if winactive("create_folder ahk_class AutoHotkeyGUI")
+
+
 $enter::
 Gosub, createLabel
 
