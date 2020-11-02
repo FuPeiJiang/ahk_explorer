@@ -170,7 +170,7 @@ return
 ;labels
 gChangeDrive:
     index:=SubStr(A_GuiControl, 0)
-        EcurrentDir%whichSide%:=drives[index] ":"
+    EcurrentDir%whichSide%:=drives[index] ":"
     renderCurrentDir()
 return
 multiRenameGuiGuiClose:
@@ -1525,17 +1525,6 @@ fileDeleted(whichSide, Byref path)
     }
 }
 
-; if (focused="searchCurrentDirEdit" or focused="listViewInSearch") {
-; Gui, main:Default
-; Gui, ListView, vlistView%whichSide%
-; LV_Add(, 42342342, 45354,535345)
-; }
-; searchInCurrentDir()
-; stuffByName
-; unsorted
-; sortedByDate
-; sortedBySize
-
 whereToAddFile(byref whichSide, byref OutFileName,byref date,byref size) {
     global
     Gui, main:Default
@@ -2444,11 +2433,19 @@ searchInCurrentDir() {
         if (SubStr(searchString%whichSide%, 1, 1)!=".") {
             counter:=0
             objectToSort:=[]
+            
+            
             for k,v in sortedByDate%whichSide% {
                 if (counter>maxRows)
                     break
-                SplitPath, v,,,, OutNameNoExt
-                pos:=InStr(OutNameNoExt, searchString%whichSide%)
+                attri:=stuffByName%whichSide%[v]["attri"]
+                if InStr(attri, "D") {
+                    pos:=InStr(v, searchString%whichSide%)
+                } else {
+                    SplitPath, v,,,, OutNameNoExt
+                    pos:=InStr(OutNameNoExt, searchString%whichSide%)
+                }
+                
                 if (pos) {
                     counter++
                     objectToSort.Push({name:v,pos:pos})
@@ -2988,7 +2985,7 @@ sortArrayByArray(toSort, sortWith, reverse=false, key=false)
 ;end of functions
 ;hotkeys
 #if winactive("renamingWinTitle ahk_class AutoHotkeyGUI")
-; $enter::
+    ; $enter::
 ; WinGetTitle, OutputVar , A
 ; p(OutputVar)
 ; fromButton:=true
@@ -3013,11 +3010,11 @@ $esc::
 return
 
 #if winactive("create_folder ahk_class AutoHotkeyGUI")
-
+    
 
 $enter::
-Gosub, createLabel
-
+    Gosub, createLabel
+    
 return
 
 $+enter::
