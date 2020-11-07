@@ -159,23 +159,9 @@ for k, v in favoriteFolders {
     ; }
 }
 renderCurrentDir()
-/* IServiceProvider               := ComObjCreate("{C2F03A33-21F5-47FA-B4BB-156362A2F239}", "{6D5140C1-7436-11CE-8034-00AA006009FA}")
-IVirtualDesktopManagerInternal := ComObjQuery(IServiceProvider, "{C5E0CDCA-7B6E-41B2-9FC4-D93975CC467B}", "{F31574D6-B682-4CDC-BD56-1827860ABEC6}")
-GetCurrentDesktop              := other_vtable(IVirtualDesktopManagerInternal, 6) ; IVirtualDesktop GetCurrentDesktop();
-GetViewForHwnd							:= other_vtable(IApplicationViewCollection, 6) ; (IntPtr hwnd, out IApplicationView view);
-    */
-
-; IVirtualDesktopManager          := ComObjCreate("{AA509086-5CA9-4C25-8F95-589D3C07B48A}", "{A5CD92FF-29BE-454C-8D04-D82879FB3F1B}")
-; IsWindowOnCurrentVirtualDesktop := vtable(IVirtualDesktopManager, 3)
-; GetWindowDesktopId              := vtable(IVirtualDesktopManager, 4)
-; MoveWindowToDesktop             := vtable(IVirtualDesktopManager, 5)
-
-; internal interface IVirtualDesktopManagerInternal14328
-; https://sourceforge.net/p/virtual-desktop-grid-switcher/src/ci/d85ff70ced929d161bd45d10a47ebb0c0f2a1f68/tree/VirtualDesktop-master/source/VirtualDesktop/Interop/IVirtualDesktopManagerInternal.cs#l71
 IServiceProvider               := ComObjCreate("{C2F03A33-21F5-47FA-B4BB-156362A2F239}", "{6D5140C1-7436-11CE-8034-00AA006009FA}")
 IVirtualDesktopManagerInternal := ComObjQuery(IServiceProvider, "{C5E0CDCA-7B6E-41B2-9FC4-D93975CC467B}", "{F31574D6-B682-4CDC-BD56-1827860ABEC6}")
 MoveViewToDesktop              := vtable(IVirtualDesktopManagerInternal, 4) ; void MoveViewToDesktop(object pView, IVirtualDesktop desktop);
-; CanViewMoveDesktops            := vtable(IVirtualDesktopManagerInternal, 5) ; bool CanViewMoveDesktops(object pView);
 GetCurrentDesktop              := vtable(IVirtualDesktopManagerInternal, 6) ; IVirtualDesktop GetCurrentDesktop();
 ImmersiveShell := ComObjCreate("{C2F03A33-21F5-47FA-B4BB-156362A2F239}", "{00000000-0000-0000-C000-000000000046}") 
 
@@ -184,15 +170,7 @@ if !(IApplicationViewCollection := ComObjQuery(ImmersiveShell,"{1841C6D7-4F9D-42
     MsgBox IApplicationViewCollection interface not supported.
 }
 GetViewForHwnd							:= vtable(IApplicationViewCollection, 6) ; (IntPtr hwnd, out IApplicationView view);
-
-
-; thisPid:=DllCall("GetCurrentProcessId")
-; thisHwnd
-; sleep, 1000
-; 
-; sleep, 1000
-
-; currentDir=%A_Programs%
+    
 
 return
 
@@ -2145,7 +2123,7 @@ GetCurrentDesktop_return_value := DllCall(GetCurrentDesktop, "UPtr", IVirtualDes
 ; p("thisHwnd",thisHwnd, "GetViewForHwnd",GetViewForHwnd)
 pView := 0
 DllCall(GetViewForHwnd, "UPtr", IApplicationViewCollection, "Ptr", thisHwnd, "Ptr*", pView, "UInt")
-; p(pView)
+    ; p(pView)
 DllCall(MoveViewToDesktop, "ptr", IVirtualDesktopManagerInternal, "Ptr", pView, "UPtr", CurrentIVirtualDesktop, "UInt")
 winactivate, ahk_id %thisHwnd%
 return
@@ -2198,7 +2176,7 @@ WM_COPYDATA_READ(wp, lp)  {
             ; pView := 0
             ; p(GetViewForHwnd)
             ; DllCall(GetViewForHwnd, "UPtr", IApplicationViewCollection, "Ptr", thisHwnd, "Ptr*", pView, "UInt")
-                
+            
             ; pfCanViewMoveDesktops := 0
             ; DllCall(CanViewMoveDesktops, "ptr", IVirtualDesktopManagerInternal, "Ptr", pView, "int*", pfCanViewMoveDesktops, "UInt") ; return value BOOL
             ; p(pView)
