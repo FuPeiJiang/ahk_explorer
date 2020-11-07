@@ -2109,28 +2109,21 @@ receivedFolderSize(string) {
             rowsForSizes%whichSide%.RemoveAt(1)
         }
     stuffByName%whichSide%[ar[1]]["size"]:=ar[3]
-    
-    ; if (name="MSIAfterburnerSetup")
-    ; p(stuffByName["MSIAfterburnerSetup"])
-    
 }
 ;virtual desktop
 revealAhk_Explorer:
     CurrentIVirtualDesktop := 0
 GetCurrentDesktop_return_value := DllCall(GetCurrentDesktop, "UPtr", IVirtualDesktopManagerInternal, "UPtrP", CurrentIVirtualDesktop, "UInt")
-; p(GetCurrentDesktop,IVirtualDesktopManagerInternal,CurrentIVirtualDesktop)
 
-; p("thisHwnd",thisHwnd, "GetViewForHwnd",GetViewForHwnd)
 pView := 0
 DllCall(GetViewForHwnd, "UPtr", IApplicationViewCollection, "Ptr", thisHwnd, "Ptr*", pView, "UInt")
-    ; p(pView)
+
 DllCall(MoveViewToDesktop, "ptr", IVirtualDesktopManagerInternal, "Ptr", pView, "UPtr", CurrentIVirtualDesktop, "UInt")
 winactivate, ahk_id %thisHwnd%
 return
 
 WM_COPYDATA_READ(wp, lp)  {
     global
-    ; global Script1Var,sortedBySize,canSortBySize,unsorted,stuffByName
     data := StrGet(NumGet(lp + A_PtrSize*2), "UTF-16")
     RegExMatch(data, "s)(.*)\|(\d+)", match)
     
@@ -2141,11 +2134,6 @@ WM_COPYDATA_READ(wp, lp)  {
         receivedFolderSize(match1)
     } else if (match2=3) {
         sortSizes()
-        ; sortedBySize%whichSide%:=sortArrayByArray(unsorted%whichSide%,stuffByName%whichSide%,true,"size")
-        ; for k, v in sortedBySize%whichSide% {
-        ; p(stuffByName%whichSide%[v])
-        ; }
-        ; p(sortedBySize)
         canSortBySize%whichSide%:=true
     }  else if (match2=4) {
         gosub, selectPanel%match1%
@@ -2158,32 +2146,8 @@ WM_COPYDATA_READ(wp, lp)  {
             ; gui, hide
             gui, show
         } else {
-            ; DetectHiddenWindows, On
-            ; p(thisHwnd)
-            ; WinHide, ahk_pid %thisPid%
-            ; WinShow, ahk_pid %thisPid%
-            ; WinActivate, ahk_pid %thisPid%
-            ; DetectHiddenWindows, off
-            ; pGUID := GUID_FromStr("{FF72FFDD-BE7E-43FC-9C03-AD81681E88E4}", IID_IVirtualDesktop) ; IID_IVirtualDesktop
-            ; gosub,revealAhk_Explorer
             SetTimer, revealAhk_Explorer , -0
-            ;83544024
-            ; 140736803786544
-            return
-            ; DllCall( other_vtable(CurrentIVirtualDesktop, 4), "UPtr", CurrentIVirtualDesktop, "UPtr", &IID_IVirtualDesktop, "UInt")
-            ; strGUID := GUID_ToStr(IID_IVirtualDesktop) ; DllCall("Ole32.dll\StringFromGUID2", "UPtr", &IID_IVirtualDesktop, "UPtr", &strGUID, "Int", 38 + 1)
-            ; p(strGUID)
-            ; pView := 0
-            ; p(GetViewForHwnd)
-            ; DllCall(GetViewForHwnd, "UPtr", IApplicationViewCollection, "Ptr", thisHwnd, "Ptr*", pView, "UInt")
-            
-            ; pfCanViewMoveDesktops := 0
-            ; DllCall(CanViewMoveDesktops, "ptr", IVirtualDesktopManagerInternal, "Ptr", pView, "int*", pfCanViewMoveDesktops, "UInt") ; return value BOOL
-            ; p(pView)
-            ; DllCall(MoveViewToDesktop, "ptr", IVirtualDesktopManagerInternal, "Ptr", pView, "UPtr", oDesktop.IVirtualDesktop, "UInt")
-            
         }
-        
     } else {
         p("something went wrong")
     }
