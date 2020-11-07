@@ -347,12 +347,16 @@ renameFileLabel:
     }
 return
 
-mainGuiClose:
-    Process, Close, %PID_getFolderSizes%
-    windowHidden:=true
-    Gui, main:Default
-    Gui, hide
-    ; Exitapp
+mainGuiClose:   
+    if GetKeyState("Shift") {
+        Process, Close, %PID_getFolderSizes%
+        Exitapp
+    } else {
+        Process, Close, %PID_getFolderSizes%
+        windowHidden:=true
+        Gui, main:Default
+        Gui, hide
+    }
 return
 
 couldNotCreateFolder()
@@ -2117,7 +2121,7 @@ GetCurrentDesktop_return_value := DllCall(GetCurrentDesktop, "UPtr", IVirtualDes
 
 pView := 0
 DllCall(GetViewForHwnd, "UPtr", IApplicationViewCollection, "Ptr", thisHwnd, "Ptr*", pView, "UInt")
-
+    
 DllCall(MoveViewToDesktop, "ptr", IVirtualDesktopManagerInternal, "Ptr", pView, "UPtr", CurrentIVirtualDesktop, "UInt")
 winactivate, ahk_id %thisHwnd%
 return
