@@ -72,6 +72,7 @@ global dropEffectFormat := DllCall("RegisterClipboardFormat", "Str", CFSTR_PREFE
     
 
 ; clipboard:=A_Programs
+Gui, main:New, +hwndthisHwnd
 Gui, main:Default
 ; Gui, Font, s12
 Gui,Font, s10, Segoe UI
@@ -158,7 +159,11 @@ for k, v in favoriteFolders {
     ; }
 }
 renderCurrentDir()
-
+IServiceProvider               := ComObjCreate("{C2F03A33-21F5-47FA-B4BB-156362A2F239}", "{6D5140C1-7436-11CE-8034-00AA006009FA}")
+IVirtualDesktopManagerInternal := ComObjQuery(IServiceProvider, "{C5E0CDCA-7B6E-41B2-9FC4-D93975CC467B}", "{F31574D6-B682-4CDC-BD56-1827860ABEC6}")
+GetCurrentDesktop              := other_vtable(IVirtualDesktopManagerInternal, 6) ; IVirtualDesktop GetCurrentDesktop();
+; thisPid:=DllCall("GetCurrentProcessId")
+; thisHwnd
 ; sleep, 1000
 ; 
 ; sleep, 1000
@@ -183,8 +188,10 @@ multiRenameGuiGuiClose:
 return
 gmultiRenameApply:
     multiRenameNames:=getMultiRenameNames()
-    multiRenameNamesBak:=A.cloneDeep(multiRenameNames)
-    namesToMultiRenameBak:=A.cloneDeep(namesToMultiRename)
+    multiRenameNamesBak:=multiRenameNames.Clone()
+    ; multiRenameNamesBak:=A.cloneDeep(multiRenameNames)
+    namesToMultiRenameBak:=namesToMultiRename.Clone()
+    ; namesToMultiRenameBak:=A.cloneDeep(namesToMultiRename)
     
     for k, v in multiRenameNamesBak {
         toRenamePath := multiRenameDir "\" namesToMultiRenameBak[k]
@@ -340,8 +347,10 @@ return
 
 mainGuiClose:
     Process, Close, %PID_getFolderSizes%
-    
-    Exitapp
+    windowHidden:=true
+    Gui, main:Default
+    Gui, hide
+    ; Exitapp
 return
 
 couldNotCreateFolder()
@@ -599,9 +608,10 @@ listViewEvents2:
             }
             else if (key="Shift") {
                 
-            }
-            else if (key="F1") {
+            } else if (key="F1") {
                 send, {f1}
+            } else if (key="F4") {
+                ; send, {f4}
             }
             else if (key="\") {
             }
@@ -846,7 +856,6 @@ else if (A_GuiEvent="ColClick")
 
 return
 ;includes
-#include <biga>
 #include <Class_LV_InCellEdit>
 ;Classes
 ; ======================================================================================================================
@@ -1441,22 +1450,13 @@ fileAdded(whichSide, Byref path) {
             index++
         }
     }
-    ; sizesCopy%whichSide%:=A.Clone(sortedBySize%whichSide%)
-    ; sizesCopy%whichSide%.Push(OutFileName)
-    ; for key, value in sortedBySize%whichSide% {
-    ; sortWithAr%whichSide%.Push({name:value, size:stuffByName%whichSide%[value]["size"]})
-    ; }
-    ; sortWithAr%whichSide%.Push({name:OutFileName, size:outputSize})
-    ; sizesCopy%whichSide%:=sortArrayByArray(sizesCopy%whichSide%,sortWithAr%whichSide%,true,"size")
-    ; sortedBySize%whichSide%:=sizesCopy%whichSide%
     
     whereToAddFile(whichSide, OutFileName, A_Now,outputSize)
     
-    
     if (bothSameDir(whichSide)) {
         stuffByName%otherSide%[OutFileName]:=stuffByName%whichSide%[OutFileName]
-        sortedBySize%otherSide%:= A.Clone(sortedBySize%whichSide%)
-        sortedByDate%otherSide%:=A.Clone(sortedByDate%whichSide%)
+        sortedBySize%otherSide%:=sortedBySize%whichSide%.Clone()
+        sortedByDate%otherSide%:=sortedByDate%whichSide%.Clone()
         whereToAddFile(otherSide, OutFileName, A_Now,outputSize)
     }
     
@@ -2136,6 +2136,30 @@ WM_COPYDATA_READ(wp, lp)  {
         gosub, selectPanel%match1%
     } else if (match2=5) {
         gosub, copySelectedPaths
+    } else if (match2=6) {
+        if (windowHidden) {
+            windowHidden:=false
+            gui, main:Default
+            gui, hide
+            gui, show
+        } else {
+            ; DetectHiddenWindows, On
+            ; p(thisHwnd)
+            ; WinHide, ahk_pid %thisPid%
+            ; WinShow, ahk_pid %thisPid%
+            ; WinActivate, ahk_pid %thisPid%
+            ; DetectHiddenWindows, off
+            pGUID := GUID_FromStr("{FF72FFDD-BE7E-43FC-9C03-AD81681E88E4}", IID_IVirtualDesktop) ; IID_IVirtualDesktop
+            
+            CurrentIVirtualDesktop := 0
+            GetCurrentDesktop_return_value := DllCall(GetCurrentDesktop, "UPtr", IVirtualDesktopManagerInternal, "UPtrP", CurrentIVirtualDesktop, "UInt")
+            
+            DllCall( other_vtable(CurrentIVirtualDesktop, 4), "UPtr", CurrentIVirtualDesktop, "UPtr", &IID_IVirtualDesktop, "UInt")
+            
+            strGUID := GUID_ToStr(IID_IVirtualDesktop) ; DllCall("Ole32.dll\StringFromGUID2", "UPtr", &IID_IVirtualDesktop, "UPtr", &strGUID, "Int", 38 + 1)
+            p(strGUID)
+        }
+        
     } else {
         p("something went wrong")
     }
@@ -2894,10 +2918,32 @@ renderCurrentDir()
     {
         Return   NumGet(NumGet(1*ppv)+A_PtrSize*idx)
     }
+    
+    other_vtable(ptr, n) {
+        return NumGet(NumGet(ptr+0), n*A_PtrSize)
+    }
+    
     GUID4String(ByRef CLSID, String)
     {
         VarSetCapacity(CLSID, 16,0)
         return DllCall("ole32\CLSIDFromString", "wstr", String, "Ptr", &CLSID) >= 0 ? &CLSID : ""
+    }
+    Guid_FromStr(sGuid, ByRef VarOrAddress)
+    {
+        if IsByRef(VarOrAddress) && (VarSetCapacity(VarOrAddress) < 16)
+            VarSetCapacity(VarOrAddress, 16) ; adjust capacity
+        pGuid := IsByRef(VarOrAddress) ? &VarOrAddress : VarOrAddress
+        if ( DllCall("ole32\CLSIDFromString", "WStr", sGuid, "Ptr", pGuid) < 0 )
+            throw Exception("Invalid GUID", -1, sGuid)
+        return pGuid ; return address of GUID struct
+    }
+    Guid_ToStr(ByRef VarOrAddress)
+    {
+        pGuid := IsByRef(VarOrAddress) ? &VarOrAddress : VarOrAddress
+        VarSetCapacity(sGuid, 78) ; (38 + 1) * 2
+        if !DllCall("ole32\StringFromGUID2", "Ptr", pGuid, "Ptr", &sGuid, "Int", 39)
+            throw Exception("Invalid GUID", -1, Format("<at {1:p}>", pGuid))
+        return StrGet(&sGuid, "UTF-16")
     }
     CoTaskMemFree(pv)
     {
