@@ -1,7 +1,7 @@
-﻿#NoEnv  ; Recommended for performance and compatibility with future AutoHotkey releases.
+﻿#NoEnv ; Recommended for performance and compatibility with future AutoHotkey releases.
 #SingleInstance, force
-    SendMode Input  ; Recommended for new scripts due to its superior speed and reliability.
-SetWorkingDir %A_ScriptDir%  ; Ensures a consistent starting directory.
+SendMode Input ; Recommended for new scripts due to its superior speed and reliability.
+SetWorkingDir %A_ScriptDir% ; Ensures a consistent starting directory.
 #MaxThreads, 20
 #MaxThreadsPerHotkey, 4
 SetBatchLines, -1
@@ -32,13 +32,13 @@ lastDir1:="C:"
 ; if (!InStr(fileExist, "D"))
 ; EcurrentDir%whichSide%:="C:"
 
-for n, param in A_Args  ; For each parameter:
+for n, param in A_Args ; For each parameter:
 {
     fileExist:=fileExist(param)
     if (fileExist) {
         if (InStr(fileExist, "D")) {
             EcurrentDir%whichSide%:=param
-            
+
         } else {
             SplitPath, param, OutFileName, OutDir
             EcurrentDir%whichSide%:=OutDir
@@ -69,7 +69,6 @@ calculatefileSizes:=1
 calculateDates:=1
 doIcons:=1
 global dropEffectFormat := DllCall("RegisterClipboardFormat", "Str", CFSTR_PREFERREDDROPEFFECT := "Preferred DropEffect", "UInt")
-    
 
 ; clipboard:=A_Programs
 Gui, main:New, +hwndthisHwnd
@@ -132,15 +131,15 @@ loop 2 {
     Gui, ListView, vlistView%A_Index%
     LV_Colors.OnMessage()
     LV_Colors.Attach(ListviewHwnd%A_Index%, 1, 0)
-    
+
     LV_ModifyCol(1,20)
-        LV_ModifyCol(2,300)
-        LV_ModifyCol(3,"50 Right")
-        LV_ModifyCol(5,"80 Right")
-        LV_ModifyCol(6,"Integer")
-        LV_ModifyCol(4,0) ; hides 3rd row
-        LV_ModifyCol(6,0) ; hides 3rd row
-        focused=flistView
+    LV_ModifyCol(2,300)
+    LV_ModifyCol(3,"50 Right")
+    LV_ModifyCol(5,"80 Right")
+    LV_ModifyCol(6,"Integer")
+    LV_ModifyCol(4,0) ; hides 3rd row
+    LV_ModifyCol(6,0) ; hides 3rd row
+    focused=flistView
     ImageListID%A_Index% := IL_Create(50)
     ; ImageListID1 := IL_Create(200)
     ; ImageListID1 := IL_Create(10)
@@ -159,10 +158,10 @@ for k, v in favoriteFolders {
     ; }
 }
 renderCurrentDir()
-IServiceProvider               := ComObjCreate("{C2F03A33-21F5-47FA-B4BB-156362A2F239}", "{6D5140C1-7436-11CE-8034-00AA006009FA}")
+IServiceProvider := ComObjCreate("{C2F03A33-21F5-47FA-B4BB-156362A2F239}", "{6D5140C1-7436-11CE-8034-00AA006009FA}")
 IVirtualDesktopManagerInternal := ComObjQuery(IServiceProvider, "{C5E0CDCA-7B6E-41B2-9FC4-D93975CC467B}", "{F31574D6-B682-4CDC-BD56-1827860ABEC6}")
-MoveViewToDesktop              := vtable(IVirtualDesktopManagerInternal, 4) ; void MoveViewToDesktop(object pView, IVirtualDesktop desktop);
-GetCurrentDesktop              := vtable(IVirtualDesktopManagerInternal, 6) ; IVirtualDesktop GetCurrentDesktop();
+MoveViewToDesktop := vtable(IVirtualDesktopManagerInternal, 4) ; void MoveViewToDesktop(object pView, IVirtualDesktop desktop);
+GetCurrentDesktop := vtable(IVirtualDesktopManagerInternal, 6) ; IVirtualDesktop GetCurrentDesktop();
 ImmersiveShell := ComObjCreate("{C2F03A33-21F5-47FA-B4BB-156362A2F239}", "{00000000-0000-0000-C000-000000000046}") 
 
 if !(IApplicationViewCollection := ComObjQuery(ImmersiveShell,"{1841C6D7-4F9D-42C0-AF41-8747538F10E5}","{1841C6D7-4F9D-42C0-AF41-8747538F10E5}" ) ) ; 1607-1809
@@ -170,7 +169,6 @@ if !(IApplicationViewCollection := ComObjQuery(ImmersiveShell,"{1841C6D7-4F9D-42
     MsgBox IApplicationViewCollection interface not supported.
 }
 GetViewForHwnd							:= vtable(IApplicationViewCollection, 6) ; (IntPtr hwnd, out IApplicationView view);
-    
 
 return
 
@@ -194,11 +192,11 @@ gmultiRenameApply:
     ; multiRenameNamesBak:=A.cloneDeep(multiRenameNames)
     namesToMultiRenameBak:=namesToMultiRename.Clone()
     ; namesToMultiRenameBak:=A.cloneDeep(namesToMultiRename)
-    
+
     for k, v in multiRenameNamesBak {
         toRenamePath := multiRenameDir "\" namesToMultiRenameBak[k]
         renamedPath := multiRenameDir "\" v
-        
+
         renamedPathExists:=fileExist(renamedPath)
         if (renamedPathExists) {
             p("name already taken", renamedPathExists)
@@ -241,15 +239,15 @@ RemoveToolTip:
 return
 TypingInRenameSimple:
     Gui,Submit,NoHide
-    
+
     Size:=10
     Gui,Fake:Font,s%Size%,Segoe UI
     Gui,Fake:Add,Text, -Wrap vDummy,% RenamingSimple
     GuiControlGet,Pos,Fake:Pos,Dummy
     Gui,Fake:Destroy
-    
+
     if (posw+ 2 * Size>renameTextWidthLimit) {
-        renameTextWidthLimit:=(posw+ 2 * Size) +  (8 * Size)
+        renameTextWidthLimit:=(posw+ 2 * Size) + (8 * Size)
         width:=renameTextWidthLimit
         GuiControl Move,RenamingSimple, W%width%
         Guiwidth:=width+2
@@ -269,8 +267,7 @@ TypingInRenameSimple:
         Outvar -=1
         Postmessage,0xB1, 0, 0, Edit1
         Postmessage,0xB1,%Outvar%,%Outvar%, Edit1
-        
-        
+
     }
 return
 grenameFileLabel:
@@ -283,7 +280,7 @@ renameFileLabel:
         gui, submit
         gui, main:Default
         noRenameError:=true
-        
+
         if (TextBeingRenamed!=RenamingSimple) {
             if (stuffByName[RenamingSimple].Count()) {
                 noRenameError:=false
@@ -328,7 +325,7 @@ renameFileLabel:
             canRename:=false
             gui, renameSimple:Default
             gui, destroy
-            
+
             gui, main:Default
             if (fromButton) {
                 ; fromButton:=false
@@ -337,9 +334,9 @@ renameFileLabel:
         } else {
             ; canRename:=true
             gui, main:Default
-            
+
             gui, show
-            
+
             gui, renameSimple:Default
             gui, show,,renamingWinTitle
         }
@@ -347,7 +344,7 @@ renameFileLabel:
     }
 return
 
-mainGuiClose:   
+mainGuiClose: 
     if GetKeyState("Shift") {
         Process, Close, %PID_getFolderSizes%
         Exitapp
@@ -433,7 +430,7 @@ folderlistViewEvents2_2:
     num:=SubStr(A_GuiControl, 15, 1)
     whichParent:=(num=1) ? 2 : 1
     Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
-    
+
     if (A_GuiEvent="ColClick")
     {
         EcurrentDir%whichSide%:=parent%whichParent%Dir%whichSide%
@@ -448,7 +445,7 @@ currentDirEdit2Changed:
     SetTimer, currentDirEdit1ChangedTimer, -0
 return
 currentDirEdit1ChangedTimer:
-    
+
     Gui, main:Default
     gui, submit, nohide
     if (focused="searchCurrentDirEdit")
@@ -458,7 +455,7 @@ currentDirEdit1ChangedTimer:
         if (!submittingGui) {
             searchString%whichSide%:=vcurrentDirEdit%whichSide%
             searchInCurrentDir()
-        }  else  {
+        } else {
             p(6456) 
             queueSubmitGui:=true
         }
@@ -469,9 +466,9 @@ listViewEvents2:
     ; whichSide:=SubStr(A_GuiControl, 0)
     if (A_GuiEvent=="D") {
         selectedPaths:=getSelectedPaths()
-        
+
         FileToClipboard(selectedPaths)
-        
+
         Cursors := []
         Cursors[1] := DllCall("LoadCursor", "Ptr", 0, "Ptr", 32515, "UPtr") ; DROPEFFECT_COPY = IDC_CROSS
         Cursors[2] := DllCall("LoadCursor", "Ptr", 0, "Ptr", 32516, "UPtr") ; DROPEFFECT_MOVE = IDC_UPARROW
@@ -481,7 +478,7 @@ listViewEvents2:
     else if (A_GuiEvent=="F") {
         whichSide:=SubStr(A_GuiControl, 0)
         Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
-        
+
         If (ICELV%whichSide%["Changed"]) {
             Msg := ""
             p(ICELV%whichSide%.Changed["Txt"])
@@ -492,7 +489,7 @@ listViewEvents2:
         whichSide:=SubStr(A_GuiControl, 0)
         focused:="flistView"
         LV_GetText(OutputVar,A_EventInfo,2)
-        
+
         for k, v in stuffByName
         {
             if (v=renaming) {
@@ -531,7 +528,7 @@ listViewEvents2:
             whichSide:=SubStr(A_GuiControl, 0)
             ControlFocus,, % "ahk_id " ListviewHwnd%whichSide%
             Gui, ListView, vlistView%whichSide%
-            
+
             key := GetKeyName(Format("vk{:x}", A_EventInfo))
             if (key="Backspace")
             {
@@ -542,7 +539,7 @@ listViewEvents2:
                 firstRename:=false
                 fromButton:=false
                 renameTextWidthLimit:=200
-                
+
                 row:=LV_GetNext("")
                 LV_GetText(TextBeingRenamed, row, 2)
                 ICELV%whichSide%.EditCell(row, 2)
@@ -553,7 +550,7 @@ listViewEvents2:
                 ; 
                 ; p(hCtl2 " " hCtl)
                 ; WinGetPos, xpos, ypos,,, % "ahk_id " hCtl
-                
+
                 ; ControlGetPos , X, Y,,, Edit2 ;, WinTitle, WinText, ExcludeTitle, ExcludeText
                 ; WinGetPos, xpos, ypos,,, % "ahk_id " hCtl
                 WinGetPos, xpos, ypos,,,% ahk_explorer ahk_class AutoHotkeyGUI
@@ -561,28 +558,26 @@ listViewEvents2:
                     xpos+=161
                 else
                     xpos+=161+listViewWidth
-                
+
                 ypos+=A_CaretY - 5
                 Gui, renameSimple:Default
                 Gui,Font, s10, Segoe UI
                 Gui, Margin , 0,0,0,0
                 gui, add, edit,y2 r1 w%renameTextWidthLimit% -wrap gTypingInRenameSimple vRenamingSimple hwndRenameHwnd, %TextBeingRenamed%
                 Gui, Add, Button, Hidden Default ggrenameFileLabel
-                
-                
-                
+
                 ; xpos-=4
                 ; ypos-=3
                 ; WinSet, Style, -0xC00000,a ; remove the titlebar and border(s) 
-                gui, show,  X%xpos% Y%ypos% h0,renamingWinTitle
+                gui, show, X%xpos% Y%ypos% h0,renamingWinTitle
                 WinSet, Style, -0xC00000,a ; remove the titlebar and border(s) 
-                
+
                 gosub, TypingInRenameSimple
-                
+
                 sleep, 500
-                
+
                 return
-                
+
                 LV_GetText(OutputVar,A_EventInfo,2)
                 SplitPath, OutputVar, , , OutExtension, OutNameNoExt
                 if (OutNameNoExt) {
@@ -592,28 +587,28 @@ listViewEvents2:
                 }
             }
             else if (key="Lwin") {
-                
+
             }
             else if (key="NumpadRight") {
-                
+
             }
             else if (key="NumpadLeft") {
-                
+
             }
             else if (key="NumpadUp") {
-                
+
             }
             else if (key="NumpadDown") {
-                
+
             }
             else if (key="Alt") {
-                
+
             }
             else if (key="Control") {
-                
+
             }
             else if (key="Shift") {
-                
+
             } else if (key="F1") {
                 send, {f1}
             } else if (key="F4") {
@@ -634,7 +629,7 @@ listViewEvents2:
             else if (key="]") {
             }
             else if (key="NumpadDel") {
-                
+
                 ; indexes:=[]
                 ; selectedNames:=[]
                 ; index:=0
@@ -648,15 +643,15 @@ listViewEvents2:
                 selectedNames:=getSelectedNames()
                 deleteCount%whichSide%:=selectedNames.Length()
                 ; gosub, selectCurrent
-                
+
                 ; finalStr:="""" A_AhkPath """ ""lib\fileRecycle.ahk"" """ EcurrentDir%whichSide% """ " array_tospacedstring(selectedNames)
-                
+
                 for k, v in getSelectedNames() {
                     finalStr:="""" A_AhkPath """ ""lib\fileRecycle_one.ahk"" """ EcurrentDir%whichSide% "\" v """" 
                     ; p(finalStr)
                     run, %finalStr%
                 }
-                
+
                 ; clipboard:=finalStr
                 ; p(finalStr)
                 ; Run, 
@@ -673,8 +668,8 @@ listViewEvents2:
                 if (focused!="searchCurrentDirEdit")
                 {
                     ShiftIsDown := GetKeyState("Shift")
-                        CtrlIsDown := GetKeyState("Ctrl")
-                    
+                    CtrlIsDown := GetKeyState("Ctrl")
+
                     if (CtrlIsDown and !ShiftIsDown) {
                         if (key="c") {
                             selectedPaths:=getSelectedPaths()
@@ -688,12 +683,12 @@ listViewEvents2:
                         } else if (key="v") 
                         {
                             pasteFile()
-                            
-                        }   else if (key="a") {
+
+                        } else if (key="a") {
                             loop % LV_GetCount()
                             {
                                 LV_Modify(A_Index, "+Select") ; select                            
-                                    ; LV_Modify(A_Index, "+Select +Focus") ; select                            
+                                ; LV_Modify(A_Index, "+Select +Focus") ; select                            
                             }
                         }
                         return
@@ -712,7 +707,7 @@ listViewEvents2:
                             }
                             soundplay, *-1
                             EcurrentDir%whichSide%:=EcurrentDir%whichSide% "\" OutNameNoExt
-                            renderCurrentDir()                
+                            renderCurrentDir() 
                             return
                         } else if (key="d") {
                             files:=array_ToSpacedString(getSelectedPaths()) 
@@ -727,48 +722,40 @@ listViewEvents2:
                             ; } else {
                             ; gosub, selectPanel1
                             ; }
-                            
-                            
-                            
-                            
-                            
-                            
-                            
+
                             ; action:=false
-                            
+
                             if (DllCall("IsClipboardFormatAvailable", "UInt", CF_HDROP := 15)) { ; file being copied
-                            if (DllCall("IsClipboardFormatAvailable", "UInt", dropEffectFormat)) {
-                                if (DllCall("OpenClipboard", "Ptr", A_ScriptHwnd)) {
-                                    if (data := DllCall("GetClipboardData", "UInt", dropEffectFormat, "Ptr")) {
-                                        if (effect := DllCall("GlobalLock", "Ptr", data, "UInt*")) {
-                                    if (effect & DROPEFFECT_COPY) {
-                                        files:=StrSplit(clipboard, "`r`n")
-                                        for k, v in files {
-                                            fileExist:=FileExist(v)
-                                            if (fileExist) {
-                                                SplitPath, v , OutFileName
-                                                dest:=EcurrentDir%whichSide%
-                                                Run, TeraCopy.exe Copy "%v%" "%dest%"
+                                if (DllCall("IsClipboardFormatAvailable", "UInt", dropEffectFormat)) {
+                                    if (DllCall("OpenClipboard", "Ptr", A_ScriptHwnd)) {
+                                        if (data := DllCall("GetClipboardData", "UInt", dropEffectFormat, "Ptr")) {
+                                            if (effect := DllCall("GlobalLock", "Ptr", data, "UInt*")) {
+                                                if (effect & DROPEFFECT_COPY) {
+                                                    files:=StrSplit(clipboard, "`r`n")
+                                                    for k, v in files {
+                                                        fileExist:=FileExist(v)
+                                                        if (fileExist) {
+                                                            SplitPath, v , OutFileName
+                                                            dest:=EcurrentDir%whichSide%
+                                                            Run, TeraCopy.exe Copy "%v%" "%dest%"
+                                                        }
+                                                    }
+                                                    ; renderCurrentDir()
+                                                    SoundPlay, *-1
+                                                }
+                                                ; action:="copy"
+                                                else if (effect & DROPEFFECT_MOVE) {
+                                                    p("no move")
+                                                }
+                                                ; action:="move"
+                                                DllCall("GlobalUnlock", "Ptr", data)
                                             }
                                         }
-                                        ; renderCurrentDir()
-                                        SoundPlay, *-1
+                                        DllCall("CloseClipboard")
                                     }
-                                    ; action:="copy"
-                                    else if (effect & DROPEFFECT_MOVE) {
-                                        p("no move")
-                                    }
-                                    ; action:="move"
-                                    DllCall("GlobalUnlock", "Ptr", data)
                                 }
                             }
-                            DllCall("CloseClipboard")
-                        }
-                    }
-                }
-                
-                
-                
+
                 /* 
                 gui, main:default
                 whichSideBak:=whichSide
@@ -786,79 +773,79 @@ listViewEvents2:
                 Gui, ListView, vlistView%whichSide%
                 
                 pasteFile()
-                */
-                return
-                
-            } 
-        }
-        if (CtrlIsDown or ShiftIsDown)
-            return
-        
-        focused=searchCurrentDirEdit
-        ; focused=searchCurrentDirEdit%whichSide%
-        GuiControl, Focus, vcurrentDirEdit%whichSide%
-        GuiControl, Text, vcurrentDirEdit%whichSide%,% searchString%whichSide% key
-        SendMessage, 0xB1, -2, -1,, % "ahk_id " Edithwnd%whichSide%
-    }
-}
-}
-}
-else if (A_GuiEvent="RightClick") {
-    selectedNames:=getSelectedNames()
-    ShellContextMenu(EcurrentDir%whichSide%,selectedNames)
-}
-else if (A_GuiEvent="ColClick")
-{
-    columnsToSort:=[1,2,4,6]
-    if (A_EventInfo=1) {
-        if (!foldersFirst)
-        {   
-            foldersFirst:=true
-            sortColumn(1, "SortDesc")
-        } else {
-            foldersFirst:=false    
-            sortColumn(1, "Sort")
-        }
-    } else if (A_EventInfo=2) {
-        if (!A_ZSort)
-        {   
-            A_ZSort:=true
-            sortColumn(2, "Sort")
-        } else {
-            A_ZSort:=false    
-            sortColumn(2, "SortDesc")
-        }
-    } else if (A_EventInfo=3)  {
-        if (!oldNew%whichSide%)
-        {   
-            whichsort%whichSide%:="oldNew"
-            oldNew%whichSide%:=true    
-            renderFunctionsToSort(sortedByDate%whichSide%, true)
-            ; sortColumn(4, "SortDesc")
-        } else {
-            whichsort%whichSide%:="newOld"
-            oldNew%whichSide%:=false    
-            renderFunctionsToSort(sortedByDate%whichSide%)
-            ; sortColumn(4, "Sort")
-        }
-    } else if (A_EventInfo=5) {
-        if (canSortBySize%whichSide%) {
-            if (!bigSmall%whichSide%)
-            {   
-                whichsort%whichSide%:="bigSmall"
-                bigSmall%whichSide%:=true    
-                renderFunctionsToSort(sortedBySize%whichSide%)
-                
-                ; sortColumn(6, "SortDesc")
-            } else {
-                whichsort%whichSide%:="smallBig"
-                bigSmall%whichSide%:=false    
-                renderFunctionsToSort(sortedBySize%whichSide%, true)
-                ; sortColumn(6, "Sort")
+                            */
+                            return
+
+                        } 
+                    }
+                    if (CtrlIsDown or ShiftIsDown)
+                        return
+
+                    focused=searchCurrentDirEdit
+                    ; focused=searchCurrentDirEdit%whichSide%
+                    GuiControl, Focus, vcurrentDirEdit%whichSide%
+                    GuiControl, Text, vcurrentDirEdit%whichSide%,% searchString%whichSide% key
+                    SendMessage, 0xB1, -2, -1,, % "ahk_id " Edithwnd%whichSide%
+                }
             }
         }
     }
-}
+    else if (A_GuiEvent="RightClick") {
+        selectedNames:=getSelectedNames()
+        ShellContextMenu(EcurrentDir%whichSide%,selectedNames)
+    }
+    else if (A_GuiEvent="ColClick")
+    {
+        columnsToSort:=[1,2,4,6]
+        if (A_EventInfo=1) {
+            if (!foldersFirst)
+            { 
+                foldersFirst:=true
+                sortColumn(1, "SortDesc")
+            } else {
+                foldersFirst:=false 
+                sortColumn(1, "Sort")
+            }
+        } else if (A_EventInfo=2) {
+            if (!A_ZSort)
+            { 
+                A_ZSort:=true
+                sortColumn(2, "Sort")
+            } else {
+                A_ZSort:=false 
+                sortColumn(2, "SortDesc")
+            }
+        } else if (A_EventInfo=3) {
+            if (!oldNew%whichSide%)
+            { 
+                whichsort%whichSide%:="oldNew"
+                oldNew%whichSide%:=true 
+                renderFunctionsToSort(sortedByDate%whichSide%, true)
+                ; sortColumn(4, "SortDesc")
+            } else {
+                whichsort%whichSide%:="newOld"
+                oldNew%whichSide%:=false 
+                renderFunctionsToSort(sortedByDate%whichSide%)
+                ; sortColumn(4, "Sort")
+            }
+        } else if (A_EventInfo=5) {
+            if (canSortBySize%whichSide%) {
+                if (!bigSmall%whichSide%)
+                { 
+                    whichsort%whichSide%:="bigSmall"
+                    bigSmall%whichSide%:=true 
+                    renderFunctionsToSort(sortedBySize%whichSide%)
+
+                    ; sortColumn(6, "SortDesc")
+                } else {
+                    whichsort%whichSide%:="smallBig"
+                    bigSmall%whichSide%:=false 
+                    renderFunctionsToSort(sortedBySize%whichSide%, true)
+                    ; sortColumn(6, "Sort")
+                }
+            }
+        }
+    }
 
 return
 ;includes
@@ -893,7 +880,7 @@ Class LV_Colors {
     ; +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     Static MessageHandler := "LV_Colors_WM_NOTIFY"
     Static WM_NOTIFY := 0x4E
-        Static SubclassProc := RegisterCallback("LV_Colors_SubclassProc")
+    Static SubclassProc := RegisterCallback("LV_Colors_SubclassProc")
     ; +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     ; PUBLIC PROPERTIES  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     ; +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -902,34 +889,34 @@ Class LV_Colors {
     ; META FUNCTIONS ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     ; +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     __New(P*) {
-        Return False   ; There is no reason to instantiate this class!
+        Return False ; There is no reason to instantiate this class!
     }
     ; +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     ; PRIVATE METHODS +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     ; +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     On_NM_CUSTOMDRAW(H, L) {
-        Static CDDS_PREPAINT          := 0x00000001
-        Static CDDS_ITEMPREPAINT      := 0x00010001
-        Static CDDS_SUBITEMPREPAINT   := 0x00030001
-        Static CDRF_DODEFAULT         := 0x00000000
-        Static CDRF_NEWFONT           := 0x00000002
-        Static CDRF_NOTIFYITEMDRAW    := 0x00000020
-            Static CDRF_NOTIFYSUBITEMDRAW := 0x00000020
-            Static CLRDEFAULT             := 0xFF000000
+        Static CDDS_PREPAINT := 0x00000001
+        Static CDDS_ITEMPREPAINT := 0x00010001
+        Static CDDS_SUBITEMPREPAINT := 0x00030001
+        Static CDRF_DODEFAULT := 0x00000000
+        Static CDRF_NEWFONT := 0x00000002
+        Static CDRF_NOTIFYITEMDRAW := 0x00000020
+        Static CDRF_NOTIFYSUBITEMDRAW := 0x00000020
+        Static CLRDEFAULT := 0xFF000000
         ; Size off NMHDR structure
         Static NMHDRSize := (2 * A_PtrSize) + 4 + (A_PtrSize - 4)
         ; Offset of dwItemSpec (NMCUSTOMDRAW)
         Static ItemSpecP := NMHDRSize + (5 * 4) + A_PtrSize + (A_PtrSize - 4)
         ; Size of NMCUSTOMDRAW structure
-        Static NCDSize  := NMHDRSize + (6 * 4) + (3 * A_PtrSize) + (2 * (A_PtrSize - 4))
+        Static NCDSize := NMHDRSize + (6 * 4) + (3 * A_PtrSize) + (2 * (A_PtrSize - 4))
         ; Offset of clrText (NMLVCUSTOMDRAW)
-        Static ClrTxP   :=  NCDSize
+        Static ClrTxP := NCDSize
         ; Offset of clrTextBk (NMLVCUSTOMDRAW)
         Static ClrTxBkP := ClrTxP + 4
         ; Offset of iSubItem (NMLVCUSTOMDRAW)
         Static SubItemP := ClrTxBkP + 4
         ; Offset of clrFace (NMLVCUSTOMDRAW)
-        Static ClrBkP   := SubItemP + 8
+        Static ClrBkP := SubItemP + 8
         DrawStage := NumGet(L + NMHDRSize, 0, "UInt")
         , Row := NumGet(L + ItemSpecP, 0, "UPtr") + 1
         , Col := NumGet(L + SubItemP, 0, "Int") + 1
@@ -947,7 +934,7 @@ Class LV_Colors {
             If (Col > This[H].Cells[Row].MaxIndex()) && !This[H].HasKey(Row)
                 Return CDRF_DODEFAULT
             Return CDRF_NOTIFYSUBITEMDRAW
-            }
+        }
         ; ItemPrepaint ---------------------------------------------------------------------------------------------------
         If (DrawStage = CDDS_ITEMPREPAINT) {
             This[H].CurTX := This[H].TX, This[H].CurTB := This[H].TB, This[H].CurBK := This[H].BK
@@ -961,12 +948,12 @@ Class LV_Colors {
             , This[H].CurTB := ClrBk, This[H].CurBk := ClrBk
             If This[H].Cells.HasKey(Row)
                 Return CDRF_NOTIFYSUBITEMDRAW
-                Return CDRF_DODEFAULT
+            Return CDRF_DODEFAULT
         }
         ; Prepaint -------------------------------------------------------------------------------------------------------
         If (DrawStage = CDDS_PREPAINT) {
             Return CDRF_NOTIFYITEMDRAW
-            }
+        }
         ; Others ---------------------------------------------------------------------------------------------------------
         Return CDRF_DODEFAULT
     }
@@ -996,198 +983,198 @@ Class LV_Colors {
     ; Return Values:  True on success, otherwise false.
     ; ===================================================================================================================
     Attach(HWND, StaticMode := False, NoSort := True, NoSizing := True) {
-    Static LVM_GETBKCOLOR     := 0x1000
-    Static LVM_GETHEADER      := 0x101F
-    Static LVM_GETTEXTBKCOLOR := 0x1025
-    Static LVM_GETTEXTCOLOR   := 0x1023
-    Static LVM_SETEXTENDEDLISTVIEWSTYLE := 0x1036
-    Static LVS_EX_DOUBLEBUFFER := 0x00010000
-    If !DllCall("User32.dll\IsWindow", "Ptr", HWND, "UInt")
-        Return False
-    If This.HasKey(HWND)
-        Return False
-    ; Set LVS_EX_DOUBLEBUFFER style to avoid drawing issues, if it isn't set as yet.
-    SendMessage, % LVM_SETEXTENDEDLISTVIEWSTYLE, % LVS_EX_DOUBLEBUFFER, % LVS_EX_DOUBLEBUFFER, , % "ahk_id " . HWND
-    If (ErrorLevel = "FAIL")
-        Return False
-    ; Get the default colors
-    SendMessage, % LVM_GETBKCOLOR, 0, 0, , % "ahk_id " . HWND
-    BkClr := ErrorLevel
-    SendMessage, % LVM_GETTEXTBKCOLOR, 0, 0, , % "ahk_id " . HWND
-    TBClr := ErrorLevel
-    SendMessage, % LVM_GETTEXTCOLOR, 0, 0, , % "ahk_id " . HWND
-    TxClr := ErrorLevel
-    ; Get the header control
-    SendMessage, % LVM_GETHEADER, 0, 0, , % "ahk_id " . HWND
-    Header := ErrorLevel
-    ; Store the values in a new object
-    This[HWND] := {BK: BkClr, TB: TBClr, TX: TxClr, Header: Header, IsStatic: !!StaticMode}
-    If (NoSort)
-        This.NoSort(HWND)
-    If (NoSizing)
-        This.NoSizing(HWND)
-Return True
-}
-; ===================================================================================================================
-; Detach()        Unregister ListView control
-; Parameters:     HWND        -  ListView's HWND
-; Return Value:   Always True
-; ===================================================================================================================
-Detach(HWND) {
-    ; Remove the subclass, if any
-    Static LVM_GETITEMCOUNT := 0x1004
-    If (This[HWND].SC)
-        DllCall("Comctl32.dll\RemoveWindowSubclass", "Ptr", HWND, "Ptr", This.SubclassProc, "Ptr", HWND)
-    This.Remove(HWND, "")
-    WinSet, Redraw, , % "ahk_id " . HWND
-Return True
-}
-; ===================================================================================================================
-; Row()           Set background and/or text color for the specified row
-; Parameters:     HWND        -  ListView's HWND
-;                 Row         -  Row number
-;                 Optional ------------------------------------------------------------------------------------------
-;                 BkColor     -  Background color as RGB color integer (e.g. 0xFF0000 = red)
-;                                Default: Empty -> default background color
-;                 TxColor     -  Text color as RGB color integer (e.g. 0xFF0000 = red)
-;                                Default: Empty -> default text color
-; Return Value:   True on success, otherwise false.
-; ===================================================================================================================
-Row(HWND, Row, BkColor := "", TxColor := "") {
-If !This.HasKey(HWND)
-Return False
-If This[HWND].IsStatic
-    Row := This.MapIndexToID(HWND, Row)
-If (BkColor = "") && (TxColor = "") {
-    This[HWND].Rows.Remove(Row, "")
-Return True
-}
-BkBGR := TxBGR := ""
-If BkColor Is Integer
-    BkBGR := ((BkColor & 0xFF0000) >> 16) | (BkColor & 0x00FF00) | ((BkColor & 0x0000FF) << 16)
-If TxColor Is Integer
-    TxBGR := ((TxColor & 0xFF0000) >> 16) | (TxColor & 0x00FF00) | ((TxColor & 0x0000FF) << 16)
-If (BkBGR = "") && (TxBGR = "")
-Return False
-If !This[HWND].HasKey("Rows")
-    This[HWND].Rows := {}
-If !This[HWND].Rows.HasKey(Row)
-    This[HWND].Rows[Row] := {}
-If (BkBGR <> "")
-    This[HWND].Rows[Row].Insert("B", BkBGR)
-If (TxBGR <> "")
-    This[HWND].Rows[Row].Insert("T", TxBGR)
-Return True
-}
-; ===================================================================================================================
-; Cell()          Set background and/or text color for the specified cell
-; Parameters:     HWND        -  ListView's HWND
-;                 Row         -  Row number
-;                 Col         -  Column number
-;                 Optional ------------------------------------------------------------------------------------------
-;                 BkColor     -  Background color as RGB color integer (e.g. 0xFF0000 = red)
-;                                Default: Empty -> default background color
-;                 TxColor     -  Text color as RGB color integer (e.g. 0xFF0000 = red)
-;                                Default: Empty -> default text color
-; Return Value:   True on success, otherwise false.
-; ===================================================================================================================
-Cell(HWND, Row, Col, BkColor := "", TxColor := "") {
-If !This.HasKey(HWND)
-Return False
-If This[HWND].IsStatic
-    Row := This.MapIndexToID(HWND, Row)
-If (BkColor = "") && (TxColor = "") {
-    This[HWND].Cells.Remove(Row, "")
-Return True
-}
-BkBGR := TxBGR := ""
-If BkColor Is Integer
-    BkBGR := ((BkColor & 0xFF0000) >> 16) | (BkColor & 0x00FF00) | ((BkColor & 0x0000FF) << 16)
-If TxColor Is Integer
-    TxBGR := ((TxColor & 0xFF0000) >> 16) | (TxColor & 0x00FF00) | ((TxColor & 0x0000FF) << 16)
-If (BkBGR = "") && (TxBGR = "")
-Return False
-If !This[HWND].HasKey("Cells")
-    This[HWND].Cells := {}
-If !This[HWND].Cells.HasKey(Row)
-    This[HWND].Cells[Row] := {}
-This[HWND].Cells[Row, Col] := {}
-If (BkBGR <> "")
-    This[HWND].Cells[Row, Col].Insert("B", BkBGR)
-If (TxBGR <> "")
-    This[HWND].Cells[Row, Col].Insert("T", TxBGR)
-Return True
-}
-; ===================================================================================================================
-; NoSort()        Prevent / allow sorting by click on a header item dynamically.
-; Parameters:     HWND        -  ListView's HWND
-;                 Optional ------------------------------------------------------------------------------------------
-;                 Apply       -  True / False
-;                                Default: True
-; Return Value:   True on success, otherwise false.
-; ===================================================================================================================
-NoSort(HWND, Apply := True) {
-Static HDM_GETITEMCOUNT := 0x1200
-If !This.HasKey(HWND)
-Return False
-If (Apply)
-    This[HWND].NS := True
-Else
-    This[HWND].Remove("NS")
-Return True
-}
-; ===================================================================================================================
-; NoSizing()      Prevent / allow resizing of columns dynamically.
-; Parameters:     HWND        -  ListView's HWND
-;                 Optional ------------------------------------------------------------------------------------------
-;                 Apply       -  True / False
-;                                Default: True
-; Return Value:   True on success, otherwise false.
-; ===================================================================================================================
-NoSizing(HWND, Apply := True) {
-Static OSVersion := DllCall("Kernel32.dll\GetVersion", "UChar")
-Static HDS_NOSIZING := 0x0800
-If !This.HasKey(HWND)
-Return False
-HHEADER := This[HWND].Header
-If (Apply) {
-    If (OSVersion < 6) {
-        If !(This[HWND].SC) {
-            DllCall("Comctl32.dll\SetWindowSubclass", "Ptr", HWND, "Ptr", This.SubclassProc, "Ptr", HWND, "Ptr", 0)
-            This[HWND].SC := True
-        } Else {
-            Return True
-        }
-    } Else {
-        Control, Style, +%HDS_NOSIZING%, , ahk_id %HHEADER%
+        Static LVM_GETBKCOLOR := 0x1000
+        Static LVM_GETHEADER := 0x101F
+        Static LVM_GETTEXTBKCOLOR := 0x1025
+        Static LVM_GETTEXTCOLOR := 0x1023
+        Static LVM_SETEXTENDEDLISTVIEWSTYLE := 0x1036
+        Static LVS_EX_DOUBLEBUFFER := 0x00010000
+        If !DllCall("User32.dll\IsWindow", "Ptr", HWND, "UInt")
+            Return False
+        If This.HasKey(HWND)
+            Return False
+        ; Set LVS_EX_DOUBLEBUFFER style to avoid drawing issues, if it isn't set as yet.
+        SendMessage, % LVM_SETEXTENDEDLISTVIEWSTYLE, % LVS_EX_DOUBLEBUFFER, % LVS_EX_DOUBLEBUFFER, , % "ahk_id " . HWND
+        If (ErrorLevel = "FAIL")
+            Return False
+        ; Get the default colors
+        SendMessage, % LVM_GETBKCOLOR, 0, 0, , % "ahk_id " . HWND
+        BkClr := ErrorLevel
+        SendMessage, % LVM_GETTEXTBKCOLOR, 0, 0, , % "ahk_id " . HWND
+        TBClr := ErrorLevel
+        SendMessage, % LVM_GETTEXTCOLOR, 0, 0, , % "ahk_id " . HWND
+        TxClr := ErrorLevel
+        ; Get the header control
+        SendMessage, % LVM_GETHEADER, 0, 0, , % "ahk_id " . HWND
+        Header := ErrorLevel
+        ; Store the values in a new object
+        This[HWND] := {BK: BkClr, TB: TBClr, TX: TxClr, Header: Header, IsStatic: !!StaticMode}
+        If (NoSort)
+            This.NoSort(HWND)
+        If (NoSizing)
+            This.NoSizing(HWND)
+        Return True
     }
-} Else {
-    If (OSVersion < 6) {
-        If (This[HWND].SC) {
+    ; ===================================================================================================================
+    ; Detach()        Unregister ListView control
+    ; Parameters:     HWND        -  ListView's HWND
+    ; Return Value:   Always True
+    ; ===================================================================================================================
+    Detach(HWND) {
+        ; Remove the subclass, if any
+        Static LVM_GETITEMCOUNT := 0x1004
+        If (This[HWND].SC)
             DllCall("Comctl32.dll\RemoveWindowSubclass", "Ptr", HWND, "Ptr", This.SubclassProc, "Ptr", HWND)
-            This[HWND].Remove("SC")
-        } Else {
+        This.Remove(HWND, "")
+        WinSet, Redraw, , % "ahk_id " . HWND
+        Return True
+    }
+    ; ===================================================================================================================
+    ; Row()           Set background and/or text color for the specified row
+    ; Parameters:     HWND        -  ListView's HWND
+    ;                 Row         -  Row number
+    ;                 Optional ------------------------------------------------------------------------------------------
+    ;                 BkColor     -  Background color as RGB color integer (e.g. 0xFF0000 = red)
+    ;                                Default: Empty -> default background color
+    ;                 TxColor     -  Text color as RGB color integer (e.g. 0xFF0000 = red)
+    ;                                Default: Empty -> default text color
+    ; Return Value:   True on success, otherwise false.
+    ; ===================================================================================================================
+    Row(HWND, Row, BkColor := "", TxColor := "") {
+        If !This.HasKey(HWND)
+            Return False
+        If This[HWND].IsStatic
+            Row := This.MapIndexToID(HWND, Row)
+        If (BkColor = "") && (TxColor = "") {
+            This[HWND].Rows.Remove(Row, "")
             Return True
         }
-    } Else {
-        Control, Style, -%HDS_NOSIZING%, , ahk_id %HHEADER%
+        BkBGR := TxBGR := ""
+        If BkColor Is Integer
+            BkBGR := ((BkColor & 0xFF0000) >> 16) | (BkColor & 0x00FF00) | ((BkColor & 0x0000FF) << 16)
+        If TxColor Is Integer
+            TxBGR := ((TxColor & 0xFF0000) >> 16) | (TxColor & 0x00FF00) | ((TxColor & 0x0000FF) << 16)
+        If (BkBGR = "") && (TxBGR = "")
+            Return False
+        If !This[HWND].HasKey("Rows")
+            This[HWND].Rows := {}
+        If !This[HWND].Rows.HasKey(Row)
+            This[HWND].Rows[Row] := {}
+        If (BkBGR <> "")
+            This[HWND].Rows[Row].Insert("B", BkBGR)
+        If (TxBGR <> "")
+            This[HWND].Rows[Row].Insert("T", TxBGR)
+        Return True
     }
-}
-Return True
-}
-; ===================================================================================================================
-; OnMessage()     Register / unregister LV_Colors message handler for WM_NOTIFY -> NM_CUSTOMDRAW messages
-; Parameters:     Apply       -  True / False
-;                                Default: True
-; Return Value:   Always True
-; ===================================================================================================================
-OnMessage(Apply := True) {
-If (Apply)
-    OnMessage(This.WM_NOTIFY, This.MessageHandler)
-    Else If (This.MessageHandler = OnMessage(This.WM_NOTIFY))
-    OnMessage(This.WM_NOTIFY, "")
-Return True
-}
+    ; ===================================================================================================================
+    ; Cell()          Set background and/or text color for the specified cell
+    ; Parameters:     HWND        -  ListView's HWND
+    ;                 Row         -  Row number
+    ;                 Col         -  Column number
+    ;                 Optional ------------------------------------------------------------------------------------------
+    ;                 BkColor     -  Background color as RGB color integer (e.g. 0xFF0000 = red)
+    ;                                Default: Empty -> default background color
+    ;                 TxColor     -  Text color as RGB color integer (e.g. 0xFF0000 = red)
+    ;                                Default: Empty -> default text color
+    ; Return Value:   True on success, otherwise false.
+    ; ===================================================================================================================
+    Cell(HWND, Row, Col, BkColor := "", TxColor := "") {
+        If !This.HasKey(HWND)
+            Return False
+        If This[HWND].IsStatic
+            Row := This.MapIndexToID(HWND, Row)
+        If (BkColor = "") && (TxColor = "") {
+            This[HWND].Cells.Remove(Row, "")
+            Return True
+        }
+        BkBGR := TxBGR := ""
+        If BkColor Is Integer
+            BkBGR := ((BkColor & 0xFF0000) >> 16) | (BkColor & 0x00FF00) | ((BkColor & 0x0000FF) << 16)
+        If TxColor Is Integer
+            TxBGR := ((TxColor & 0xFF0000) >> 16) | (TxColor & 0x00FF00) | ((TxColor & 0x0000FF) << 16)
+        If (BkBGR = "") && (TxBGR = "")
+            Return False
+        If !This[HWND].HasKey("Cells")
+            This[HWND].Cells := {}
+        If !This[HWND].Cells.HasKey(Row)
+            This[HWND].Cells[Row] := {}
+        This[HWND].Cells[Row, Col] := {}
+        If (BkBGR <> "")
+            This[HWND].Cells[Row, Col].Insert("B", BkBGR)
+        If (TxBGR <> "")
+            This[HWND].Cells[Row, Col].Insert("T", TxBGR)
+        Return True
+    }
+    ; ===================================================================================================================
+    ; NoSort()        Prevent / allow sorting by click on a header item dynamically.
+    ; Parameters:     HWND        -  ListView's HWND
+    ;                 Optional ------------------------------------------------------------------------------------------
+    ;                 Apply       -  True / False
+    ;                                Default: True
+    ; Return Value:   True on success, otherwise false.
+    ; ===================================================================================================================
+    NoSort(HWND, Apply := True) {
+        Static HDM_GETITEMCOUNT := 0x1200
+        If !This.HasKey(HWND)
+            Return False
+        If (Apply)
+            This[HWND].NS := True
+        Else
+            This[HWND].Remove("NS")
+        Return True
+    }
+    ; ===================================================================================================================
+    ; NoSizing()      Prevent / allow resizing of columns dynamically.
+    ; Parameters:     HWND        -  ListView's HWND
+    ;                 Optional ------------------------------------------------------------------------------------------
+    ;                 Apply       -  True / False
+    ;                                Default: True
+    ; Return Value:   True on success, otherwise false.
+    ; ===================================================================================================================
+    NoSizing(HWND, Apply := True) {
+        Static OSVersion := DllCall("Kernel32.dll\GetVersion", "UChar")
+        Static HDS_NOSIZING := 0x0800
+        If !This.HasKey(HWND)
+            Return False
+        HHEADER := This[HWND].Header
+        If (Apply) {
+            If (OSVersion < 6) {
+                If !(This[HWND].SC) {
+                    DllCall("Comctl32.dll\SetWindowSubclass", "Ptr", HWND, "Ptr", This.SubclassProc, "Ptr", HWND, "Ptr", 0)
+                    This[HWND].SC := True
+                } Else {
+                    Return True
+                }
+            } Else {
+                Control, Style, +%HDS_NOSIZING%, , ahk_id %HHEADER%
+            }
+        } Else {
+            If (OSVersion < 6) {
+                If (This[HWND].SC) {
+                    DllCall("Comctl32.dll\RemoveWindowSubclass", "Ptr", HWND, "Ptr", This.SubclassProc, "Ptr", HWND)
+                    This[HWND].Remove("SC")
+                } Else {
+                    Return True
+                }
+            } Else {
+                Control, Style, -%HDS_NOSIZING%, , ahk_id %HHEADER%
+            }
+        }
+        Return True
+    }
+    ; ===================================================================================================================
+    ; OnMessage()     Register / unregister LV_Colors message handler for WM_NOTIFY -> NM_CUSTOMDRAW messages
+    ; Parameters:     Apply       -  True / False
+    ;                                Default: True
+    ; Return Value:   Always True
+    ; ===================================================================================================================
+    OnMessage(Apply := True) {
+        If (Apply)
+            OnMessage(This.WM_NOTIFY, This.MessageHandler)
+        Else If (This.MessageHandler = OnMessage(This.WM_NOTIFY))
+            OnMessage(This.WM_NOTIFY, "")
+        Return True
+    }
 }
 ; ======================================================================================================================
 ; PRIVATE FUNCTION LV_Colors_WM_NOTIFY() - message handler for WM_NOTIFY -> NM_CUSTOMDRAW notifications
@@ -1198,13 +1185,13 @@ LV_Colors_WM_NOTIFY(W, L) {
     Critical, % LV_Colors.Critical
     If LV_Colors.HasKey(H := NumGet(L + 0, 0, "UPtr")) {
         M := NumGet(L + (A_PtrSize * 2), 0, "Int")
-    ; NM_CUSTOMDRAW --------------------------------------------------------------------------------------------------
-    If (M = NM_CUSTOMDRAW)
-        Return LV_Colors.On_NM_CUSTOMDRAW(H, L)
-    ; LVN_COLUMNCLICK ------------------------------------------------------------------------------------------------
-    If (LV_Colors[H].NS && (M = LVN_COLUMNCLICK))
-        Return 0
-}
+        ; NM_CUSTOMDRAW --------------------------------------------------------------------------------------------------
+        If (M = NM_CUSTOMDRAW)
+            Return LV_Colors.On_NM_CUSTOMDRAW(H, L)
+        ; LVN_COLUMNCLICK ------------------------------------------------------------------------------------------------
+        If (LV_Colors[H].NS && (M = LVN_COLUMNCLICK))
+            Return 0
+    }
 }
 ; ======================================================================================================================
 ; PRIVATE FUNCTION LV_Colors_SubclassProc() - subclass for WM_NOTIFY -> HDN_BEGINTRACK notifications (Win XP)
@@ -1213,7 +1200,7 @@ LV_Colors_SubclassProc(H, M, W, L, S, R) {
     Static HDN_BEGINTRACKA := -306
     Static HDN_BEGINTRACKW := -326
     Static WM_NOTIFY := 0x4E
-        Critical, % LV_Colors.Critical
+    Critical, % LV_Colors.Critical
     If (M = WM_NOTIFY) {
         ; HDN_BEGINTRACK -------------------------------------------------------------------------------------------------
         C := NumGet(L + (A_PtrSize * 2), 0, "Int")
@@ -1228,7 +1215,7 @@ Return DllCall("Comctl32.dll\DefSubclassProc", "Ptr", H, "UInt", M, "Ptr", W, "P
 sortSizes()
 {
     global
-    
+
     for k, v in sortedByDate%whichSide% {
         oSize:=stuffByName%whichSide%[v]["size"]
         if (sortedSizes%whichSide%.HasKey(oSize))
@@ -1236,7 +1223,7 @@ sortSizes()
         else 
             sortedSizes%whichSide%[oSize]:=[v]
     }
-    
+
     for k, v in sortedSizes%whichSide% {
         for key ,value in v {
             sortedBySize%whichSide%.Insert(1, value)
@@ -1268,7 +1255,7 @@ revealFileInExplorer(folderPath, files)
     }
     ; DllCall(140733176445120, "Ptr", pidl, "UINT", length, "Ptr", &apidl, "Uint", 0)
     DllCall("shell32\SHOpenFolderAndSelectItems", "Ptr", pidl, "UINT", length, "Ptr", &apidl, "Uint", 0)
-    
+
     ; "Uint",length,"Ptr",&apidl,"Ptr",GUID4String(IID_IContextMenu,"{000214E4-0000-0000-C000-000000000046}"),"UINT*",0,"Ptr*",pIContextMenu)
     COM_CoUninitialize()
 }
@@ -1316,7 +1303,7 @@ WatchN(whichSide, Folder, Changes) {
     GuiControl, -Redraw, vlistView%whichSide%
     if (otherSide)
         GuiControl, -Redraw, vlistView%otherSide%
-    
+
     For Each, Change In Changes {
         if (Change.Action=1) {
             fileAdded(whichSide, Change.Name)
@@ -1338,7 +1325,7 @@ WatchN(whichSide, Folder, Changes) {
                 fileAdded(whichSide, Change.Name)
                 fileDeleted(otherSide, Change.OldName)
             } else { ;moved
-                
+
                 fileAdded(whichSide, Change.Name)
                 if (otherSide) {
                     fileAdded(otherSide, Change.Name)
@@ -1349,7 +1336,7 @@ WatchN(whichSide, Folder, Changes) {
     GuiControl, +Redraw, vlistView%whichSide%
     if (bothSameDir)
         GuiControl, +Redraw, vlistView%otherSide%
-    
+
 }
 fileRenamed(whichSide, Byref renameFrom,Byref renameInto)
 {
@@ -1362,7 +1349,7 @@ fileRenamed(whichSide, Byref renameFrom,Byref renameInto)
     stuffByName%whichSide%[renameInto]:=stuffByName%whichSide%[renameFrom]
     stuffByName%whichSide%.Delete(renameFrom)
     stuffByName%whichSide%[renameInto]["size"]:=outputSize
-    
+
     for k, v in sortedByDate%whichSide% {
         if (v=renameFrom) {
             sortedByDate%whichSide%[k]:=renameInto
@@ -1376,7 +1363,7 @@ fileRenamed(whichSide, Byref renameFrom,Byref renameInto)
             break
         }
     }
-    
+
     for k, v in sortedBySize%whichSide% {
         if (v=OutFileName) {
             sortedBySize%whichSide%.Remove(k)
@@ -1394,12 +1381,12 @@ fileRenamed(whichSide, Byref renameFrom,Byref renameInto)
             }
         }
     }
-    
+
     if (sortedSizes%whichSide%.HasKey(outputSize))
         sortedSizes%whichSide%[outputSize].Push(OutFileName)
     else 
         sortedSizes%whichSide%[outputSize]:=[OutFileName]
-    
+
     index:=1
     for k, v in sortedSizes%whichSide% {
         for key ,value in v {
@@ -1415,11 +1402,11 @@ fileRenamed(whichSide, Byref renameFrom,Byref renameInto)
         LV_GetText(OutputVar,A_Index,2)
         if (OutputVar=renameFrom) {
             calculateStuff(,outputSize,OutputVar,A_Index)
-            
+
             LV_Modify(A_Index,, ,renameInto,,,formattedBytes,bytes)
-                
+
             justOneIcon(renameInto,A_Index,whichSide)
-            
+
             break
         }
     }
@@ -1432,20 +1419,20 @@ fileAdded(whichSide, Byref path) {
     sortWithAr%whichSide%:=[]
     FileGetSize, outputSize, %path%
     FileGetAttrib, OutputAttri , %path%
-    
+
     stuffByName%whichSide%[OutFileName]:={date:A_Now,attri:OutputAttri,size:outputSize}
-    
+
     if (sortedDates%whichSide%.HasKey(A_Now))
         sortedDates%whichSide%[A_Now].Push(OutFileName)
     else 
         sortedDates%whichSide%[A_Now]:=[OutFileName]
     sortedByDate%whichSide%.InsertAt(1,OutFileName)
-    
+
     if (sortedSizes%whichSide%.HasKey(outputSize))
         sortedSizes%whichSide%[outputSize].Push(OutFileName)
     else 
         sortedSizes%whichSide%[outputSize]:=[OutFileName]
-    
+
     index:=1
     for k, v in sortedSizes%whichSide% {
         for key ,value in v {
@@ -1456,16 +1443,16 @@ fileAdded(whichSide, Byref path) {
             index++
         }
     }
-    
+
     whereToAddFile(whichSide, OutFileName, A_Now,outputSize)
-    
+
     if (bothSameDir(whichSide)) {
         stuffByName%otherSide%[OutFileName]:=stuffByName%whichSide%[OutFileName]
         sortedBySize%otherSide%:=sortedBySize%whichSide%.Clone()
         sortedByDate%otherSide%:=sortedByDate%whichSide%.Clone()
         whereToAddFile(otherSide, OutFileName, A_Now,outputSize)
     }
-    
+
 }
 fileDeleted(whichSide, Byref path)
 {
@@ -1474,25 +1461,25 @@ fileDeleted(whichSide, Byref path)
     Gui, ListView, vlistView%whichSide%
     SplitPath, path, OutFileName
     GuiControl, -Redraw, vlistView%whichSide% 
-    
+
     rowNums:=LV_GetCount()
     loop % rowNums {
         LV_GetText(OutputVar,A_Index,2)
         if (OutputVar=OutFileName) {
-            
+
             LV_Delete(A_Index)
             deleteCount%whichSide%--
             if (deleteCount%whichSide%=0) {
                 deleteCount%whichSide%:=-1
                 if (A_Index=rowNums and A_Index>1) {
                     LV_Modify(A_Index-1, "+Select +Focus Vis") ; select
-                    }
+                }
                 else
                     LV_Modify(A_Index, "+Select +Focus Vis") ; select
-                }
+            }
             ; GuiControl, +Redraw, vlistView%whichSide% 
             obj:=stuffByName%whichSide%[OutFileName]
-            
+
             for k, v in sortedByDate%whichSide% {
                 if (v=OutFileName) {
                     sortedByDate%whichSide%.Remove(k)
@@ -1510,7 +1497,7 @@ fileDeleted(whichSide, Byref path)
                     }
                 }
             }
-            
+
             for k, v in sortedBySize%whichSide% {
                 if (v=OutFileName) {
                     sortedBySize%whichSide%.Remove(k)
@@ -1528,9 +1515,9 @@ fileDeleted(whichSide, Byref path)
                     }
                 }
             }
-            
+
             stuffByName%whichSide%.Delete(OutFileName)
-            
+
             break
         }
     }
@@ -1541,7 +1528,7 @@ whereToAddFile(byref whichSide, byref OutFileName,byref date,byref size) {
     Gui, main:Default
     Gui, ListView, vlistView%whichSide%
     insertNum:=0
-    
+
     if (whichsort%whichSide%="newOld") {
         if (focused="searchCurrentDirEdit" or focused="listViewInSearch") {
             if (SubStr(searchString%whichSide%, 1, 1)!=".") {
@@ -1551,7 +1538,7 @@ whereToAddFile(byref whichSide, byref OutFileName,byref date,byref size) {
                     if (counter>maxRows)
                         break
                     SplitPath, v,,,, OutNameNoExt
-                    
+
                     pos:=InStr(OutNameNoExt, searchString%whichSide%)
                     if (pos) {
                         counter++
@@ -1559,12 +1546,12 @@ whereToAddFile(byref whichSide, byref OutFileName,byref date,byref size) {
                     }
                 }
                 objectToSort:=ObjectSort(objectToSort,"pos")
-                
+
                 for k,v in objectToSort {
                     name:=v["name"]
                     if (name=OutFileName) {
                         insertNum:=k
-                        
+
                         ; insertRow(whichSide, OutFileName, k, A_Now, OutputAttri,outputSize)
                     }
                 }
@@ -1580,7 +1567,7 @@ whereToAddFile(byref whichSide, byref OutFileName,byref date,byref size) {
                             if (!OutExtension) {
                                 insertNum:=k
                                 ; insertRow(whichSide, OutFileName, k, A_Now, OutputAttri,outputSize)
-                                
+
                             }
                         }
                     }
@@ -1607,7 +1594,7 @@ whereToAddFile(byref whichSide, byref OutFileName,byref date,byref size) {
                         }
                     }
                 }
-                
+
             }
         } else {
             ; insertRow(whichSide, OutFileName, 1, A_Now, OutputAttri,outputSize)
@@ -1638,9 +1625,7 @@ whereToAddFile(byref whichSide, byref OutFileName,byref date,byref size) {
             }
         }
     }
-    
-    
-    
+
     if (insertNum) {
         insertRow(whichSide, OutFileName, insertNum, date,size)
     }
@@ -1649,14 +1634,14 @@ whereToAddFile(byref whichSide, byref OutFileName,byref date,byref size) {
 insertRow(byref whichSide, byref OutFileName,byref row,byref date,byref size)
 {
     global
-    
+
     Gui, main:Default
     Gui, ListView, vlistView%whichSide%
     calculateStuff(date,size,OutFileName,row)
     GuiControl, -Redraw, vlistView%whichSide% 
     LV_Insert(row,,,OutFileName,var1,var2,formattedBytes,bytes)
-        LV_Colors.Cell(ListviewHwnd%whichSide%,row,3,color)
-    
+    LV_Colors.Cell(ListviewHwnd%whichSide%,row,3,color)
+
     justOneIcon(OutFileName,row,whichSide)
     GuiControl, +Redraw, vlistView%whichSide% 
     ; hIcon := DllCall("Shell32\ExtractAssociatedIcon", UInt, 0, Str, EcurrentDir%whichSide% "\" name , UShortP, iIndex)
@@ -1670,7 +1655,7 @@ insertRow(byref whichSide, byref OutFileName,byref row,byref date,byref size)
     ; LV_Modify(row,"Icon" . IconNumber)
     ; lastIconNumber:=IconNumber
     ; sleep, 3000
-    
+
     ; if (bothSides) {
     ; Gui, ListView, vlistView%otherSide%
     ; LV_Insert(row,,,name,var1,var2,formattedBytes,bytes)
@@ -1684,76 +1669,75 @@ pasteFile()
     global
     ; action:=false
     if (DllCall("IsClipboardFormatAvailable", "UInt", CF_HDROP := 15)) { ; file being copied
-    if (DllCall("IsClipboardFormatAvailable", "UInt", dropEffectFormat)) {
-        if (DllCall("OpenClipboard", "Ptr", A_ScriptHwnd)) {
-            if (data := DllCall("GetClipboardData", "UInt", dropEffectFormat, "Ptr")) {
-                if (effect := DllCall("GlobalLock", "Ptr", data, "UInt*")) {
-            if (effect & DROPEFFECT_COPY) {
-                files:=StrSplit(clipboard, "`r`n")
-                for k, v in files {
-                    fileExist:=FileExist(v)
-                    if (fileExist) {
-                        SplitPath, v , OutFileName
-                        if (InStr(fileExist, "D")) {
-                            FileCopyDir, %v%, % EcurrentDir%whichSide% "\" OutFileName
-                        } else {
-                            FileCopy, %v%, % EcurrentDir%whichSide%
+        if (DllCall("IsClipboardFormatAvailable", "UInt", dropEffectFormat)) {
+            if (DllCall("OpenClipboard", "Ptr", A_ScriptHwnd)) {
+                if (data := DllCall("GetClipboardData", "UInt", dropEffectFormat, "Ptr")) {
+                    if (effect := DllCall("GlobalLock", "Ptr", data, "UInt*")) {
+                        if (effect & DROPEFFECT_COPY) {
+                            files:=StrSplit(clipboard, "`r`n")
+                            for k, v in files {
+                                fileExist:=FileExist(v)
+                                if (fileExist) {
+                                    SplitPath, v , OutFileName
+                                    if (InStr(fileExist, "D")) {
+                                        FileCopyDir, %v%, % EcurrentDir%whichSide% "\" OutFileName
+                                    } else {
+                                        FileCopy, %v%, % EcurrentDir%whichSide%
+                                    }
+                                    if (ErrorLevel) {
+                                        p("couldn't copy file " v)
+                                        break
+                                    }
+                                }
+                            }
+                            ; renderCurrentDir()
+                            SoundPlay, *-1
                         }
-                        if (ErrorLevel) {
-                            p("couldn't copy file " v)
-                            break
+                        ; action:="copy"
+                        else if (effect & DROPEFFECT_MOVE) {
+                            files:=StrSplit(clipboard, "`r`n")
+                            if (files.Length()) {
+                                ; fromOtherPanel:=false
+                                ; otherPanel:=(whichSide=1) ? 2 : 1
+                                for k, v in files {
+                                    fileExist:=FileExist(v)
+                                    if (fileExist) {
+                                        SplitPath, v , OutFileName
+                                        ; SplitPath, v , OutFileName, OutDir
+                                        ; if (Outdir=EcurrentDir%otherPanel%) {
+                                        ; fromOtherPanel:=true
+                                        ; }
+                                        if (InStr(fileExist, "D")) {
+                                            FileMoveDir, %v%, % EcurrentDir%whichSide% "\" OutFileName
+                                        } else {
+                                            FileMove, %v%, % EcurrentDir%whichSide%
+                                        }
+                                        if (ErrorLevel) {
+                                            p("couldn't move file " v)
+                                            break
+                                        }
+                                    }
+                                }
+
+                                SoundPlay, *-1
+                            }
+
                         }
+                        ; action:="move"
+                        DllCall("GlobalUnlock", "Ptr", data)
                     }
                 }
-                ; renderCurrentDir()
-                SoundPlay, *-1
+                DllCall("CloseClipboard")
             }
-            ; action:="copy"
-            else if (effect & DROPEFFECT_MOVE) {
-                files:=StrSplit(clipboard, "`r`n")
-                if (files.Length()) {
-                    ; fromOtherPanel:=false
-                    ; otherPanel:=(whichSide=1) ? 2 : 1
-                    for k, v in files {
-                        fileExist:=FileExist(v)
-                        if (fileExist) {
-                            SplitPath, v , OutFileName
-                            ; SplitPath, v , OutFileName, OutDir
-                            ; if (Outdir=EcurrentDir%otherPanel%) {
-                            ; fromOtherPanel:=true
-                            ; }
-                            if (InStr(fileExist, "D")) {
-                                FileMoveDir, %v%, % EcurrentDir%whichSide% "\" OutFileName
-                            } else {
-                                FileMove, %v%, % EcurrentDir%whichSide%
-                            }
-                            if (ErrorLevel) {
-                                p("couldn't move file " v)
-                                break
-                            }
-                        }
-                    }
-                    
-                    
-                    SoundPlay, *-1
-                }
-                
-            }
-            ; action:="move"
-            DllCall("GlobalUnlock", "Ptr", data)
         }
     }
-    DllCall("CloseClipboard")
-}
-}
-}
 
 }
 
 paddedNumber(number, howManyChars)
 {
-    VarSetCapacity(ZeroPaddedNumber, 20)  ; Ensure the variable is large enough to accept the new string.
-    DllCall("wsprintf", "Str", ZeroPaddedNumber, "Str", "%0" howManyChars "d", "Int", number, "Cdecl")  ; Requires the Cdecl calling convention.
+    VarSetCapacity(ZeroPaddedNumber, 20) ; Ensure the variable is large enough to accept the new string.
+    DllCall("wsprintf", "Str", ZeroPaddedNumber, "Str", "%0" howManyChars "d", "Int", number, "Cdecl") ; Requires the Cdecl calling convention.
 return ZeroPaddedNumber
 }
 
@@ -1772,26 +1756,26 @@ getMultiRenameNames()
     global
     Gui, multiRenameGui:Default
     gui, submit, nohide
-    
+
     startingNums:=StrSplit(multiRenameStartingNums, ",")
     asteriskLength:=StrSplit(multiRenameTheName, "*").Length()
     previewNames:=[]
     for k, v in namesToMultiRename {
         nameInstance:=multiRenameTheName
-        
+
         continueChar:=true
         charIndex:=1
-        
+
         length:=StrLen(nameInstance)
         lessGreaters:=[]
         asterisksAndQmarks:=[]
         while (charIndex<=length) {
             char:=SubStr(nameInstance, charIndex, 1)
-            
+
             if (char="*") {
                 asterisksAndQmarks.Push("*")
             } else if (char="?") {
-                
+
                 questionMarkCounter:=0
                 while (char="?") {
                     questionMarkCounter++
@@ -1816,11 +1800,11 @@ getMultiRenameNames()
         for key, value in lessGreaters {
             nameInstance:=SubStr(nameInstance, 1, value[1]-1) SubStr(nameInstance, value[1] + value[2])
         }
-        
+
         SplitPath, v,,, OutExtension
         nameInstance:=StrReplace(nameInstance, "|name", v)
         nameInstance:=StrReplace(nameInstance, "|ext", OutExtension)
-        
+
         fileExist:=fileExist(multiRenameDir "\" v)
         if (InStr(fileExist, "D" )) {
             nameInstance:=StrReplace(nameInstance, "|Dext" , "")
@@ -1829,7 +1813,7 @@ getMultiRenameNames()
             nameInstance:=StrReplace(nameInstance, "|Dext" , OutExtension)
             nameInstance:=StrReplace(nameInstance, "|.Dext" , "." OutExtension)
         }
-        
+
         for key, value in asterisksAndQmarks {
             num:=(startingNums[key]) ? startingNums[key] : 1
             actualNum:=num+k-1
@@ -1845,9 +1829,9 @@ getMultiRenameNames()
             }
             nameInstance:=StrReplace(nameInstance, value , actualNum,, 1)
         }
-        
+
         previewNames.Push(nameInstance)
-        
+
     }
 return previewNames
 }
@@ -1862,48 +1846,48 @@ getTextWidth(text)
 return posw
 }
 calculateStuff(ByRef date:="", ByRef size:="", ByRef name:="", Byref k:="") {
-global
-if (calculateDates and date!="") {
-    now:=A_Now
-    var1Num := now
-    var2 := date
-    EnvSub, var1Num, %var2%, Minutes
-    var1:=var1Num "’"
-    color=0xFF0000 ;red
-    if (Abs(var1Num)>525599) {
+    global
+    if (calculateDates and date!="") {
+        now:=A_Now
         var1Num := now
-        EnvSub, var1Num, %var2%, Days
-        var1Num:=Floor(var1Num/365.25) ;the average days in a month
-        var1:=var1Num " y"
-        color=0x808080 ;grey ; pink
+        var2 := date
+        EnvSub, var1Num, %var2%, Minutes
+        var1:=var1Num "’"
+        color=0xFF0000 ;red
+        if (Abs(var1Num)>525599) {
+            var1Num := now
+            EnvSub, var1Num, %var2%, Days
+            var1Num:=Floor(var1Num/365.25) ;the average days in a month
+            var1:=var1Num " y"
+            color=0x808080 ;grey ; pink
+        }
+        else if (Abs(var1Num)>86399) {
+            var1Num := now
+            EnvSub, var1Num, %var2%, Days
+            var1Num:=Floor(var1Num/30.44) ;the average days in a month
+            var1:=var1Num " m"
+            color=0x00FFFF ;AQUA
+        }
+        else if (Abs(var1Num)>1439) {
+            var1Num := now
+            EnvSub, var1Num, %var2%, Days
+            var1:=var1Num " d"
+            color=0x00FF00 ;lime green
+        } else if (Abs(var1Num)>59) {
+            var1Num := now
+            EnvSub, var1Num, %var2%, Hours
+            var1:=var1Num " h"
+            color=0xFFFF00 ;yellow
+        }
     }
-    else if (Abs(var1Num)>86399) {
-        var1Num := now
-        EnvSub, var1Num, %var2%, Days
-        var1Num:=Floor(var1Num/30.44) ;the average days in a month
-        var1:=var1Num " m"
-        color=0x00FFFF ;AQUA
-    }
-    else if (Abs(var1Num)>1439) {
-        var1Num := now
-        EnvSub, var1Num, %var2%, Days
-        var1:=var1Num " d"
-        color=0x00FF00 ;lime green
-    } else if (Abs(var1Num)>59) {
-        var1Num := now
-        EnvSub, var1Num, %var2%, Hours
-        var1:=var1Num " h"
-        color=0xFFFF00 ;yellow
-    }
-}
-if (calculatefileSizes and size!="") {
-    bytes:=""
-    formattedBytes:=""
-        
-    bytes:=size
-    
-    if (bytes!="")
-        formattedBytes:=autoByteFormat(bytes)
+    if (calculatefileSizes and size!="") {
+        bytes:=""
+        formattedBytes:=""
+
+        bytes:=size
+
+        if (bytes!="")
+            formattedBytes:=autoByteFormat(bytes)
     } 
 }
 applySizes() {
@@ -1934,11 +1918,11 @@ justOneIcon(byref name,byref row, byref whichSide) {
         }
         else
             IconNumber = 1
-        
+
         LV_Modify(row,"Icon" . IconNumber)
-            lastIconNumber:=IconNumber
+        lastIconNumber:=IconNumber
     }
-    
+
 }
 
 applyIcons(byref names) {
@@ -1954,11 +1938,11 @@ applyIcons(byref names) {
             }
             else
                 IconNumber = 1
-            
+
             LV_Modify(k,"Icon" . IconNumber)
-                lastIconNumber:=IconNumber
+            lastIconNumber:=IconNumber
         }
-        
+
     }
 }
 
@@ -1968,10 +1952,10 @@ renderFunctionsToSort(ByRef objectToSort, reverse:=false)
     Gui, main:Default
     Gui, ListView, vlistView%whichSide%
     ControlFocus,, % "ahk_id " ListviewHwnd%whichSide%
-    
+
     GuiControl,Text,vcurrentDirEdit%whichSide%, % EcurrentDir%whichSide%
     searchString%whichSide%=
-    
+
     GuiControl, -Redraw, vlistView%whichSide% 
     LV_Delete()
     length:=objectToSort.Length()
@@ -1986,9 +1970,9 @@ renderFunctionsToSort(ByRef objectToSort, reverse:=false)
         reverseSort:=false
     }
     namesForIcons%whichSide%:=[]
-        namesForSizes%whichSide%:=[]
-        rowsForSizes%whichSide%:=[]
-        
+    namesForSizes%whichSide%:=[]
+    rowsForSizes%whichSide%:=[]
+
     if (length<=maxRows) {
         rowsToLoop:=length
     } else {
@@ -2013,17 +1997,17 @@ renderFunctionsToSort(ByRef objectToSort, reverse:=false)
     loop % rowsToLoop {
         name:=objectToSort[k]
         v:=stuffByName%whichSide%[name]
-        
+
         if (name=toFocus)
         {
             rowToFocus:=A_Index
         }
         calculateStuff(v["date"],v["size"],name,A_Index)
         LV_Add(,,name,var1,var2,formattedBytes,bytes)
-            ; LV_Add("Icon" . IconNumber,,name,var1,var2,formattedBytes,bytes)
+        ; LV_Add("Icon" . IconNumber,,name,var1,var2,formattedBytes,bytes)
         LV_Colors.Cell(ListviewHwnd%whichSide%,A_Index,3,color)
         namesForIcons%whichSide%.Push(name)
-            
+
         if (!quickFixIcon%whichSide%) {
             quickFixIcon%whichSide%:=true
             hIcon:=DllCall("Shell32\ExtractAssociatedIcon", UInt, 0, Str, "", UShortP, iIndex)
@@ -2036,10 +2020,10 @@ renderFunctionsToSort(ByRef objectToSort, reverse:=false)
             else
                 IconNumber = 1
             LV_Modify(A_Index,"Icon" . IconNumber)
-                lastIconNumber:=IconNumber
+            lastIconNumber:=IconNumber
             ; lastIconNumber:=IconNumber
         }
-        
+
         k+=inc
     }
     if (toFocus)
@@ -2047,7 +2031,7 @@ renderFunctionsToSort(ByRef objectToSort, reverse:=false)
         LV_Modify(rowToFocus, "+Select +Focus")
     } else {
         LV_Modify(1, "+Select +Focus")
-        }
+    }
     toFocus:=false
     if (!firstIce%whichSide%) {
         firstIce%whichSide%:=true
@@ -2069,9 +2053,9 @@ renderFunctionsToSort(ByRef objectToSort, reverse:=false)
             if (InStr(v["attri"], "D")) {
                 if (key<51)
                     rowsForSizes%whichSide%.Push(key)
-                    namesForSizes%whichSide%.Push(name)
-                }
-        }       
+                namesForSizes%whichSide%.Push(name)
+            }
+        } 
         applySizes()
     }
     stopSizes:=true
@@ -2110,27 +2094,27 @@ receivedFolderSize(string) {
     ; p(ar)
     if (rowsForSizes%whichSide%.Length()) {
         LV_Modify(rowsForSizes%whichSide%[1],,,,,,ar[2],ar[3])
-            rowsForSizes%whichSide%.RemoveAt(1)
-        }
+        rowsForSizes%whichSide%.RemoveAt(1)
+    }
     stuffByName%whichSide%[ar[1]]["size"]:=ar[3]
 }
 ;virtual desktop
 revealAhk_Explorer:
     CurrentIVirtualDesktop := 0
-GetCurrentDesktop_return_value := DllCall(GetCurrentDesktop, "UPtr", IVirtualDesktopManagerInternal, "UPtrP", CurrentIVirtualDesktop, "UInt")
+    GetCurrentDesktop_return_value := DllCall(GetCurrentDesktop, "UPtr", IVirtualDesktopManagerInternal, "UPtrP", CurrentIVirtualDesktop, "UInt")
 
-pView := 0
-DllCall(GetViewForHwnd, "UPtr", IApplicationViewCollection, "Ptr", thisHwnd, "Ptr*", pView, "UInt")
-    
-DllCall(MoveViewToDesktop, "ptr", IVirtualDesktopManagerInternal, "Ptr", pView, "UPtr", CurrentIVirtualDesktop, "UInt")
-winactivate, ahk_id %thisHwnd%
+    pView := 0
+    DllCall(GetViewForHwnd, "UPtr", IApplicationViewCollection, "Ptr", thisHwnd, "Ptr*", pView, "UInt")
+
+    DllCall(MoveViewToDesktop, "ptr", IVirtualDesktopManagerInternal, "Ptr", pView, "UPtr", CurrentIVirtualDesktop, "UInt")
+    winactivate, ahk_id %thisHwnd%
 return
 
-WM_COPYDATA_READ(wp, lp)  {
+WM_COPYDATA_READ(wp, lp) {
     global
     data := StrGet(NumGet(lp + A_PtrSize*2), "UTF-16")
     RegExMatch(data, "s)(.*)\|(\d+)", match)
-    
+
     if (match2=1) {
         manageCMDArguments(match1)
     } else if (match2=2) {
@@ -2139,7 +2123,7 @@ WM_COPYDATA_READ(wp, lp)  {
     } else if (match2=3) {
         sortSizes()
         canSortBySize%whichSide%:=true
-    }  else if (match2=4) {
+    } else if (match2=4) {
         gosub, selectPanel%match1%
     } else if (match2=5) {
         gosub, copySelectedPaths
@@ -2162,7 +2146,7 @@ submitAndRenderDir()
     global
     Gui, main:Default
     Gui, Submit, NoHide
-    
+
     StringUpper, OutputVar,% SubStr(vcurrentDirEdit%whichSide%,1,1)
     EcurrentDir%whichSide%:=OutputVar SubStr(vcurrentDirEdit%whichSide%,2)
     renderCurrentDir()
@@ -2177,25 +2161,25 @@ compareTwoStrings2(para_string1,para_string2) {
     ;Sørensen-Dice coefficient
     savedBatchLines := A_BatchLines
     SetBatchLines, -1
-    
+
     vCount := 0
     oArray := {}
-    oArray := {base:{__Get:Func("Abs").Bind(0)}} ;make default key value 0 instead of a blank string
-    Loop, % vCount1 := StrLen(para_string1) - 1
-        oArray["z" SubStr(para_string1, A_Index, 2)]++
-    Loop, % vCount2 := StrLen(para_string2) - 1
-    if (oArray["z" SubStr(para_string2, A_Index, 2)] > 0) {
-        oArray["z" SubStr(para_string2, A_Index, 2)]--
-        vCount++
-    }
-    vSDC := Round((2 * vCount) / (vCount1 + vCount2),2)
-    ; if (!vSDC || vSDC < 0.005) { ;round to 0 if less than 0.005
-    ; return 0
-    ; }
-    if (vSDC = 1) {
-        return 1
-    }
-    SetBatchLines, % savedBatchLines
+oArray := {base:{__Get:Func("Abs").Bind(0)}} ;make default key value 0 instead of a blank string
+Loop, % vCount1 := StrLen(para_string1) - 1
+    oArray["z" SubStr(para_string1, A_Index, 2)]++
+Loop, % vCount2 := StrLen(para_string2) - 1
+if (oArray["z" SubStr(para_string2, A_Index, 2)] > 0) {
+    oArray["z" SubStr(para_string2, A_Index, 2)]--
+    vCount++
+}
+vSDC := Round((2 * vCount) / (vCount1 + vCount2),2)
+; if (!vSDC || vSDC < 0.005) { ;round to 0 if less than 0.005
+; return 0
+; }
+if (vSDC = 1) {
+return 1
+}
+SetBatchLines, % savedBatchLines
 return vSDC
 }
 
@@ -2204,52 +2188,52 @@ compareTwoStrings(para_string1,para_string2)
     ;Sørensen-Dice coefficient
     savedBatchLines := A_BatchLines
     SetBatchLines, -1
-    
+
     vCount := 0
     oArray := {}
-    oArray := {base:{__Get:Func("Abs").Bind(0)}} ;make default key value 0 instead of a blank string
-    Loop, % vCount1 := StrLen(para_string1)
-        ; Loop, % vCount1 := StrLen(para_string1) - 1
-    oArray["z" SubStr(para_string1, A_Index, 1)]++
-    ; oArray["z" SubStr(para_string1, A_Index, 2)]++
-    Loop, % vCount2 := StrLen(para_string2)
-        ; Loop, % vCount2 := StrLen(para_string2) - 1
-    ; p(oArray)
-    if (oArray["z" SubStr(para_string2, A_Index, 1)] > 0) {
-        ; if (oArray["z" SubStr(para_string2, A_Index, 2)] > 0) {
-        oArray["z" SubStr(para_string2, A_Index, 1)]--
-        ; oArray["z" SubStr(para_string2, A_Index, 2)]--
-        vCount++
-    }
-    ; p(vCount)
-    vSDC := (vCount) / (vCount2)
-    ; vSDC := (2 * vCount) / (vCount1 + vCount2)
-    ; vSDC := Round((2 * vCount) / (vCount1 + vCount2),2)
-    ; if (!vSDC || vSDC < 0.005) { ;round to 0 if less than 0.005
-    ; return 0
-    ; }
-    if (vSDC = 1) {
-        return 1
-    }
-    SetBatchLines, % savedBatchLines
+oArray := {base:{__Get:Func("Abs").Bind(0)}} ;make default key value 0 instead of a blank string
+Loop, % vCount1 := StrLen(para_string1)
+    ; Loop, % vCount1 := StrLen(para_string1) - 1
+oArray["z" SubStr(para_string1, A_Index, 1)]++
+; oArray["z" SubStr(para_string1, A_Index, 2)]++
+Loop, % vCount2 := StrLen(para_string2)
+    ; Loop, % vCount2 := StrLen(para_string2) - 1
+; p(oArray)
+if (oArray["z" SubStr(para_string2, A_Index, 1)] > 0) {
+    ; if (oArray["z" SubStr(para_string2, A_Index, 2)] > 0) {
+    oArray["z" SubStr(para_string2, A_Index, 1)]--
+    ; oArray["z" SubStr(para_string2, A_Index, 2)]--
+    vCount++
+}
+; p(vCount)
+vSDC := (vCount) / (vCount2)
+; vSDC := (2 * vCount) / (vCount1 + vCount2)
+; vSDC := Round((2 * vCount) / (vCount1 + vCount2),2)
+; if (!vSDC || vSDC < 0.005) { ;round to 0 if less than 0.005
+; return 0
+; }
+if (vSDC = 1) {
+return 1
+}
+SetBatchLines, % savedBatchLines
 return vSDC
 }
 
 autoMegaByteFormat(size, decimalPlaces = 2)
 {
     static sizes :=["GB", "TB"]
-    
+
     sizeIndex := 0
-    
+
     while (size >= 1024)
     {
         sizeIndex++
         size /= 1024.0
-        
+
         if (sizeIndex = sizes.Length())
             break
     }
-    
+
 return (sizeIndex = 0) ? size " MB"
 : round(size, decimalPlaces) . " " . sizes[sizeIndex]
 }
@@ -2257,18 +2241,18 @@ return (sizeIndex = 0) ? size " MB"
 autoByteFormat(size, decimalPlaces = 2)
 {
     static sizes :=["KB", "MB", "GB", "TB"]
-    
+
     sizeIndex := 0
-    
+
     while (size >= 1024)
     {
         sizeIndex++
         size /= 1024.0
-        
+
         if (sizeIndex = sizes.Length())
             break
     }
-    
+
 return (sizeIndex = 0) ? size " B"
 : round(size, decimalPlaces) . " " . sizes[sizeIndex]
 }
@@ -2276,14 +2260,14 @@ return (sizeIndex = 0) ? size " B"
 sortColumn(column, sortMethod)
 {
     global columnsToSort
-    
+
     for k, v in columnsToSort {
         if (v!=column) {
             LV_ModifyCol(v, "NoSort")
-            }
+        }
     }
     LV_ModifyCol(column, sortMethod)
-    }
+}
 
 getSelectedNames()
 {
@@ -2298,7 +2282,7 @@ getSelectedNames()
             break
         LV_GetText(OutputVar,index,2)
         selectedNames.Push(OutputVar)
-        
+
     }
 return selectedNames
 }
@@ -2319,7 +2303,7 @@ doubleClickedNormal(ByRef index)
     gui, main:default
     ControlFocus,, % "ahk_id " ListviewHwnd%whichSide%
     Gui, ListView, vlistView%whichSide%
-    
+
     LV_GetText(filename,index,2)
     path:=EcurrentDir%whichSide% "\" filename
     doubleClickedFolderOrFile(path) 
@@ -2363,7 +2347,7 @@ HandleMessage( p_w, p_l, p_m, p_hw )
     if (!ignoreOut) {
         if (p_w=0x1000007) {
             ; p(p_l)
-            
+
             whichSide:=1
             Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
             if (focused="flistView") ; if listView for instance
@@ -2374,7 +2358,7 @@ HandleMessage( p_w, p_l, p_m, p_hw )
             }
         }
         else if (p_w=0x100000B) {
-            
+
             whichSide:=2
             Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
             if (focused="flistView") ; if listView for instance
@@ -2384,21 +2368,21 @@ HandleMessage( p_w, p_l, p_m, p_hw )
                 focused:="searchCurrentDirEdit"
             }
         }
-        
+
         ;   16777222
         else if ( p_w & 0x2000000 )
         {
             if (p_w=0x2000007) {
-                
+
                 whichSide:=1
                 Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
             }
             else if (p_w=0x200000B) {
-                
+
                 whichSide:=2
                 Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
             }
-            
+
             if (((p_w >> 16) & 0x200) and not ((p_w >> 16) & 0x100))
                 ; if (If ((p_w >> 16) & 0x200) and not ((p_w >> 16) & 0x100))
             {
@@ -2409,8 +2393,7 @@ HandleMessage( p_w, p_l, p_m, p_hw )
                         focused=listViewInSearch
                     }
                     else if (focused="changePath") {
-                        
-                        
+
                         MouseGetPos,,, OutputVarWin
                         GuiControl, Focus, vlistView%whichSide%
                         winactivate, ahk_id %OutputVarWin%
@@ -2432,7 +2415,7 @@ HandleMessage( p_w, p_l, p_m, p_hw )
             } 
         }
     }
-    
+
 }
 return
 
@@ -2444,18 +2427,17 @@ searchInCurrentDir() {
         searching:=true
         Gui, main:Default
         Gui, ListView, vlistView%whichSide%
-        
+
         ignoreOut:=true
         objectToSort:=[]
         namesForIcons%whichSide%:=[]
-            
+
         GuiControl, -Redraw, vlistView%whichSide%
         LV_Delete()
         if (SubStr(searchString%whichSide%, 1, 1)!=".") {
             counter:=0
             objectToSort:=[]
-            
-            
+
             for k,v in sortedByDate%whichSide% {
                 if (counter>maxRows)
                     break
@@ -2466,23 +2448,23 @@ searchInCurrentDir() {
                     SplitPath, v,,,, OutNameNoExt
                     pos:=InStr(OutNameNoExt, searchString%whichSide%)
                 }
-                
+
                 if (pos) {
                     counter++
                     objectToSort.Push({name:v,pos:pos})
                 }
             }
             objectToSort:=ObjectSort(objectToSort,"pos")
-            
+
             for k,v in objectToSort {
                 name:=v["name"]
                 obj:=stuffByName%whichSide%[name]
                 calculateStuff(obj["date"],obj["size"],name,k)
-                
+
                 LV_Add(,,name,var1,var2,formattedBytes,bytes)
-                    LV_Colors.Cell(ListviewHwnd%whichSide%,k,3,color)
+                LV_Colors.Cell(ListviewHwnd%whichSide%,k,3,color)
                 namesForIcons%whichSide%.Push(name)
-                }
+            }
         } else {
             searchFoldersOnly:=(searchString%whichSide%=".") ? true : false
             if (searchFoldersOnly) {
@@ -2493,16 +2475,15 @@ searchInCurrentDir() {
                     SplitPath, v,,, OutExtension
                     if (!OutExtension) {
                         obj:=stuffByName%whichSide%[v]
-                        
+
                         calculateStuff(obj["date"],obj["size"],v,k)
-                        
+
                         LV_Add(,,v,var1,var2,formattedBytes,bytes)
-                            LV_Colors.Cell(ListviewHwnd%whichSide%,k,3,color)
+                        LV_Colors.Cell(ListviewHwnd%whichSide%,k,3,color)
                         namesForIcons%whichSide%.Push(v)
-                        }
+                    }
                 }
-                
-                
+
                 ; for k,v in filesWithNoExt {
                 ; ar:=EntriesNameNoExt[v]
                 ; LV_Add(,ar["isFolder"],v,ar["date"],ar["sortableDate"],ar["size"],ar["sortableSize"])
@@ -2525,28 +2506,27 @@ searchInCurrentDir() {
                 for k,v in objectToSort {
                     name:=v["name"]
                     obj:=stuffByName%whichSide%[name]
-                    
+
                     calculateStuff(obj["date"],obj["size"],name,k)
-                    
+
                     LV_Add(,,name,var1,var2,formattedBytes,bytes)
-                        LV_Colors.Cell(ListviewHwnd%whichSide%,k,3,color)
+                    LV_Colors.Cell(ListviewHwnd%whichSide%,k,3,color)
                     namesForIcons%whichSide%.Push(name)
-                    }
+                }
             }
-            
+
         }
         GuiControl, +Redraw, vlistView%whichSide%
         applyIcons(namesForIcons%whichSide%)
-        }
-    
+    }
+
     loop % LV_GetCount() - 1 {
-        
+
         LV_Modify(A_Index+1, "-Select -Focus") ; select
-        }
-    
+    }
+
     LV_Modify(1, "+Select +Focus Vis") ; select
-        
-    
+
     searching:=false
     ignoreOut:=false
 }
@@ -2554,7 +2534,7 @@ searchInCurrentDir() {
 minusEverythingAfterPoint(index) 
 {
     global rowBak
-    
+
     indexBak:=index+1
     loop % rowBak.Length() - index {
         if (rowBak[indexBak]!=0)
@@ -2565,7 +2545,7 @@ minusEverythingAfterPoint(index)
 
 addEverythingAfterPoint(index) {
     global rowBak
-    
+
     indexBak:=index+1
     loop % rowBak.Length() - index {
         if (rowBak[indexBak]!=0)
@@ -2581,10 +2561,10 @@ getinsertPoint(index)
     while (rowBak[index]=0) {
         index--
     }
-    
+
     if (index<1)
         return 1
-    
+
 return rowBak[index]+1
 
 }
@@ -2597,12 +2577,12 @@ renderCurrentDir()
         EcurrentDir%whichSide%:=SubStr(EcurrentDir%whichSide%, 1, StrLen(EcurrentDir%whichSide%)-1)
     EcurrentDir%whichSide%:=Rtrim(EcurrentDir%whichSide%," ")
     Gui, ListView, vlistView%whichSide%
-    
+
     currentDirSearch:=""
     if (InStr(fileExist(EcurrentDir%whichSide%), "D"))
     {
         stopSizes:=false
-        
+
         if (lastDir%whichSide%!=EcurrentDir%whichSide% ) {
             bothSameDir:=bothSameDir(whichSide)
             if (lastDir%whichSide%!="" and EcurrentDir%otherSide%!=lastDir%whichSide%) {
@@ -2614,15 +2594,14 @@ renderCurrentDir()
                 ; p("stopped " lastDir%whichSide% )
                 stopWatchFolder(lastDir%whichSide%) 
             }
-            
+
             if (!bothSameDir) {
-                
+
                 ; p("started " EcurrentDir%whichSide% )
                 watching%whichSide%.Push(EcurrentDir%whichSide%)
                 startWatchFolder(EcurrentDir%whichSide%)
             }
-            
-            
+
             if (lastDir%whichSide%!="" and !cannotDirHistory%whichSide%) {
                 dirHistory%whichSide%.Push(lastDir%whichSide%)
             }
@@ -2632,8 +2611,8 @@ renderCurrentDir()
         }
         lastDir%whichSide%:=EcurrentDir%whichSide%
         focused=flistView
-        
-        filePaths:=[]  
+
+        filePaths:=[] 
         rowBak:=[]
         dates:=[]
         sortableDates:=[]
@@ -2644,7 +2623,7 @@ renderCurrentDir()
         filesWithNoExt:=[]
         if (lastIconNumber)
             rememberIconNumber:=lastIconNumber
-        
+
         unsorted%whichSide%:=[]
         sortedByDate%whichSide%:=[]
         sortedBySize%whichSide%:=[]
@@ -2655,29 +2634,29 @@ renderCurrentDir()
         Loop, Files, % EcurrentDir%whichSide% "\*", DF
         {
             stuffByName%whichSide%[A_LoopFileName]:={date:A_LoopFileTimeModified,attri:A_LoopFileAttrib,size:A_LoopFileSize}
-                if (sortedDates%whichSide%.HasKey(A_LoopFileTimeModified))
+            if (sortedDates%whichSide%.HasKey(A_LoopFileTimeModified))
                 sortedDates%whichSide%[A_LoopFileTimeModified].Push(A_LoopFileName)
-                else 
+            else 
                 sortedDates%whichSide%[A_LoopFileTimeModified]:=[A_LoopFileName]
-            }
+        }
         ; for k in stuffByName%whichSide% {
         ; unsorted%whichSide%.Push(k)
         ; }
-        
+
         for k, v in sortedDates%whichSide% {
             for key ,value in v {
                 sortedByDate%whichSide%.Insert(1, value)
             }
         }
-        
+
         ; sortedByDate%whichSide%:=sortArrayByArray(unsorted%whichSide%,stuffByName%whichSide%,true,"date")
-        
+
         firstSizes%whichSide%:=true
         whichsort%whichSide%:="newOld"
-        oldNew%whichSide%:=false    
-        
+        oldNew%whichSide%:=false 
+
         renderFunctionsToSort(sortedByDate%whichSide%)
-        
+
         Gui, ListView, folderlistView2_%whichSide%
         LV_Delete()
         parent1DirDirs%whichSide%:=[]
@@ -2685,59 +2664,59 @@ renderCurrentDir()
         SplitPath, parent1Dir%whichSide%, Out2DirName%whichSide% , parent2Dir%whichSide%,,,OutDrive2%whichSide%
         SplitPath, parent2Dir%whichSide%, Out3DirName%whichSide%, parent3Dir%whichSide%,,,OutDrive3%whichSide%
         Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
-        
+
         if (parent1Dir%whichSide%!=EcurrentDir%whichSide%) {
             if (!Out2DirName%whichSide%)
                 Out2DirName%whichSide%:=OutDrive2%whichSide%
             LV_ModifyCol(1,"NoSort", Out2DirName%whichSide%)
-                Loop, Files, % parent1Dir%whichSide% "\*", D
+            Loop, Files, % parent1Dir%whichSide% "\*", D
             {
                 if (A_LoopFileLongPath!=EcurrentDir%whichSide%) {
                     LV_Add(, A_LoopFileName)
-                        parent1DirDirs%whichSide%.Push(A_LoopFileLongPath)
+                    parent1DirDirs%whichSide%.Push(A_LoopFileLongPath)
                 } else {
                     toSelect:=(A_Index=1) ? 1 : A_Index-1
                 }
             }
             LV_Modify(toSelect, "+Select +Focus Vis") ; select
-            } else
+        } else
         {
             LV_ModifyCol(1,"NoSort", "")
-            } 
+        } 
         Gui, ListView, folderlistView1_%whichSide%
         LV_Delete()
-        parent2DirDirs%whichSide%:=[]  
+        parent2DirDirs%whichSide%:=[] 
         if (parent2Dir%whichSide%!=parent1Dir%whichSide%) {
             if (!Out3DirName%whichSide%)
                 Out3DirName%whichSide%:=OutDrive3%whichSide%
             LV_ModifyCol(1,"NoSort", Out3DirName%whichSide%)
-                Loop, Files, % parent2Dir%whichSide% "\*", D
+            Loop, Files, % parent2Dir%whichSide% "\*", D
             {
                 if (A_LoopFileLongPath!=parent1Dir%whichSide%) {
                     LV_Add(, A_LoopFileName)
-                        parent2DirDirs%whichSide%.Push(A_LoopFileLongPath)
+                    parent2DirDirs%whichSide%.Push(A_LoopFileLongPath)
                 } else {
                     toSelect:=(A_Index=1) ? 1 : A_Index-1
                 }
             }
             LV_Modify(toSelect, "+Select +Focus Vis") ; select
-            }
+        }
         else
         {
             LV_ModifyCol(1,"NoSort", "")
-            } 
-        
+        } 
+
         DriveGet, OutputVar, List
         drives:=StrSplit(OutputVar,"")
         length:=drives.Length()
-        
+
         for i, drive in drives {
             y:=40*(i-1)
             DriveGet, totalSpace, Capacity, %drive%:
             DriveSpaceFree, freeSpace, %drive%:
-                
-                text:=drive ":\             " Round(100-100*freeSpace/totalSpace, 2)  "%`r`n" autoMegaByteFormat(freeSpace) "/" autoMegaByteFormat(totalSpace)
-                if (i>numberOfDrives)  {
+
+                text:=drive ":\ " Round(100-100*freeSpace/totalSpace, 2) "%`r`n" autoMegaByteFormat(freeSpace) "/" autoMegaByteFormat(totalSpace)
+                if (i>numberOfDrives) {
                     gui, add, button,h40 y%y% w%favoritesListViewWidth% vDrive%i% x0 Left ggChangeDrive, % text
                 }
                 else {
@@ -2745,13 +2724,13 @@ renderCurrentDir()
                     GuiControl, Text, Drive%i%, % text
                 }
             }
-            
+
             loop % numberOfDrives {
                 if (A_Index>length) {
                     GuiControl, Hide, Drive%A_Index%
                 }
             }
-            
+
             if (length>numberOfDrives)
                 numberOfDrives:=length
         } else {
@@ -2759,21 +2738,20 @@ renderCurrentDir()
             if (InStr(fileExist(OutDir%whichSide%), "D")) {
                 toFocus:=OutFileName%whichSide%
                 EcurrentDir%whichSide%:=OutDir%whichSide%
-                
+
                 renderCurrentDir()
-                
+
             } else {
                 ; p(fileExist(currentDir))
                 EcurrentDir%whichSide%:=lastDir%whichSide%
                 GuiControl, Text,vcurrentDirEdit%whichSide%, % EcurrentDir%whichSide%
-                
+
                 if (focused!="changePath") {
                     renderCurrentDir()
                 }
                 ; lastDir:=currentDir
             } 
-            
-            
+
         }
         Gui, ListView, vlistView%whichSide%
     }
@@ -2791,7 +2769,7 @@ renderCurrentDir()
         }
         return pathToCheck
     }
-    
+
     getLeftRight(string, needle)
     {
         global left
@@ -2800,23 +2778,23 @@ renderCurrentDir()
         left:=SubStr(string, 1, asteriskPos-1)
         right:=SubStr(string, asteriskPos+1)
     }
-    
+
     ShellContextMenu(folderPath, files, win_hwnd = 0 )
     {
-        if ( !folderPath  )
+        if ( !folderPath )
             return
         if !win_hwnd
         {
             Gui,SHELL_CONTEXT:New, +hwndwin_hwnd
             Gui,Show
         }
-        
+
         If sPath Is Not Integer
             DllCall("shell32\SHParseDisplayName", "Wstr", folderPath, "Ptr", 0, "Ptr*", pidl, "Uint", 0, "Uint", 0)
         else
             DllCall("shell32\SHGetFolderLocation", "Ptr", 0, "int", folderPath, "Ptr", 0, "Uint", 0, "Ptr*", pidl)
         DllCall("shell32\SHBindToObject","Ptr",0,"Ptr",pidl,"Ptr",0,"Ptr",GUID4String(IID_IShellFolder,"{000214E6-0000-0000-C000-000000000046}"),"Ptr*",pIShellFolder)
-        
+
         length:=files.Length()
         VarSetCapacity(apidl, length * A_PtrSize, 0)
         for k, v in files {
@@ -2826,14 +2804,14 @@ renderCurrentDir()
         }
         ;IShellFolder->GetUIObjectOf
         DllCall(VTable(pIShellFolder,10),"Ptr",pIShellFolder,"Ptr",win_hwnd,"Uint",length,"Ptr",&apidl,"Ptr",GUID4String(IID_IContextMenu,"{000214E4-0000-0000-C000-000000000046}"),"UINT*",0,"Ptr*",pIContextMenu)
-        
+
         ObjRelease(pIShellFolder)
         CoTaskMemFree(pidl)
-        
+
         hMenu := DllCall("CreatePopupMenu")
         ;IContextMenu->QueryContextMenu
         ;http://msdn.microsoft.com/en-us/library/bb776097%28v=VS.85%29.aspx
-        DllCall(VTable(pIContextMenu, 3), "Ptr", pIContextMenu, "Ptr", hMenu, "Uint", 0, "Uint", 3, "Uint", 0x7FFF, "Uint", 0x100)   ;CMF_EXTENDEDVERBS
+        DllCall(VTable(pIContextMenu, 3), "Ptr", pIContextMenu, "Ptr", hMenu, "Uint", 0, "Uint", 3, "Uint", 0x7FFF, "Uint", 0x100) ;CMF_EXTENDEDVERBS
         ; p(hMenu)
         ComObjError(0)
         global pIContextMenu2 := ComObjQuery(pIContextMenu, IID_IContextMenu2:="{000214F4-0000-0000-C000-000000000046}")
@@ -2842,7 +2820,7 @@ renderCurrentDir()
         ComObjError(1)
         if (e != 0)
             goTo, StopContextMenu
-        Global   WPOld:= DllCall("SetWindowLongPtr", "Ptr", win_hwnd, "int",-4, "Ptr",RegisterCallback("WindowProc"),"UPtr")
+        Global WPOld:= DllCall("SetWindowLongPtr", "Ptr", win_hwnd, "int",-4, "Ptr",RegisterCallback("WindowProc"),"UPtr")
         DllCall("GetCursorPos", "int64*", pt)
         ; DllCall("InsertMenu", "Ptr", hMenu, "Uint", 0, "Uint", 0x0400|0x800, "Ptr", 2, "Ptr", 0)
         ; DllCall("InsertMenu", "Ptr", hMenu, "Uint", 0, "Uint", 0x0400|0x002, "Ptr", 1, "Ptr", &sPath)
@@ -2869,18 +2847,18 @@ renderCurrentDir()
         } CMINVOKECOMMANDINFOEX, *LPCMINVOKECOMMANDINFOEX;
         http://msdn.microsoft.com/en-us/library/bb773217%28v=VS.85%29.aspx
         */
-        struct_size  :=  16+11*A_PtrSize
+        struct_size := 16+11*A_PtrSize
         VarSetCapacity(pici,struct_size,0)
-        NumPut(struct_size,pici,0,"Uint")         ;cbSize
-        NumPut(0x4000|0x20000000|0x00100000,pici,4,"Uint")   ;fMask
-        NumPut(win_hwnd,pici,8,"UPtr")       ;hwnd
-        NumPut(1,pici,8+4*A_PtrSize,"Uint")       ;nShow
-        NumPut(idn-3,pici,8+A_PtrSize,"UPtr")     ;lpVerb
-        NumPut(idn-3,pici,16+6*A_PtrSize,"UPtr")  ;lpVerbW
-        NumPut(pt,pici,16+10*A_PtrSize,"Uptr")    ;ptInvoke
-        
-        DllCall(VTable(pIContextMenu, 4), "Ptr", pIContextMenu, "Ptr", &pici)   ; InvokeCommand
-        
+        NumPut(struct_size,pici,0,"Uint") ;cbSize
+        NumPut(0x4000|0x20000000|0x00100000,pici,4,"Uint") ;fMask
+        NumPut(win_hwnd,pici,8,"UPtr") ;hwnd
+        NumPut(1,pici,8+4*A_PtrSize,"Uint") ;nShow
+        NumPut(idn-3,pici,8+A_PtrSize,"UPtr") ;lpVerb
+        NumPut(idn-3,pici,16+6*A_PtrSize,"UPtr") ;lpVerbW
+        NumPut(pt,pici,16+10*A_PtrSize,"Uptr") ;ptInvoke
+
+        DllCall(VTable(pIContextMenu, 4), "Ptr", pIContextMenu, "Ptr", &pici) ; InvokeCommand
+
         DllCall("GlobalFree", "Ptr", DllCall("SetWindowLongPtr", "Ptr", win_hwnd, "int", -4, "Ptr", WPOld,"UPtr"))
         DllCall("DestroyMenu", "Ptr", hMenu)
         StopContextMenu:
@@ -2893,40 +2871,40 @@ renderCurrentDir()
     }
     WindowProc(hWnd, nMsg, wParam, lParam)
     {
-        Global   pIContextMenu2, pIContextMenu3, WPOld
-        If   pIContextMenu3
-        {    ;IContextMenu3->HandleMenuMsg2
-            If   !DllCall(VTable(pIContextMenu3, 7), "Ptr", pIContextMenu3, "Uint", nMsg, "Ptr", wParam, "Ptr", lParam, "Ptr*", lResult)
-                Return   lResult
+        Global pIContextMenu2, pIContextMenu3, WPOld
+        If pIContextMenu3
+        { ;IContextMenu3->HandleMenuMsg2
+            If !DllCall(VTable(pIContextMenu3, 7), "Ptr", pIContextMenu3, "Uint", nMsg, "Ptr", wParam, "Ptr", lParam, "Ptr*", lResult)
+                Return lResult
         }
-        Else If   pIContextMenu2
-        {    ;IContextMenu2->HandleMenuMsg
-            If   !DllCall(VTable(pIContextMenu2, 6), "Ptr", pIContextMenu2, "Uint", nMsg, "Ptr", wParam, "Ptr", lParam)
-                Return   0
+        Else If pIContextMenu2
+        { ;IContextMenu2->HandleMenuMsg
+            If !DllCall(VTable(pIContextMenu2, 6), "Ptr", pIContextMenu2, "Uint", nMsg, "Ptr", wParam, "Ptr", lParam)
+                Return 0
         }
-        Return   DllCall("user32.dll\CallWindowProcW", "Ptr", WPOld, "Ptr", hWnd, "Uint", nMsg, "Ptr", wParam, "Ptr", lParam)
+        Return DllCall("user32.dll\CallWindowProcW", "Ptr", WPOld, "Ptr", hWnd, "Uint", nMsg, "Ptr", wParam, "Ptr", lParam)
     }
     VTable(ppv, idx)
     {
-        Return   NumGet(NumGet(1*ppv)+A_PtrSize*idx)
+        Return NumGet(NumGet(1*ppv)+A_PtrSize*idx)
     }
-    
+
     other_vtable(ptr, n) {
         return NumGet(NumGet(ptr+0), n*A_PtrSize)
     }
-    
+
     GUID4String(ByRef CLSID, String)
     {
         VarSetCapacity(CLSID, 16,0)
         return DllCall("ole32\CLSIDFromString", "wstr", String, "Ptr", &CLSID) >= 0 ? &CLSID : ""
-    }
-    Guid_FromStr(sGuid, ByRef VarOrAddress)
-    {
-        if IsByRef(VarOrAddress) && (VarSetCapacity(VarOrAddress) < 16)
-            VarSetCapacity(VarOrAddress, 16) ; adjust capacity
-        pGuid := IsByRef(VarOrAddress) ? &VarOrAddress : VarOrAddress
-        if ( DllCall("ole32\CLSIDFromString", "WStr", sGuid, "Ptr", pGuid) < 0 )
-            throw Exception("Invalid GUID", -1, sGuid)
+        }
+        Guid_FromStr(sGuid, ByRef VarOrAddress)
+        {
+            if IsByRef(VarOrAddress) && (VarSetCapacity(VarOrAddress) < 16)
+                VarSetCapacity(VarOrAddress, 16) ; adjust capacity
+            pGuid := IsByRef(VarOrAddress) ? &VarOrAddress : VarOrAddress
+            if ( DllCall("ole32\CLSIDFromString", "WStr", sGuid, "Ptr", pGuid) < 0 )
+                throw Exception("Invalid GUID", -1, sGuid)
         return pGuid ; return address of GUID struct
     }
     Guid_ToStr(ByRef VarOrAddress)
@@ -2939,7 +2917,7 @@ renderCurrentDir()
     }
     CoTaskMemFree(pv)
     {
-        Return   DllCall("ole32\CoTaskMemFree", "Ptr", pv)
+        Return DllCall("ole32\CoTaskMemFree", "Ptr", pv)
     }
     FileToClipboard(PathToCopy,Method="copy")
     {
@@ -2947,7 +2925,7 @@ renderCurrentDir()
         PathLength:=0
         FileCount:=PathToCopy.Length()
         ; Count files and total string length
-        
+
         for k, v in PathToCopy {
             PathLength+=StrLen(v)
         }
@@ -2955,7 +2933,7 @@ renderCurrentDir()
         ; {
         ; PathLength+=StrLen(A_LoopField)
         ; }
-        
+
         pid:=DllCall("GetCurrentProcessId","uint")
         hwnd:=WinExist("ahk_pid " . pid)
         ; 0x42 = GMEM_MOVEABLE(0x2) | GMEM_ZEROINIT(0x40)
@@ -2974,12 +2952,12 @@ renderCurrentDir()
         DllCall("OpenClipboard","UPtr",hwnd)
         DllCall("EmptyClipboard")
         DllCall("SetClipboardData","uint",0xF,"UPtr",hPath) ; 0xF = CF_HDROP
-        
+
         ; Write Preferred DropEffect structure to clipboard to switch between copy/cut operations
         ; 0x42 = GMEM_MOVEABLE(0x2) | GMEM_ZEROINIT(0x40)
         mem := DllCall("GlobalAlloc","uint",0x42,"uint",4,"UPtr")
         str := DllCall("GlobalLock","UPtr",mem)
-        
+
         if (Method="copy")
             DllCall("RtlFillMemory","UPtr",str,"uint",1,"UChar",0x05)
         else if (Method="cut")
@@ -2989,12 +2967,12 @@ renderCurrentDir()
             DllCall("CloseClipboard")
         return
     }
-    
+
     DllCall("GlobalUnlock","UPtr",mem)
-    
+
     cfFormat := DllCall("RegisterClipboardFormat","Str","Preferred DropEffect")
-        DllCall("SetClipboardData","uint",cfFormat,"UPtr",mem)
-        DllCall("CloseClipboard")
+    DllCall("SetClipboardData","uint",cfFormat,"UPtr",mem)
+    DllCall("CloseClipboard")
     return
 }
 
@@ -3043,7 +3021,7 @@ $esc::
             ; gui, submit
             gui, main:Default
             ControlFocus,, % "ahk_id " ListviewHwnd%whichSide%
-            
+
             gui, renameSimple:Default
             gui, destroy
         }
@@ -3053,11 +3031,10 @@ $esc::
 return
 
 #if winactive("create_folder ahk_class AutoHotkeyGUI")
-    
 
 $enter::
     Gosub, createLabel
-    
+
 return
 
 $+enter::
@@ -3150,7 +3127,7 @@ selectPanel2:
     ControlFocus,, ahk_id %ListviewHwnd2%
     GuiControl, +Background%BGColorOfSelectedPane%, vlistView2
     GuiControl, +BackgroundWhite, vlistView1
-    
+
 return
 $RCtrl::
     if (focused="searchCurrentDirEdit" or focused="flistView" or focused="listViewInSearch") {
@@ -3179,7 +3156,7 @@ $\::
     } else {
         send, \
     }
-    
+
 return
 
 ; tab::
@@ -3201,13 +3178,13 @@ $^+r::
     Gui, multiRenameGui:Default
     ; Gui,Font, s10, Segoe UI
     Gui,Font, s10, Consolas
-    
+
     Gui, Add, Edit, w400 vmultiRenameTheName
     Gui, Add, Edit, x+5 w300 vmultiRenameStartingNums 
-    
+
     Gui, Add, Button, h30 w200 y+5 x+-705 ggmultiRenamePreview,preview
     Gui, Add, Button, h30 w200 x+5 ggmultiRenameApply,apply
-    
+
     Gui, Add, ListBox, r%multiRenamelength% w500 y+5 vvmultiRenameTargets x+-405 , % array_ToVerticleBarString(selectedNames)
     Gui, Add, ListBox, r%multiRenamelength% w500 x+5 vvmultiRenamePreview,
     Gui, show,,multiRenameGui
@@ -3220,7 +3197,7 @@ return
 
 $^+n::
     Gui, createFolder:Default
-    
+
     creatingNewFolder:=true
     dontSearch:=true
     newFolderPath:=findNextDirNameNumberIteration(EcurrentDir%whichSide% "\New Folder *")
@@ -3229,12 +3206,12 @@ $^+n::
     if (SubStr(newFolderName, 0)=" " and strLen > 1) {
         newFolderName:=SubStr(newFolderName, 1, strLen-1)
     }
-    
+
     if (!notFirstTimeCreatingFolder) {
         notFirstTimeCreatingFolder:=true
         Gui, createFolder: Font, s10, Segoe UI
         ;Segoe UI
-        gui, createFolder: add, text,, Folder Name:  ; Save this control's position and start a new section.
+        gui, createFolder: add, text,, Folder Name: ; Save this control's position and start a new section.
         gui, createFolder: add, edit, w250 vcreateFolderName hwndfolderCreationHwnd, %newFolderName%
         gui, createFolder: add, button, Default w125 x11 vcreate gcreateLabel,Create Folder`r`n{Enter}
         gui, createFolder: add, button, w125 x+2 vcreateAndOpen gcreateAndOpenLabel,Create and Open`r`n{Shift + Enter}
@@ -3242,12 +3219,12 @@ $^+n::
         ; GuiControl, text, createFolderName, %newFolderName%
         ControlSetText,, %newFolderName%, ahk_id %folderCreationHwnd%
         SendMessage, 0xB1, 0, -1,, % "ahk_id " folderCreationHwnd
-        
+
     }
-    
+
     gui, createFolder: show,, create_folder
     dontSearch:=false
-    
+
 return
 
 copySelectedPaths:
@@ -3269,7 +3246,7 @@ copySelectedPaths:
     }
     clipboard:=finalStr
     dontSearch:=false
-    
+
     #Persistent
     ToolTip, % length
     SetTimer, RemoveToolTip,-1000
@@ -3331,38 +3308,38 @@ $backspace::
 return
 $^+up::
     gosub, shiftUp
-        gosub, shiftUp
-        return
-    
+    gosub, shiftUp
+return
+
 shiftUp:
 $+up::
     Gui, main:Default
     Gui, ListView, vlistView%whichSide%
-    
+
     focusRow:=LV_GetNext(0, "F")
-    
+
     before:=LV_GetNext(focusRow - 2)
     if (focusRow - 1 > 0) {
         if (before=focusRow - 1) {
             LV_Modify(focusRow, "-Select -Focus")
-                LV_Modify(focusRow - 1,"+Select +Focus Vis")
+            LV_Modify(focusRow - 1,"+Select +Focus Vis")
         } else {
             LV_Modify(focusRow - 1,"+Select +Focus Vis")
-            }
+        }
     } else {
         numberOfRows:=LV_GetCount()
         LV_Modify(numberOfRows,"+Select +Focus Vis")
-        }
+    }
 return
 $^up::
     Gui, main:Default
     Gui, ListView, vlistView%whichSide%
     selectedRow:=LV_GetNext()
     rowToSelect:=selectedRow-1
-    
+
     if (rowToSelect>0) {
         LV_Modify(rowToSelect, "+Select +Focus Vis") ; select
-        }
+    }
 return
 $up::
     Gui, main:Default
@@ -3372,18 +3349,18 @@ $up::
     loop % numberOfRows
     {
         LV_Modify(A_Index, "-Select -Focus") ; select
-        }
-    
+    }
+
     ; if (selectedRow=0) {
     ; LV_Modify(numberOfRows, "+Select +Focus Vis") ; select
     ; }
     ; else 
     if (selectedRow<2) {
         LV_Modify(numberOfRows, "+Select +Focus Vis") ; select
-        }
+    }
     else {
         LV_Modify(selectedRow-1, "+Select +Focus Vis") ; select
-        }
+    }
 return
 $+home::
     if (focused="changePath" or focused="searchCurrentDirEdit") {
@@ -3395,8 +3372,8 @@ $+home::
     selectedRow:=LV_GetNext()
     loop % selectedRow - 1 {
         LV_Modify(A_Index, "+Select +Focus Vis") ; select
-        }
-    
+    }
+
 return
 $+end::
     if (focused="changePath" or focused="searchCurrentDirEdit") {
@@ -3410,47 +3387,46 @@ $+end::
     loop % numberOfRows - selectedRow
     {
         LV_Modify(A_Index + selectedRow, "+Select +Focus Vis") ; select
-        }
-    
-    
+    }
+
 return
 selectCurrent:
     Gui, main:Default
     Gui, ListView, vlistView%whichSide%
     selectedRow:=LV_GetNext(,"F")
     LV_Modify(selectedRow, "-Select -Focus") ; select
-        LV_Modify(selectedRow, "+Select +Focus Vis") ; select
-        return
-    
+    LV_Modify(selectedRow, "+Select +Focus Vis") ; select
+return
+
 $^+down::
     gosub, shiftDown
-        gosub, shiftDown
-        return
+    gosub, shiftDown
+return
 shiftDown:
 $+down::
     Gui, main:Default
     Gui, ListView, vlistView%whichSide%
-    
+
     focusRow:=LV_GetNext(0, "F")
     after:=LV_GetNext(focusRow)
     numberOfRows:=LV_GetCount()
-    
+
     if (focusRow < numberOfRows) {
         if (after=focusRow + 1) {
             LV_Modify(focusRow, "-Select -Focus")
-                LV_Modify(focusRow + 1,"+Select +Focus Vis")
+            LV_Modify(focusRow + 1,"+Select +Focus Vis")
         } else {
             LV_Modify(focusRow + 1,"+Select +Focus Vis")
-            }
+        }
     } else {
         LV_Modify(1,"+Select +Focus Vis")
-        }
-    
-return        
+    }
+
+return 
 $^down::
     Gui, main:Default
     Gui, ListView, vlistView%whichSide%
-    
+
     selectedRow:=0
     index:=0
     loop {
@@ -3460,15 +3436,15 @@ $^down::
         selectedRow:=index
     }
     LV_Modify(selectedRow+1, "+Select +Focus Vis") ; select
-        return
-    
+return
+
 $down::
     SetTimer, downLabel ,-0
 return
 downLabel:
     Gui, main:Default
     Gui, ListView, vlistView%whichSide%
-    
+
     selectedRows:=[]
     selectedRow:=0
     index:=0
@@ -3481,18 +3457,18 @@ downLabel:
     }
     for k, v in selectedRows {
         LV_Modify(v, "-Select -Focus") ; select
-        }
-    
+    }
+
     numberOfRows:=LV_GetCount()
     if (selectedRow=0) {
         LV_Modify(1, "+Select +Focus Vis") ; select
-        }
+    }
     else if (selectedRow < numberOfRows) {
         LV_Modify(selectedRow+1, "+Select +Focus Vis") ; select
-        }
+    }
     else {
         LV_Modify(1, "+Select +Focus Vis") ; select
-        }
+    }
     ; } else {
     ; p(6556)
     ; send, {down}
@@ -3509,12 +3485,12 @@ $enter::
             row:=LV_GetNext("")
             doubleClickedNormal(row)
             ControlFocus,, % "ahk_id " ListviewHwnd%whichSide%
-        }  else if (focused="changePath" or focused="renaming") {
+        } else if (focused="changePath" or focused="renaming") {
             ControlFocus,, % "ahk_id " ListviewHwnd%whichSide%
         }
     } else {
         send, {enter}
     }
-    
+
 return
 
