@@ -2028,7 +2028,7 @@ renderFunctionsToSort(ByRef objectToSort, reverse:=false)
     }
     if (toFocus)
     {
-        LV_Modify(rowToFocus, "+Select +Focus")
+        LV_Modify(rowToFocus, "+Select +Focus Vis")
     } else {
         LV_Modify(1, "+Select +Focus")
     }
