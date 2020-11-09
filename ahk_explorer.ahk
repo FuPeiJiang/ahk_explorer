@@ -21,8 +21,8 @@ FOLDERID_Downloads := "{374DE290-123F-4565-9164-39C4925E467B}"
 RegRead, v, HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders, % FOLDERID_Downloads
 VarSetCapacity(downloads, (261 + !A_IsUnicode) << !!A_IsUnicode)
 DllCall("ExpandEnvironmentStrings", Str, v, Str, downloads, UInt, 260)
-EcurrentDir1:=downloads
-; EcurrentDir1=C:\Users\Public\AHK\notes\tests\File Watcher
+; EcurrentDir1:=downloads
+EcurrentDir1=C:\Users\Public\AHK\notes\tests\File Watcher
 ; EcurrentDir2=C:\Users\Public\AHK
 EcurrentDir2=C:\Users\Public\AHK\notes\tests\New Folder 3
 whichSide:=1
@@ -467,7 +467,11 @@ listViewEvents2:
     if (A_GuiEvent=="D") {
         selectedPaths:=getSelectedPaths()
 
-        FileToClipboard(selectedPaths)
+        if (GetKeyState("Alt")) {
+            FileToClipboard(selectedPaths, "cut")
+        } else {
+            FileToClipboard(selectedPaths)
+        }
 
         Cursors := []
         Cursors[1] := DllCall("LoadCursor", "Ptr", 0, "Ptr", 32515, "UPtr") ; DROPEFFECT_COPY = IDC_CROSS
