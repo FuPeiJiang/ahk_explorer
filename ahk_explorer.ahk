@@ -13,7 +13,6 @@ favoriteFolders:=StrSplit(favoriteFolders,"`r`n")
 FileRead, peazipPath, %A_AppData%\ahk_explorer_settings\peazipPath.txt
 FileRead, vscodePath, %A_AppData%\ahk_explorer_settings\vscodePath.txt
 FileRead, BGColorOfSelectedPane, %A_AppData%\ahk_explorer_settings\BGColorOfSelectedPane.txt
-FileRead, BGColorOfSelectedPane, %A_AppData%\ahk_explorer_settings\BGColorOfSelectedPane.txt
 
 ; EcurrentDir1=C:\Users\Public\AHK\notes\tests\New Folder
 
@@ -94,7 +93,9 @@ listViewWidth:=500
 ; Gui, Add, ListView, 0x2000 h28 w%favoritesListViewWidth% +WantF2 -ReadOnly vdriveSpace AltSubmit ,C:\ `r`n7.06 GB/232.24 GB
 ; Gui, Add, ListView, r1 w%favoritesListViewWidth% y220 +WantF2 -ReadOnly vdriveSpace gdriveSpaceEvent AltSubmit ,Please enter your name:
 favoritesLenght:=favoriteFolders.Length()
-Gui, Add, ListView, r%favoritesLenght% w%favoritesListViewWidth% x0 y240 nosort vfavoritesListView ggfavoritesListView AltSubmit ,Favorites
+
+Gui, Add, Button, w%favoritesListViewWidth% ggsettings y212,settings
+Gui, Add, ListView, r%favoritesLenght% w%favoritesListViewWidth% x0 y+0 nosort vfavoritesListView ggfavoritesListView AltSubmit ,Favorites
 
 Gui, Add, ListView, r10 w%folderListViewWidth% y0 x+0 vfolderListView1_1 gfolderlistViewEvents1_1 AltSubmit ,Name
 Gui, Add, ListView, r10 w%folderListViewWidth% x+0 y0 vfolderlistView2_1 gfolderlistViewEvents2_1 AltSubmit ,Name
@@ -137,6 +138,7 @@ loop 2 {
     LV_ModifyCol(3,"50 Right")
     LV_ModifyCol(5,"80 Right")
     LV_ModifyCol(6,"Integer")
+    ; LV_ModifyCol(2,"Integer Left")
     LV_ModifyCol(4,0) ; hides 3rd row
     LV_ModifyCol(6,0) ; hides 3rd row
     focused=flistView
@@ -178,6 +180,30 @@ Exitapp
 return
 
 ;labels
+gsettings:
+    Gui, settingsGui:Default
+    FileRead, settingsTxt, %A_AppData%\ahk_explorer_settings\settings.txt
+    if (!settingsGuiCreated)
+    {
+        settingsGuiCreated:=true
+        editSize:=[1000, 200]
+        textSize:=[190, editSize[2]]
+        editPos:=[textSize[1]+30, 10]
+        textPos:=[10, ZTrim(editPos[2]+1.5) ]
+        guiSize:=[editSize[1]+textSize[1]+20, editSize[2]+20]
+        guiPos:=[A_ScreenWidth/2-guiSize[1]/2,A_ScreenHeight/2-guiSize[2]/2]
+
+        Gui,Font,s12 w500 q5, Consolas
+        ;p("x" textPos[1] " y" textPos[2] " h" 20 " w" 50)
+        Gui,add,Text, % "x" textPos[1] " y" textPos[2] " w" textSize[1] " h" textSize[2], peazipPath`nvscodePath`nBGColorOfSelectedPane
+        ;Gui,add,Edit, % x75 y10 h200 w100 vE2,
+        Gui,add,Edit, % "x" editPos[1] " y" editPos[2] " w" editSize[1] " h" editSize[2] " vvE2 -wrap",%settingsTxt%
+    } else {
+        Guicontrol, text, vE2,%settingsTxt%
+    }
+    Gui,show, % "x" guiPos[1] " y" guiPos[2] " w" guiSize[1] " h" guiSize[2] ,set_settings_GUI
+return
+
 gChangeDrive:
     index:=SubStr(A_GuiControl, 0)
     EcurrentDir%whichSide%:=drives[index] ":"
@@ -811,14 +837,15 @@ listViewEvents2:
                 sortColumn(1, "Sort")
             }
         } else if (A_EventInfo=2) {
-            if (!A_ZSort)
-            { 
-                A_ZSort:=true
-                sortColumn(2, "Sort")
-            } else {
-                A_ZSort:=false 
-                sortColumn(2, "SortDesc")
-            }
+            p(56456)
+    LV_ModifyCol(2, "SortDesc")
+            ; if (!A_ZSort)
+            ; { 
+                ; A_ZSort:=true
+                ; sortColumn(2, "Sort")
+            ; } else {
+                ; A_ZSort:=false 
+                ; sortColumn(2, "SortDesc")
         } else if (A_EventInfo=3) {
             if (!oldNew%whichSide%)
             { 
