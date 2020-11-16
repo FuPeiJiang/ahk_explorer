@@ -285,14 +285,14 @@ TypingInRenameSimple:
         SendMessage,0xB1, 0, 0, , ahk_id %RenameHwnd%
         fileExist:=fileExist(EcurrentDir%whichSide% "\" TextBeingRenamed)
         if (InStr(fileExist, "D"))
-            SendMessage, 0xB1,0,% StrLen(TextBeingRenamed),, ahk_id %RenameHwnd%
+            SendMessage, 0xB1,0,% StrLen(TextBeingRenamed),, ahk_id %RenameHwnd% ;select all
         else
             SendMessage, 0xB1,0,% StrLen(OutNameNoExt),, ahk_id %RenameHwnd%
     } else {
         ControlGet, Outvar ,CurrentCol,, Edit1
         Outvar -=1
-        Postmessage,0xB1, 0, 0, Edit1
-        Postmessage,0xB1,%Outvar%,%Outvar%, Edit1
+        Postmessage,0xB1, 0, 0, Edit1 ;move caret to front to pan
+        Postmessage,0xB1,%Outvar%,%Outvar%, Edit1 ;move caret back to end
 
     }
 return
