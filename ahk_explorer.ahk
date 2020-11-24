@@ -10,9 +10,10 @@ currentDirSearch=
 ;%appdata%\ahk_explorer_settings
 FileRead, favoriteFolders, %A_AppData%\ahk_explorer_settings\favoriteFolders.txt
 favoriteFolders:=StrSplit(favoriteFolders,"`r`n")
-FileRead, peazipPath, %A_AppData%\ahk_explorer_settings\peazipPath.txt
-FileRead, vscodePath, %A_AppData%\ahk_explorer_settings\vscodePath.txt
-FileRead, BGColorOfSelectedPane, %A_AppData%\ahk_explorer_settings\BGColorOfSelectedPane.txt
+; FileRead, peazipPath, %A_AppData%\ahk_explorer_settings\peazipPath.txt
+; FileRead, vscodePath, %A_AppData%\ahk_explorer_settings\vscodePath.txt
+; FileRead, BGColorOfSelectedPane, %A_AppData%\ahk_explorer_settings\BGColorOfSelectedPane.txt
+loadSettings()
 
 ; EcurrentDir1=C:\Users\Public\AHK\notes\tests\New Folder
 
@@ -21,6 +22,7 @@ RegRead, v, HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell F
 VarSetCapacity(downloads, (261 + !A_IsUnicode) << !!A_IsUnicode)
 DllCall("ExpandEnvironmentStrings", Str, v, Str, downloads, UInt, 260)
 ; EcurrentDir1:=downloads
+; EcurrentDir1=C:\Users\Public\AHK\notes\tests
 EcurrentDir1=C:\Users\Public\AHK\notes\tests\File Watcher
 ; EcurrentDir2=C:\Users\Public\AHK
 EcurrentDir2=C:\Users\Public\AHK\notes\tests\New Folder 3
@@ -180,6 +182,14 @@ Exitapp
 return
 
 ;labels
+gsaveSettings:
+gui, settingsGui:Default
+gui, submit
+FileRecycle, %A_AppData%\ahk_explorer_settings\settings.txt
+FileAppend, %vsettings%, %A_AppData%\ahk_explorer_settings\settings.txt
+loadSettings()
+return
+
 gsettings:
     Gui, settingsGui:Default
     FileRead, settingsTxt, %A_AppData%\ahk_explorer_settings\settings.txt
@@ -188,18 +198,20 @@ gsettings:
         settingsGuiCreated:=true
         editSize:=[1000, 200]
         textSize:=[190, editSize[2]]
-        editPos:=[textSize[1]+30, 10]
+        editPos:=[textSize[1]+30, 50]
+        ; editPos:=[textSize[1]+30, 10]
         textPos:=[10, ZTrim(editPos[2]+1.5) ]
-        guiSize:=[editSize[1]+textSize[1]+20, editSize[2]+20]
+        guiSize:=[editSize[1]+textSize[1]+20, editPos[2]+editSize[2]+10]
         guiPos:=[A_ScreenWidth/2-guiSize[1]/2,A_ScreenHeight/2-guiSize[2]/2]
-
         Gui,Font,s12 w500 q5, Consolas
+
+        Gui, add, button, ggsaveSettings,Save Settings
         ;p("x" textPos[1] " y" textPos[2] " h" 20 " w" 50)
-        Gui,add,Text, % "x" textPos[1] " y" textPos[2] " w" textSize[1] " h" textSize[2], peazipPath`nvscodePath`nBGColorOfSelectedPane
+        Gui,add,Text, % "x" textPos[1] " y" textPos[2] " w" textSize[1] " h" textSize[2], peazipPath`nvscodePath`nBGColorOfSelectedPane`nAhk2ExePath
         ;Gui,add,Edit, % x75 y10 h200 w100 vE2,
-        Gui,add,Edit, % "x" editPos[1] " y" editPos[2] " w" editSize[1] " h" editSize[2] " vvE2 -wrap",%settingsTxt%
+        Gui,add,Edit, % "x" editPos[1] " y" editPos[2] " w" editSize[1] " h" editSize[2] " vvsettings -wrap",%settingsTxt%
     } else {
-        Guicontrol, text, vE2,%settingsTxt%
+        Guicontrol, text, vsettings,%settingsTxt%
     }
     Gui,show, % "x" guiPos[1] " y" guiPos[2] " w" guiSize[1] " h" guiSize[2] ,set_settings_GUI
 return
@@ -720,6 +732,8 @@ listViewEvents2:
                                 LV_Modify(A_Index, "+Select") ; select                            
                                 ; LV_Modify(A_Index, "+Select +Focus") ; select                            
                             }
+                        } else if (key="h") {
+
                         }
                         return
                     } else if (ShiftIsDown and !CtrlIsDown) {
@@ -745,6 +759,11 @@ listViewEvents2:
                             soundplay, *-1
                             renderCurrentDir() ;refresh 
                             return
+                        } else if (key="c") {
+                            selectedNames:=getSelectedNames()
+                            for k, v in selectedNames {
+                                ; Run, "C:\Program Files\AutoHotkey\Compiler\Ahk2Exe.exe" /in v
+                            }
                         } else if (key="v") {
                             ; if (whichSide=1) {
                             ; 
@@ -838,14 +857,14 @@ listViewEvents2:
             }
         } else if (A_EventInfo=2) {
             p(56456)
-    LV_ModifyCol(2, "SortDesc")
+            LV_ModifyCol(2, "SortDesc")
             ; if (!A_ZSort)
             ; { 
-                ; A_ZSort:=true
-                ; sortColumn(2, "Sort")
+            ; A_ZSort:=true
+            ; sortColumn(2, "Sort")
             ; } else {
-                ; A_ZSort:=false 
-                ; sortColumn(2, "SortDesc")
+            ; A_ZSort:=false 
+            ; sortColumn(2, "SortDesc")
         } else if (A_EventInfo=3) {
             if (!oldNew%whichSide%)
             { 
@@ -915,7 +934,8 @@ Class LV_Colors {
     ; +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     ; PUBLIC PROPERTIES  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     ; +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    Static Critical := 100
+    Static Critical := 0
+    ; Static Critical := 100
     ; +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     ; META FUNCTIONS ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     ; +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1243,6 +1263,16 @@ Return DllCall("Comctl32.dll\DefSubclassProc", "Ptr", H, "UInt", M, "Ptr", W, "P
 }
 ; ======================================================================================================================
 ;start of functions start
+loadSettings()
+{
+    global
+    FileRead, settingsTxt, %A_AppData%\ahk_explorer_settings\settings.txt
+    settingsArr:=StrSplit(settingsTxt, "`n", "`r")
+    peazipPath:=settingsArr[1]
+    vscodePath:=settingsArr[2]
+    BGColorOfSelectedPane:=settingsArr[3]
+    Ahk2ExePath:=settingsArr[4]
+}
 sortSizes()
 {
     global
@@ -3036,6 +3066,10 @@ sortArrayByArray(toSort, sortWith, reverse=false, key=false)
 
 ;end of functions
 ;hotkeys
+; #if winactive("settingsGui ahk_class AutoHotkeyGUI")
+; $enter::
+
+
 #if winactive("renamingWinTitle ahk_class AutoHotkeyGUI")
     ; $enter::
 ; WinGetTitle, OutputVar , A
@@ -3195,9 +3229,9 @@ return
 return
 
 $`::
-    ; p(watching1,watching2)
+    p(watching1,watching2)
     ; p(sortedSizes1,sortedBySize1)
-    p(whichSide)
+    ; p(whichSide)
     ; p(watching2)
     ; p(focused)
 Return
