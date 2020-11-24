@@ -183,11 +183,11 @@ return
 
 ;labels
 gsaveSettings:
-gui, settingsGui:Default
-gui, submit
-FileRecycle, %A_AppData%\ahk_explorer_settings\settings.txt
-FileAppend, %vsettings%, %A_AppData%\ahk_explorer_settings\settings.txt
-loadSettings()
+    gui, settingsGui:Default
+    gui, submit
+    FileRecycle, %A_AppData%\ahk_explorer_settings\settings.txt
+    FileAppend, %vsettings%, %A_AppData%\ahk_explorer_settings\settings.txt
+    loadSettings()
 return
 
 gsettings:
@@ -759,11 +759,8 @@ listViewEvents2:
                             soundplay, *-1
                             renderCurrentDir() ;refresh 
                             return
-                        } else if (key="c") {
-                            selectedNames:=getSelectedNames()
-                            for k, v in selectedNames {
-                                ; Run, "C:\Program Files\AutoHotkey\Compiler\Ahk2Exe.exe" /in v
-                            }
+                            ; } else if (key="c") {
+
                         } else if (key="v") {
                             ; if (whichSide=1) {
                             ; 
@@ -3069,7 +3066,6 @@ sortArrayByArray(toSort, sortWith, reverse=false, key=false)
 ; #if winactive("settingsGui ahk_class AutoHotkeyGUI")
 ; $enter::
 
-
 #if winactive("renamingWinTitle ahk_class AutoHotkeyGUI")
     ; $enter::
 ; WinGetTitle, OutputVar , A
@@ -3290,6 +3286,12 @@ $^+n::
     gui, createFolder: show,, create_folder
     dontSearch:=false
 
+return
+^+e::
+    selectedNames:=getSelectedNames()
+    for k, v in selectedNames {
+        Run, "%Ahk2ExePath%" /in "%v%" /bin "%Ahk2ExePath%\..\Unicode 64-bit.bin"
+    }
 return
 
 copySelectedPaths:
