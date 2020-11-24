@@ -2146,12 +2146,16 @@ manageCMDArguments(pathArgument)
 
 receivedFolderSize(string) {
     global
-    Gui, main:Default
-    Gui, ListView, vlistView%whichSide%
-    ar:=StrSplit(string,"|")
-    ; p(ar)
+
     if (rowsForSizes%whichSide%.Length()) {
+        Gui, main:Default
+        ar:=StrSplit(string,"|")
+
+        whichListView_bak:=A_DefaultListView
+        Gui, ListView, vlistView%whichSide%
         LV_Modify(rowsForSizes%whichSide%[1],,,,,,ar[2],ar[3])
+        Gui, ListView, %whichListView_bak%
+
         rowsForSizes%whichSide%.RemoveAt(1)
     }
     stuffByName%whichSide%[ar[1]]["size"]:=ar[3]
@@ -2736,6 +2740,7 @@ renderCurrentDir()
                     toSelect:=(A_Index=1) ? 1 : A_Index-1
                 }
             }
+            Gui, ListView, folderlistView2_%whichSide% ;just in case
             LV_Modify(toSelect, "+Select +Focus Vis") ; select
         } else
         {
@@ -2757,6 +2762,7 @@ renderCurrentDir()
                     toSelect:=(A_Index=1) ? 1 : A_Index-1
                 }
             }
+            Gui, ListView, folderlistView1_%whichSide% ;just in case
             LV_Modify(toSelect, "+Select +Focus Vis") ; select
         }
         else
