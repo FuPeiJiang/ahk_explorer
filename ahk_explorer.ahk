@@ -53,8 +53,8 @@ for n, param in A_Args ; For each parameter:
     break
 }
 ;vars
-watching1:=[]
-watching2:=[]
+watching1:=["control"]
+watching2:=["control"]
 maxRows:=50
 rememberIconNumber:=0
 lastInputSearchCurrentDir:=false
@@ -161,6 +161,9 @@ for k, v in favoriteFolders {
     LV_Add(, OutFileName)
     ; }
 }
+
+run, "lib\FolderWatcher1.ahk"
+
 renderCurrentDir()
 IServiceProvider := ComObjCreate("{C2F03A33-21F5-47FA-B4BB-156362A2F239}", "{6D5140C1-7436-11CE-8034-00AA006009FA}")
 IVirtualDesktopManagerInternal := ComObjQuery(IServiceProvider, "{C5E0CDCA-7B6E-41B2-9FC4-D93975CC467B}", "{F31574D6-B682-4CDC-BD56-1827860ABEC6}")
@@ -1260,6 +1263,8 @@ Return DllCall("Comctl32.dll\DefSubclassProc", "Ptr", H, "UInt", M, "Ptr", W, "P
 }
 ; ======================================================================================================================
 ;start of functions start
+
+
 loadSettings()
 {
     global
@@ -1325,9 +1330,23 @@ COM_CoUninitialize()
 {
     DllCall("ole32\CoUninitialize")
 }
+send_stringToFolderWatcher(whichFolderWatcher, num, stringToSend:="")
+{
+    stringToSend .= "|" num
+    VarSetCapacity(message, size := StrPut(stringToSend, "UTF-16")*2, 0)
+    StrPut(stringToSend, &message, "UTF-16")
+    VarSetCapacity(COPYDATASTRUCT, A_PtrSize*3)
+    NumPut(size, COPYDATASTRUCT, A_PtrSize, "UInt")
+    NumPut(&message, COPYDATASTRUCT, A_PtrSize*2)
+    DetectHiddenWindows, On
+    SetTitleMatchMode, 2
+    SendMessage, WM_COPYDATA := 0x4A,, &COPYDATASTRUCT,, FolderWatcher%whichFolderWatcher%.ahk ahk_class AutoHotkey
+}
 startWatchFolder(WatchedFolder)
 {
     global
+    ; Pause
+    WatchFolder(WatchedFolder, "**DEL")
     If !WatchFolder(WatchedFolder, "Watch" whichSide, 0, 3) { ;files and folders
         MsgBox, 0, Error, Call of WatchFolder() failed!
         Return
@@ -1338,16 +1357,16 @@ stopWatchFolder(WatchedFolder)
     global
     WatchFolder(WatchedFolder, "**DEL")
 }
-pauseWatchFolder(WatchedFolder) 
-{
-    global
-    WatchFolder("**PAUSE", True)
-}
-resumeWatchFolder(WatchedFolder) 
-{
-    global
-    WatchFolder("**PAUSE", False)
-}
+; pauseWatchFolder(WatchedFolder) 
+; {
+; global
+; WatchFolder("**PAUSE", True)
+; }
+; resumeWatchFolder(WatchedFolder) 
+; {
+; global
+; WatchFolder("**PAUSE", False)
+; }
 Watch1(Folder, Changes) {
     WatchN(1,Folder, Changes)
 }
@@ -2198,6 +2217,10 @@ WM_COPYDATA_READ(wp, lp) {
         } else {
             SetTimer, revealAhk_Explorer , -0
         }
+    } else if (match2=7) {
+
+    } else if (match2=8) {
+
     } else {
         p("something went wrong")
     }
@@ -2649,19 +2672,28 @@ renderCurrentDir()
             bothSameDir:=bothSameDir(whichSide)
             if (lastDir%whichSide%!="" and EcurrentDir%otherSide%!=lastDir%whichSide%) {
                 for k, v in watching%whichSide% {
-                    if (v=lastDir%whichSide%)
+                    ; p(lastDir%whichSide%)
+                    if (v=lastDir%whichSide%) {
                         watching%whichSide%.Remove(k)
-                    break
+                        dirToStopWatching:=v
+                        break
+                    }
                 }
                 ; p("stopped " lastDir%whichSide% )
-                stopWatchFolder(lastDir%whichSide%) 
+                ; p("stopped " dirToStopWatching )
+                stopWatchFolder(dirToStopWatching) 
+                stopWatchFolder(dirToStopWatching) 
+                stopWatchFolder(dirToStopWatching) 
+                ; stopWatchFolder(lastDir%whichSide%) 
             }
 
             if (!bothSameDir) {
 
                 ; p("started " EcurrentDir%whichSide% )
                 watching%whichSide%.Push(EcurrentDir%whichSide%)
-                startWatchFolder(EcurrentDir%whichSide%)
+                ; startWatchFolder(EcurrentDir%whichSide%)
+                send_stringToFolderWatcher(whichSide, 1, EcurrentDir%whichSide%) ;1 for watch 2 for stop
+
             }
 
             if (lastDir%whichSide%!="" and !cannotDirHistory%whichSide%) {
@@ -3071,7 +3103,10 @@ sortArrayByArray(toSort, sortWith, reverse=false, key=false)
 ;hotkeys
 ; #if winactive("settingsGui ahk_class AutoHotkeyGUI")
 ; $enter::
-
+!p::
+    p(watching1,watching2)
+    Pause
+return
 #if winactive("renamingWinTitle ahk_class AutoHotkeyGUI")
     ; $enter::
 ; WinGetTitle, OutputVar , A
@@ -3160,7 +3195,7 @@ $^+right::
     EcurrentDir2:=EcurrentDir1
     renderCurrentDir()
 return
-left::
+left:: ;always uses keyboard hook
 ^left::
     if (focused="changePath" or focused="searchCurrentDirEdit") {
         thisHotkey:=StrReplace(A_ThisHotkey, "left", "{left}")
@@ -3178,7 +3213,7 @@ selectPanel1:
     GuiControl, +BackgroundWhite, vlistView2
 return
 
-right::
+right:: ;always uses keyboard hook
 ^right::
     if (focused="changePath" or focused="searchCurrentDirEdit") {
         thisHotkey:=StrReplace(A_ThisHotkey, "Right", "{Right}")

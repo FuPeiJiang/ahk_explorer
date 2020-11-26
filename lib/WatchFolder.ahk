@@ -138,11 +138,16 @@ WatchFolder(Folder, UserFunc, SubTree := False, Watch := 0x03) {
    }
    ; ===============================================================================================================================
    Else If (Folder = "**END") { ; called to stop watching
-      For K, D In WatchedFolders
+   ; p(77777777777)
+      For K, D In WatchedFolders {
+         ; p(k,D)
          If K Is Not Integer
             DllCall("CloseHandle", "Ptr", D.Handle)
-      For Each, Event In EventArray
+      }
+      For Each, Event In EventArray {
+         ; p(Event)
          DllCall("CloseHandle", "Ptr", Event)
+      }
       WatchedFolders := {}
       EventArray := []
       Paused := False
@@ -156,11 +161,14 @@ WatchFolder(Folder, UserFunc, SubTree := False, Watch := 0x03) {
          Return False
       VarSetCapacity(LongPath, -1)
       Folder := LongPath
-      If (WatchedFolders[Folder]) { ; update or remove
+      If (WatchedFolders[Folder]) { ;if this folder is already in WatchedFolders
          Handle := WatchedFolders[Folder, "Handle"]
          Index  := WatchedFolders[Folder, "Index"]
+      ; p("Handle",Handle, "Index",Index, "EventArray[Index]", EventArray[Index])
          DllCall("CloseHandle", "Ptr", Handle)
          DllCall("CloseHandle", "Ptr", EventArray[Index])
+         ; p(WatchedFolders)
+         ; p(EventArray)
          EventArray.RemoveAt(Index)
          WatchedFolders.RemoveAt(Index)
          WatchedFolders.Delete(Folder)
