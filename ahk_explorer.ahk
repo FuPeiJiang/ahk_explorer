@@ -322,32 +322,48 @@ renameFileLabel:
         gui, main:Default
         noRenameError:=true
 
-        if (TextBeingRenamed!=RenamingSimple) {
+        if not(TextBeingRenamed==RenamingSimple) { ;Case Sensitive
             if (stuffByName[RenamingSimple].Count()) {
                 noRenameError:=false
                 p("file with same name")
             } else {
-                ; LV_Modify(row,,, RenamingSimple)
-                ; stuffByName[RenamingSimple]:=stuffByName[TextBeingRenamed]
-                ; stuffByName.Delete(TextBeingRenamed)
-                ; for k, v in stuffByName {
-                ; if (v=TextBeingRenamed) {
-                ; stuffByName.RemoveAt(k)
-                ; stuffByName.InsertAt(k, RenamingSimple)
-                ; }
-                ; }
-                ; for k, v in sortedByDate {
-                ; if (sortedByDate[k]["name"]=TextBeingRenamed) {
-                ; sortedByDate[k]["name"]:=RenamingSimple
-                ; }
-                ; }
                 SourcePath:=EcurrentDir%whichSide% "\" TextBeingRenamed
-                DestPath:=EcurrentDir%whichSide% "\" RenamingSimple
                 fileExist:=FileExist(SourcePath)
                 if (fileExist) {
+                    DestPath:=EcurrentDir%whichSide% "\" RenamingSimple
+
+                    if (TextBeingRenamed=RenamingSimple) { ;only different capitalization
+                        randomPath:=generateRandomUniqueName(SourcePath,isDir)
+
+                        if (isDir) {
+                            FileMoveDir, %SourcePath%, %randomPath%
+                        } else {
+                            FileMove, %SourcePath%, %randomPath%
+                        }
+                        if ErrorLevel {
+                            noRenameError:=false
+                            p("file could not be renamed:illegal name or file in use")
+                        }
+                        SoundPlay, *-1
+
+                        SourcePath:=randomPath
+                    }
+
+                    ; LV_Modify(row,,, RenamingSimple)
+                    ; stuffByName[RenamingSimple]:=stuffByName[TextBeingRenamed]
+                    ; stuffByName.Delete(TextBeingRenamed)
+                    ; for k, v in stuffByName {
+                    ; if (v=TextBeingRenamed) {
+                    ; stuffByName.RemoveAt(k)
+                    ; stuffByName.InsertAt(k, RenamingSimple)
+                    ; }
+                    ; }
+                    ; for k, v in sortedByDate {
+                    ; if (sortedByDate[k]["name"]=TextBeingRenamed) {
+                    ; sortedByDate[k]["name"]:=RenamingSimple
+                    ; }
+                    ; }
                     if (InStr(fileExist, "D")) {
-                        ; p("FileMoveDir")
-                        ;C:\Users\User\Downloads\Class_LV_Colors-0
                         FileMoveDir, %SourcePath%, %DestPath%
                     } else {
                         ; p("FileMove")
@@ -1264,6 +1280,42 @@ Return DllCall("Comctl32.dll\DefSubclassProc", "Ptr", H, "UInt", M, "Ptr", W, "P
 }
 ; ======================================================================================================================
 ;start of functions start
+
+generateRandomUniqueName(Apath, byref isDir:="")
+{
+    inputFileExist:=fileExist(Apath)
+    if (inputFileExist) {
+        if (InStr(inputFileExist, "D"))
+            isDir:=true
+        SplitPath, Apath, OutFileName, OutDir, OutExtension, OutNameNoExt, OutDrive
+        loop {
+            if (isDir) {
+                tryPath:=OutDir "\" OutNameNoExt "_" randomName(6)
+            } else {
+                tryPath:=OutDir "\" OutNameNoExt "_" randomName(6) "." OutExtension
+            }
+            if (!FileExist(tryPath)) {
+                return tryPath
+            }
+        }
+    } else {
+        p("input path does not exist")
+    }
+
+}
+randomName(length)
+{
+    chars:=[".", "_", "-", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
+
+    charsLength:=chars.Length()
+
+    loop % length
+    {
+        Random, randInt , 1, charsLength
+        strng.=chars[randInt]
+    }
+return strng
+}
 
 loadSettings()
 {
