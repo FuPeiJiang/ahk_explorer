@@ -1367,7 +1367,7 @@ stopWatchFolder(byref whichSide, byref AcurrentDir)
     global
     WatchFolder(WatchedFolder, "**DEL")
 }
- */
+*/
 ; pauseWatchFolder(WatchedFolder) 
 ; {
 ; global
@@ -3391,8 +3391,10 @@ $^+n::
 return
 ^+e::
     selectedNames:=getSelectedNames()
-    for k, v in selectedNames {
-        Run, "%Ahk2ExePath%" /in "%v%" /bin "%Ahk2ExePath%\..\Unicode 64-bit.bin"
+    for notUsed, name in selectedNames {
+        SplitPath, name,,,, OutNameNoExt
+        FileRecycle, % EcurrentDir%whichSide% "\" OutNameNoExt ".exe"
+        Run, "%Ahk2ExePath%" /in "%name%" /bin "%Ahk2ExePath%\..\Unicode 64-bit.bin", % EcurrentDir%whichSide%
     }
 return
 
