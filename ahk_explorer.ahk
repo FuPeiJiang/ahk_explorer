@@ -163,8 +163,10 @@ for k, v in favoriteFolders {
 }
 
 run, "lib\FolderWatcher1.ahk"
+run, "lib\FolderWatcher2.ahk"
 
 renderCurrentDir()
+
 IServiceProvider := ComObjCreate("{C2F03A33-21F5-47FA-B4BB-156362A2F239}", "{6D5140C1-7436-11CE-8034-00AA006009FA}")
 IVirtualDesktopManagerInternal := ComObjQuery(IServiceProvider, "{C5E0CDCA-7B6E-41B2-9FC4-D93975CC467B}", "{F31574D6-B682-4CDC-BD56-1827860ABEC6}")
 MoveViewToDesktop := vtable(IVirtualDesktopManagerInternal, 4) ; void MoveViewToDesktop(object pView, IVirtualDesktop desktop);
@@ -934,8 +936,8 @@ Class LV_Colors {
     ; +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     ; PUBLIC PROPERTIES  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     ; +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    Static Critical := 0
-    ; Static Critical := 100
+    ; Static Critical := 0
+    Static Critical := 100
     ; +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     ; META FUNCTIONS ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     ; +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1264,7 +1266,6 @@ Return DllCall("Comctl32.dll\DefSubclassProc", "Ptr", H, "UInt", M, "Ptr", W, "P
 ; ======================================================================================================================
 ;start of functions start
 
-
 loadSettings()
 {
     global
@@ -1342,7 +1343,11 @@ send_stringToFolderWatcher(whichFolderWatcher, num, stringToSend:="")
     SetTitleMatchMode, 2
     SendMessage, WM_COPYDATA := 0x4A,, &COPYDATASTRUCT,, FolderWatcher%whichFolderWatcher%.ahk ahk_class AutoHotkey
 }
-startWatchFolder(WatchedFolder)
+startWatchFolder(byref whichSide, byref AcurrentDir)
+{
+    send_stringToFolderWatcher(whichSide, 1, AcurrentDir) ;1 for watch 2 for stop
+}
+/* startWatchFolder(WatchedFolder)
 {
     global
     ; Pause
@@ -1352,11 +1357,17 @@ startWatchFolder(WatchedFolder)
         Return
     }
 }
-stopWatchFolder(WatchedFolder) 
+*/
+stopWatchFolder(byref whichSide, byref AcurrentDir)
+{
+    send_stringToFolderWatcher(whichSide, 2, AcurrentDir) ;1 for watch 2 for stop
+}
+/* stopWatchFolder(WatchedFolder) 
 {
     global
     WatchFolder(WatchedFolder, "**DEL")
 }
+ */
 ; pauseWatchFolder(WatchedFolder) 
 ; {
 ; global
@@ -1373,9 +1384,49 @@ Watch1(Folder, Changes) {
 Watch2(Folder, Changes) {
     WatchN(2,Folder, Changes)
 }
+WatchFromWatcher(whichSide,Action,OldName,Name)
+{
+    global EcurrentDir1,EcurrentDir2,vlistView1,vlistView2
+    otherSide:=bothSameDir(whichSide)
+    GuiControl, -Redraw, vlistView%whichSide%
+    if (otherSide)
+        GuiControl, -Redraw, vlistView%otherSide%
+
+    if (Action=1) {
+        fileAdded(whichSide, Name)
+    } else if (Action=2) {
+        fileDeleted(whichSide, Name)
+        if (otherSide) {
+            p("arrived here")
+            fileDeleted(otherSide, Name)
+        }
+    } else if (Action=4) {
+        SplitPath, % Name, OutFileNameNew, OutDirNew
+        SplitPath, % OldName, OutFileNameOld, OutDirOld
+        ; p(OutDirNew " " EcurrentDir%whichSide%)
+        if (OutDirNew=EcurrentDir%whichSide%) { ;renamed
+            fileRenamed(whichSide, OutFileNameOld, OutFileNameNew)
+            if (otherSide) {
+                fileRenamed(otherSide, OutFileNameOld, OutFileNameNew)
+            }
+        } else if (OutDirOld=EcurrentDir%otherSide%) { ;moved from other Side
+            fileAdded(whichSide, Name)
+            fileDeleted(otherSide, OldName)
+        } else { ;moved
+
+            fileAdded(whichSide, Name)
+            if (otherSide) {
+                fileAdded(otherSide, Name)
+            }
+        }
+    }
+    GuiControl, +Redraw, vlistView%whichSide%
+    if (otherSide)
+        GuiControl, +Redraw, vlistView%otherSide%
+
+}
 WatchN(whichSide, Folder, Changes) {
     global
-    Static Actions := ["1 (added)", "2 (removed)", "3 (modified)", "4 (renamed)"]
     otherSide:=bothSameDir(whichSide)
     GuiControl, -Redraw, vlistView%whichSide%
     if (otherSide)
@@ -1531,7 +1582,7 @@ fileAdded(whichSide, Byref path) {
     }
 
 }
-fileDeleted(whichSide, Byref path)
+fileDeleted(Byref whichSide, Byref path)
 {
     global
     Gui, main:Default
@@ -2218,9 +2269,14 @@ WM_COPYDATA_READ(wp, lp) {
             SetTimer, revealAhk_Explorer , -0
         }
     } else if (match2=7) {
-
+        Action_OldName_Name:=StrSplit(match1, "|")
+        WatchFromWatcher(1,Action_OldName_Name[1],Action_OldName_Name[2],Action_OldName_Name[3])
     } else if (match2=8) {
-
+        Action_OldName_Name:=StrSplit(match1, "|")
+        WatchFromWatcher(2,Action_OldName_Name[1],Action_OldName_Name[2],Action_OldName_Name[3])
+    } else if (match2=9) {
+        watchersStarted:=true
+        startWatchFolder(1,EcurrentDir%whichSide%)
     } else {
         p("something went wrong")
     }
@@ -2681,9 +2737,9 @@ renderCurrentDir()
                 }
                 ; p("stopped " lastDir%whichSide% )
                 ; p("stopped " dirToStopWatching )
-                stopWatchFolder(dirToStopWatching) 
-                stopWatchFolder(dirToStopWatching) 
-                stopWatchFolder(dirToStopWatching) 
+                stopWatchFolder(whichSide,dirToStopWatching) 
+                ; stopWatchFolder(dirToStopWatching) 
+                ; stopWatchFolder(dirToStopWatching) 
                 ; stopWatchFolder(lastDir%whichSide%) 
             }
 
@@ -2692,7 +2748,12 @@ renderCurrentDir()
                 ; p("started " EcurrentDir%whichSide% )
                 watching%whichSide%.Push(EcurrentDir%whichSide%)
                 ; startWatchFolder(EcurrentDir%whichSide%)
-                send_stringToFolderWatcher(whichSide, 1, EcurrentDir%whichSide%) ;1 for watch 2 for stop
+                if (watchersStarted) {
+                    startWatchFolder(whichSide,EcurrentDir%whichSide%)
+                } 
+                ; else {
+                ; watchersStarted:=true
+                ; }
 
             }
 
