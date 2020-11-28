@@ -73,6 +73,8 @@ global dropEffectFormat := DllCall("RegisterClipboardFormat", "Str", CFSTR_PREFE
 
 ; clipboard:=A_Programs
 Gui, main:New, +hwndthisHwnd
+thisUniqueWintitle:="ahk_id " thisHwnd
+; thisUniqueWintitle:="ahk_id " thisHwnd "ahk_explorer ahk_class AutoHotkeyGUI"
 Gui, main:Default
 ; Gui, Font, s12
 Gui,Font, s10, Segoe UI
@@ -917,6 +919,7 @@ listViewEvents2:
 return
 ;includes
 #include <Class_LV_InCellEdit>
+#include <cMsgbox>
 ;Classes
 ; ======================================================================================================================
 ; Namespace:      LV_Colors
@@ -1280,6 +1283,33 @@ Return DllCall("Comctl32.dll\DefSubclassProc", "Ptr", H, "UInt", M, "Ptr", W, "P
 }
 ; ======================================================================================================================
 ;start of functions start
+
+hashFiles(algorithm)
+{
+    global EcurrentDir1, EcurrentDir2, whichSide
+    finalStr=
+    for notUsed, name in getSelectedNames() {
+        finalStr.=getHash(algorithm, EcurrentDir%whichSide% "\" name) "`r`n"
+    }
+    if (finalStr) {
+        StringTrimRight, finalStr, finalStr, 2 ;remove the last "`r`n" from the end
+        clipboard:=finalStr
+        cMsgbox(finalStr)
+    } else {
+        p("couldn't get hash")
+    }
+}
+
+getHash(algorithm, Apath)
+{
+    FileGetAttrib, fileAttrib, %Apath%
+    if (InStr(fileAttrib, "D")) {
+        return "can't hash Directory"
+    } else {
+        cmdOutput:=RunCmd("certutil -hashfile """ Apath """ " algorithm)
+        return StrSplit(cmdOutput, "`n", "`r")[2]
+    }
+}
 
 generateRandomUniqueName(Apath, byref isDir:="")
 {
@@ -3188,7 +3218,7 @@ $^+enter::
     Gosub, createAndOpenLabel
 return
 
-#if winactive("ahk_explorer ahk_class AutoHotkeyGUI")
+#if winactive(thisUniqueWintitle)
 ^e::
 ; revealFileInExplorer(EcurrentDir%whichSide%, getSelectedNames())
 path:=getSelectedPaths()[1]
@@ -3370,6 +3400,15 @@ $^+n::
     dontSearch:=false
 
 return
+
+!h::
+    hashFiles("sha256")
+return
+
+^h::
+    hashFiles("md5")
+return
+
 ^+e::
     selectedNames:=getSelectedNames()
     for notUsed, name in selectedNames {
