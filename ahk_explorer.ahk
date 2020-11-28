@@ -162,10 +162,10 @@ for k, v in favoriteFolders {
     ; }
 }
 
-run, "lib\FolderWatcher1.ahk"
-run, "lib\FolderWatcher2.ahk"
+; run, "lib\FolderWatcher1.ahk"
 
 renderCurrentDir()
+run, "lib\FolderWatcher2.ahk"
 
 IServiceProvider := ComObjCreate("{C2F03A33-21F5-47FA-B4BB-156362A2F239}", "{6D5140C1-7436-11CE-8034-00AA006009FA}")
 IVirtualDesktopManagerInternal := ComObjQuery(IServiceProvider, "{C5E0CDCA-7B6E-41B2-9FC4-D93975CC467B}", "{F31574D6-B682-4CDC-BD56-1827860ABEC6}")
@@ -688,7 +688,7 @@ listViewEvents2:
                 ; selectedNames.Push(OutputVar)
                 ; }
                 selectedNames:=getSelectedNames()
-                deleteCount%whichSide%:=selectedNames.Length()
+                ; deleteCount%whichSide%:=selectedNames.Length()
                 ; gosub, selectCurrent
 
                 ; finalStr:="""" A_AhkPath """ ""lib\fileRecycle.ahk"" """ EcurrentDir%whichSide% """ " array_tospacedstring(selectedNames)
@@ -1345,7 +1345,14 @@ send_stringToFolderWatcher(whichFolderWatcher, num, stringToSend:="")
 }
 startWatchFolder(byref whichSide, byref AcurrentDir)
 {
-    send_stringToFolderWatcher(whichSide, 1, AcurrentDir) ;1 for watch 2 for stop
+    if (whichSide=1) {
+        If !WatchFolder(AcurrentDir, "Watch1", 0, 3) { ;files and folders
+            MsgBox, 0, Error, Call of WatchFolder() failed!
+            Return
+        }
+    } else {
+        send_stringToFolderWatcher(whichSide, 1, AcurrentDir) ;1 for watch 2 for stop
+    }
 }
 /* startWatchFolder(WatchedFolder)
 {
@@ -1358,9 +1365,13 @@ startWatchFolder(byref whichSide, byref AcurrentDir)
     }
 }
 */
-stopWatchFolder(byref whichSide, byref AcurrentDir)
+stopWatchFolder(byref whichSide, byref dirToStopWatching)
 {
-    send_stringToFolderWatcher(whichSide, 2, AcurrentDir) ;1 for watch 2 for stop
+    if (whichSide=1) {
+        WatchFolder(dirToStopWatching, "**DEL")
+    } else {
+        send_stringToFolderWatcher(whichSide, 2, dirToStopWatching) ;1 for watch 2 for stop
+    }
 }
 /* stopWatchFolder(WatchedFolder) 
 {
@@ -1379,12 +1390,15 @@ stopWatchFolder(byref whichSide, byref AcurrentDir)
 ; WatchFolder("**PAUSE", False)
 ; }
 Watch1(Folder, Changes) {
-    WatchN(1,Folder, Changes)
+    For Each, Change In Changes {
+        WatchN(1,Change.Action, Change.OldName, Change.Name)
+    }
+    ; WatchN(1,Folder, Changes)
 }
 Watch2(Folder, Changes) {
-    WatchN(2,Folder, Changes)
+    ; WatchN(2,Folder, Changes)
 }
-WatchFromWatcher(whichSide,Action,OldName,Name)
+WatchN(whichSide,Byref Action,Byref OldName,Byref Name)
 {
     global EcurrentDir1,EcurrentDir2,vlistView1,vlistView2
     otherSide:=bothSameDir(whichSide)
@@ -1397,7 +1411,6 @@ WatchFromWatcher(whichSide,Action,OldName,Name)
     } else if (Action=2) {
         fileDeleted(whichSide, Name)
         if (otherSide) {
-            p("arrived here")
             fileDeleted(otherSide, Name)
         }
     } else if (Action=4) {
@@ -1425,7 +1438,7 @@ WatchFromWatcher(whichSide,Action,OldName,Name)
         GuiControl, +Redraw, vlistView%otherSide%
 
 }
-WatchN(whichSide, Folder, Changes) {
+/* WatchN(whichSide, Folder, Changes) {
     global
     otherSide:=bothSameDir(whichSide)
     GuiControl, -Redraw, vlistView%whichSide%
@@ -1466,6 +1479,7 @@ WatchN(whichSide, Folder, Changes) {
         GuiControl, +Redraw, vlistView%otherSide%
 
 }
+*/
 fileRenamed(whichSide, Byref renameFrom,Byref renameInto)
 {
     global
@@ -1596,15 +1610,18 @@ fileDeleted(Byref whichSide, Byref path)
         if (OutputVar=OutFileName) {
 
             LV_Delete(A_Index)
-            deleteCount%whichSide%--
-            if (deleteCount%whichSide%=0) {
-                deleteCount%whichSide%:=-1
+            ; deleteCount%whichSide%--
+            ; if (deleteCount%whichSide%=0) {
+                ; deleteCount%whichSide%:=-1
+            if !LV_GetNext(1) {
                 if (A_Index=rowNums and A_Index>1) {
                     LV_Modify(A_Index-1, "+Select +Focus Vis") ; select
                 }
                 else
                     LV_Modify(A_Index, "+Select +Focus Vis") ; select
             }
+
+            ; }
             ; GuiControl, +Redraw, vlistView%whichSide% 
             obj:=stuffByName%whichSide%[OutFileName]
 
@@ -2270,10 +2287,10 @@ WM_COPYDATA_READ(wp, lp) {
         }
     } else if (match2=7) {
         Action_OldName_Name:=StrSplit(match1, "|")
-        WatchFromWatcher(1,Action_OldName_Name[1],Action_OldName_Name[2],Action_OldName_Name[3])
+        WatchN(1,Action_OldName_Name[1],Action_OldName_Name[2],Action_OldName_Name[3])
     } else if (match2=8) {
         Action_OldName_Name:=StrSplit(match1, "|")
-        WatchFromWatcher(2,Action_OldName_Name[1],Action_OldName_Name[2],Action_OldName_Name[3])
+        WatchN(2,Action_OldName_Name[1],Action_OldName_Name[2],Action_OldName_Name[3])
     } else if (match2=9) {
         watchersStarted:=true
         startWatchFolder(1,EcurrentDir%whichSide%)
@@ -2748,9 +2765,9 @@ renderCurrentDir()
                 ; p("started " EcurrentDir%whichSide% )
                 watching%whichSide%.Push(EcurrentDir%whichSide%)
                 ; startWatchFolder(EcurrentDir%whichSide%)
-                if (watchersStarted) {
-                    startWatchFolder(whichSide,EcurrentDir%whichSide%)
-                } 
+                ; if (watchersStarted) {
+                startWatchFolder(whichSide,EcurrentDir%whichSide%)
+                ; }
                 ; else {
                 ; watchersStarted:=true
                 ; }
@@ -3382,9 +3399,7 @@ $^+n::
         ; GuiControl, text, createFolderName, %newFolderName%
         ControlSetText,, %newFolderName%, ahk_id %folderCreationHwnd%
         SendMessage, 0xB1, 0, -1,, % "ahk_id " folderCreationHwnd
-
     }
-
     gui, createFolder: show,, create_folder
     dontSearch:=false
 

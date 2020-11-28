@@ -16,7 +16,6 @@ CallbackWatch(Folder, Changes)
 
 startWatchFolder(WatchedFolder)
 {
-    WatchFolder(WatchedFolder, "**DEL")
     If !WatchFolder(WatchedFolder, "CallbackWatch", 0, 3) { ;files and folders
         MsgBox, 0, Error, Call of WatchFolder() failed!
         Return
@@ -52,5 +51,3 @@ send_stringData(stringToSend:="")
 }
 
 #include %A_ScriptDir%\WatchFolder.ahk
-
-f3::Exitapp
