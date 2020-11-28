@@ -162,10 +162,8 @@ for k, v in favoriteFolders {
     ; }
 }
 
-; run, "lib\FolderWatcher1.ahk"
-
 renderCurrentDir()
-run, "lib\FolderWatcher2.ahk"
+run, "lib\FolderWatcher2.ahk",,,PID_FolderWatcher2
 
 IServiceProvider := ComObjCreate("{C2F03A33-21F5-47FA-B4BB-156362A2F239}", "{6D5140C1-7436-11CE-8034-00AA006009FA}")
 IVirtualDesktopManagerInternal := ComObjQuery(IServiceProvider, "{C5E0CDCA-7B6E-41B2-9FC4-D93975CC467B}", "{F31574D6-B682-4CDC-BD56-1827860ABEC6}")
@@ -390,9 +388,10 @@ return
 mainGuiClose: 
     if GetKeyState("Shift") {
         Process, Close, %PID_getFolderSizes%
+        Process, Close, %PID_FolderWatcher2%
         Exitapp
     } else {
-        Process, Close, %PID_getFolderSizes%
+        ; Process, Close, %PID_getFolderSizes%
         windowHidden:=true
         Gui, main:Default
         Gui, hide
@@ -1354,17 +1353,6 @@ startWatchFolder(byref whichSide, byref AcurrentDir)
         send_stringToFolderWatcher(whichSide, 1, AcurrentDir) ;1 for watch 2 for stop
     }
 }
-/* startWatchFolder(WatchedFolder)
-{
-    global
-    ; Pause
-    WatchFolder(WatchedFolder, "**DEL")
-    If !WatchFolder(WatchedFolder, "Watch" whichSide, 0, 3) { ;files and folders
-        MsgBox, 0, Error, Call of WatchFolder() failed!
-        Return
-    }
-}
-*/
 stopWatchFolder(byref whichSide, byref dirToStopWatching)
 {
     if (whichSide=1) {
@@ -1373,30 +1361,10 @@ stopWatchFolder(byref whichSide, byref dirToStopWatching)
         send_stringToFolderWatcher(whichSide, 2, dirToStopWatching) ;1 for watch 2 for stop
     }
 }
-/* stopWatchFolder(WatchedFolder) 
-{
-    global
-    WatchFolder(WatchedFolder, "**DEL")
-}
-*/
-; pauseWatchFolder(WatchedFolder) 
-; {
-; global
-; WatchFolder("**PAUSE", True)
-; }
-; resumeWatchFolder(WatchedFolder) 
-; {
-; global
-; WatchFolder("**PAUSE", False)
-; }
 Watch1(Folder, Changes) {
     For Each, Change In Changes {
         WatchN(1,Change.Action, Change.OldName, Change.Name)
     }
-    ; WatchN(1,Folder, Changes)
-}
-Watch2(Folder, Changes) {
-    ; WatchN(2,Folder, Changes)
 }
 WatchN(whichSide,Byref Action,Byref OldName,Byref Name)
 {
@@ -1416,7 +1384,6 @@ WatchN(whichSide,Byref Action,Byref OldName,Byref Name)
     } else if (Action=4) {
         SplitPath, % Name, OutFileNameNew, OutDirNew
         SplitPath, % OldName, OutFileNameOld, OutDirOld
-        ; p(OutDirNew " " EcurrentDir%whichSide%)
         if (OutDirNew=EcurrentDir%whichSide%) { ;renamed
             fileRenamed(whichSide, OutFileNameOld, OutFileNameNew)
             if (otherSide) {
@@ -1438,48 +1405,6 @@ WatchN(whichSide,Byref Action,Byref OldName,Byref Name)
         GuiControl, +Redraw, vlistView%otherSide%
 
 }
-/* WatchN(whichSide, Folder, Changes) {
-    global
-    otherSide:=bothSameDir(whichSide)
-    GuiControl, -Redraw, vlistView%whichSide%
-    if (otherSide)
-        GuiControl, -Redraw, vlistView%otherSide%
-
-    For Each, Change In Changes {
-        if (Change.Action=1) {
-            fileAdded(whichSide, Change.Name)
-        } else if (Change.Action=2) {
-            fileDeleted(whichSide, Change.Name)
-            if (bothSameDir) {
-                fileDeleted(otherSide, Change.Name)
-            }
-        } else if (Change.Action=4) {
-            SplitPath, % Change.Name, OutFileNameNew, OutDirNew
-            SplitPath, % Change.OldName, OutFileNameOld, OutDirOld
-            ; p(OutDirNew " " EcurrentDir%whichSide%)
-            if (OutDirNew=EcurrentDir%whichSide%) { ;renamed
-                fileRenamed(whichSide, OutFileNameOld, OutFileNameNew)
-                if (otherSide) {
-                    fileRenamed(otherSide, OutFileNameOld, OutFileNameNew)
-                }
-            } else if (OutDirOld=EcurrentDir%otherSide%) { ;moved from other Side
-                fileAdded(whichSide, Change.Name)
-                fileDeleted(otherSide, Change.OldName)
-            } else { ;moved
-
-                fileAdded(whichSide, Change.Name)
-                if (otherSide) {
-                    fileAdded(otherSide, Change.Name)
-                }
-            }
-        }
-    }
-    GuiControl, +Redraw, vlistView%whichSide%
-    if (bothSameDir)
-        GuiControl, +Redraw, vlistView%otherSide%
-
-}
-*/
 fileRenamed(whichSide, Byref renameFrom,Byref renameInto)
 {
     global
@@ -1610,9 +1535,6 @@ fileDeleted(Byref whichSide, Byref path)
         if (OutputVar=OutFileName) {
 
             LV_Delete(A_Index)
-            ; deleteCount%whichSide%--
-            ; if (deleteCount%whichSide%=0) {
-                ; deleteCount%whichSide%:=-1
             if !LV_GetNext(1) {
                 if (A_Index=rowNums and A_Index>1) {
                     LV_Modify(A_Index-1, "+Select +Focus Vis") ; select
@@ -1620,8 +1542,6 @@ fileDeleted(Byref whichSide, Byref path)
                 else
                     LV_Modify(A_Index, "+Select +Focus Vis") ; select
             }
-
-            ; }
             ; GuiControl, +Redraw, vlistView%whichSide% 
             obj:=stuffByName%whichSide%[OutFileName]
 
@@ -2287,13 +2207,7 @@ WM_COPYDATA_READ(wp, lp) {
         }
     } else if (match2=7) {
         Action_OldName_Name:=StrSplit(match1, "|")
-        WatchN(1,Action_OldName_Name[1],Action_OldName_Name[2],Action_OldName_Name[3])
-    } else if (match2=8) {
-        Action_OldName_Name:=StrSplit(match1, "|")
         WatchN(2,Action_OldName_Name[1],Action_OldName_Name[2],Action_OldName_Name[3])
-    } else if (match2=9) {
-        watchersStarted:=true
-        startWatchFolder(1,EcurrentDir%whichSide%)
     } else {
         p("something went wrong")
     }

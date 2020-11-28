@@ -40,7 +40,7 @@ WM_COPYDATA_READ(wp, lp) {
 }
 send_stringData(stringToSend:="") 
 {
-    stringToSend .= "|" 8
+    stringToSend .= "|" 7
     VarSetCapacity(message, size := StrPut(stringToSend, "UTF-16")*2, 0)
     StrPut(stringToSend, &message, "UTF-16")
     VarSetCapacity(COPYDATASTRUCT, A_PtrSize*3)
