@@ -9,9 +9,9 @@
         if IsObject(v)
         {
             if IsArray(v)
-                finalStr.=space "[" array_tostring(v) "]"
+                finalStr.=space "[" Array_Print(v) "]"
             else
-                finalStr.=space "{" array_tostring(v) "}"
+                finalStr.=space "{" ObjectPrint(v) "}"
         }
         Else
             finalStr.=space v
