@@ -14,6 +14,7 @@ favoriteFolders:=StrSplit(favoriteFolders,"`r`n")
 ; FileRead, vscodePath, %A_AppData%\ahk_explorer_settings\vscodePath.txt
 ; FileRead, BGColorOfSelectedPane, %A_AppData%\ahk_explorer_settings\BGColorOfSelectedPane.txt
 loadSettings()
+;gsettings
 
 ; EcurrentDir1=C:\Users\Public\AHK\notes\tests\New Folder
 
@@ -212,7 +213,7 @@ gsettings:
 
         Gui, add, button, ggsaveSettings,Save Settings
         ;p("x" textPos[1] " y" textPos[2] " h" 20 " w" 50)
-        Gui,add,Text, % "x" textPos[1] " y" textPos[2] " w" textSize[1] " h" textSize[2], peazipPath`nvscodePath`nBGColorOfSelectedPane`nAhk2ExePath
+        Gui,add,Text, % "x" textPos[1] " y" textPos[2] " w" textSize[1] " h" textSize[2], peazipPath`nvscodePath`nBGColorOfSelectedPane`nAhk2ExePath`nspekPath
         ;Gui,add,Edit, % x75 y10 h200 w100 vE2,
         Gui,add,Edit, % "x" editPos[1] " y" editPos[2] " w" editSize[1] " h" editSize[2] " vvsettings -wrap",%settingsTxt%
     } else {
@@ -1356,6 +1357,7 @@ loadSettings()
     vscodePath:=settingsArr[2]
     BGColorOfSelectedPane:=settingsArr[3]
     Ahk2ExePath:=settingsArr[4]
+    spekPath:=settingsArr[5]
 }
 sortSizes()
 {
@@ -3175,49 +3177,6 @@ sortArrayByArray(toSort, sortWith, reverse=false, key=false)
 
 ;end of functions
 ;hotkeys
-; #if winactive("settingsGui ahk_class AutoHotkeyGUI")
-; $enter::
-!p::
-    p(watching1,watching2)
-    Pause
-return
-#if winactive("renamingWinTitle ahk_class AutoHotkeyGUI")
-    ; $enter::
-; WinGetTitle, OutputVar , A
-; p(OutputVar)
-; fromButton:=true
-; gosub, renameFileLabel
-; return
-
-$esc::
-    if (focused="flistView") {
-        if (canRename) {
-            canRename:=false
-            ; gui, renameSimple:Default
-            ; gui, submit
-            gui, main:Default
-            ControlFocus,, % "ahk_id " ListviewHwnd%whichSide%
-
-            gui, renameSimple:Default
-            gui, destroy
-        }
-        return
-    }
-    send, {enter}
-return
-
-#if winactive("create_folder ahk_class AutoHotkeyGUI")
-
-$enter::
-    Gosub, createLabel
-
-return
-
-$+enter::
-$^+enter::
-    Gosub, createAndOpenLabel
-return
-
 #if winactive(thisUniqueWintitle)
 ^e::
 ; revealFileInExplorer(EcurrentDir%whichSide%, getSelectedNames())
@@ -3399,6 +3358,12 @@ $^+n::
     gui, createFolder: show,, create_folder
     dontSearch:=false
 
+return
+^s::
+    selectedNames:=getSelectedNames()
+    for notUsed, name in selectedNames {
+        Run, "%spekPath%" "%name%", % EcurrentDir%whichSide%
+    }
 return
 
 !h::
@@ -3684,4 +3649,42 @@ $enter::
     }
 
 return
+
+#if winactive("renamingWinTitle ahk_class AutoHotkeyGUI")
+    ; $enter::
+; WinGetTitle, OutputVar , A
+; p(OutputVar)
+; fromButton:=true
+; gosub, renameFileLabel
+; return
+
+$esc::
+    if (focused="flistView") {
+        if (canRename) {
+            canRename:=false
+            ; gui, renameSimple:Default
+            ; gui, submit
+            gui, main:Default
+            ControlFocus,, % "ahk_id " ListviewHwnd%whichSide%
+
+            gui, renameSimple:Default
+            gui, destroy
+        }
+        return
+    }
+    send, {enter}
+return
+
+#if winactive("create_folder ahk_class AutoHotkeyGUI")
+
+$enter::
+    Gosub, createLabel
+
+return
+
+$+enter::
+$^+enter::
+    Gosub, createAndOpenLabel
+return
+
 
