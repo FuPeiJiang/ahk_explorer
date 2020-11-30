@@ -142,6 +142,8 @@ loop 2 {
     LV_ModifyCol(2,300)
     LV_ModifyCol(3,"50 Right")
     LV_ModifyCol(5,"80 Right")
+    
+    LV_ModifyCol(2, "Logical")
     LV_ModifyCol(6,"Integer")
     ; LV_ModifyCol(2,"Integer Left")
     LV_ModifyCol(4,0) ; hides 3rd row
@@ -876,15 +878,14 @@ listViewEvents2:
                 sortColumn(1, "Sort")
             }
         } else if (A_EventInfo=2) {
-            p(56456)
-            LV_ModifyCol(2, "SortDesc")
-            ; if (!A_ZSort)
-            ; { 
-            ; A_ZSort:=true
-            ; sortColumn(2, "Sort")
-            ; } else {
-            ; A_ZSort:=false 
-            ; sortColumn(2, "SortDesc")
+            if (!A_ZSort%whichSide%)
+            { 
+                A_ZSort%whichSide%:=true
+                sortColumn(2, "Sort")
+            } else {
+                A_ZSort%whichSide%:=false 
+                sortColumn(2, "SortDesc")
+            }
         } else if (A_EventInfo=3) {
             if (!oldNew%whichSide%)
             { 
@@ -3178,14 +3179,14 @@ sortArrayByArray(toSort, sortWith, reverse=false, key=false)
 ;end of functions
 ;hotkeys
 #if winactive(thisUniqueWintitle)
-^e::
-; revealFileInExplorer(EcurrentDir%whichSide%, getSelectedNames())
-path:=getSelectedPaths()[1]
-if (path) {
-    Run, % "explorer.exe /select,""" path """"
-} else {
-    Run, % "explorer.exe """ EcurrentDir%whichSide% """"
-}
+    ^e::
+    ; revealFileInExplorer(EcurrentDir%whichSide%, getSelectedNames())
+    path:=getSelectedPaths()[1]
+    if (path) {
+        Run, % "explorer.exe /select,""" path """"
+    } else {
+        Run, % "explorer.exe """ EcurrentDir%whichSide% """"
+    }
 return
 
 #d::
@@ -3686,5 +3687,4 @@ $+enter::
 $^+enter::
     Gosub, createAndOpenLabel
 return
-
 
