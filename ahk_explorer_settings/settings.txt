@@ -1,0 +1,5 @@
+C:\Program Files\PeaZip\peazip.exe
+C:\Users\User\AppData\Local\Programs\Microsoft VS Code\Code.exe
+0xf2f2f2
+C:\Program Files\AutoHotkey\Compiler\Ahk2Exe.exe
+C:\Program Files (x86)\Spek\spek.exe

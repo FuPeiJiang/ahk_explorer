@@ -1,10 +1,7 @@
 ## much fast file manager
 
-You have to put ahk_explorer_settings in %Appdata% with :\
-vscodePath.txt\
-peazipPath.txt\
-favoriteFolders.txt\
-BGColorOfSelectedPane.txt
+Fill in the settings you need
+![](https://i.imgur.com/L5uzx8Y.png)
 
 git clone using github desktop and pull origin to update! no need to compile
 
