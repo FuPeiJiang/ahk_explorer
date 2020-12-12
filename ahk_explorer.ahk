@@ -1431,22 +1431,7 @@ sortSizes()
     for k, v in sortedSizes%whichSide% {
         sortedBySize%whichSide%.Push(v["name"])
     }
-    ; clipboard:=array_ToNewLineString(sortedSizes)
-    ; p(sortedSizes)
 
-    ; for k, v in sortedByDate%whichSide% {
-    ; oSize:=stuffByName%whichSide%[v]["size"]
-    ; if (sortedSizes%whichSide%.HasKey(oSize))
-    ; sortedSizes%whichSide%[oSize].Push(v)
-    ; else 
-    ; sortedSizes%whichSide%[oSize]:=[v]
-    ; }
-    ; 
-    ; for k, v in sortedSizes%whichSide% {
-    ; for key ,value in v {
-    ; sortedBySize%whichSide%.Insert(1, value)
-    ; }
-    ; }
 }
 
 bothSameDir(whichSide)
@@ -1580,51 +1565,9 @@ fileRenamed(whichSide, Byref renameFrom,Byref renameInto)
         }
     }
 
-    ; ar:=sortedDates%whichSide%[obj.date]
-    ; for k, v in ar {
-    ; if (v=renameFrom) {
-    ; sortedDates%whichSide%[obj.date][k]:=renameInto
-    ; break
-    ; }
-    ; }
-    ;separator 
     removeFromSizes(renameFrom, whichSide)
     addToSizes(renameInto,outputSize, whichSide)
-    ;separator 
 
-    ; for k, v in sortedBySize%whichSide% {
-    ; if (v=OutFileName) {
-    ; sortedBySize%whichSide%.Remove(k)
-    ; break
-    ; }
-    ; }
-    ; ar:=sortedSizes%whichSide%[obj.size]
-    ; if (ar.Length()=1) {
-    ; stuffByName%whichSide%.Delete(obj.size)
-    ; } else {
-    ; for k, v in ar {
-    ; if (v=OutFileName) {
-    ; sortedSizes%whichSide%[obj.size].Remove(k)
-    ; break
-    ; }
-    ; }
-    ; }
-    ; 
-    ; if (sortedSizes%whichSide%.HasKey(outputSize))
-    ; sortedSizes%whichSide%[outputSize].Push(OutFileName)
-    ; else 
-    ; sortedSizes%whichSide%[outputSize]:=[OutFileName]
-    ; 
-    ; index:=1
-    ; for k, v in sortedSizes%whichSide% {
-    ; for key ,value in v {
-    ; if (value=OutFileName) {
-    ; sortedBySize%whichSide%.Insert(sortedBySize%whichSide%.Length()-index+2, value)
-    ; break 2
-    ; }
-    ; index++
-    ; }
-    ; }
     rowNums:=LV_GetCount()
     loop % rowNums {
         LV_GetText(OutputVar,A_Index,2)
@@ -1650,30 +1593,8 @@ fileAdded(whichSide, Byref path) {
 
     stuffByName%whichSide%[OutFileName]:={date:A_Now,attri:OutputAttri,size:outputSize}
 
-    ; if (sortedDates%whichSide%.HasKey(A_Now))
-    ; sortedDates%whichSide%[A_Now].Push(OutFileName)
-    ; else 
-    ; sortedDates%whichSide%[A_Now]:=[OutFileName]
-
-;separator
 
     sortedByDate%whichSide%.InsertAt(1,OutFileName)
-; 
-    ; if (sortedSizes%whichSide%.HasKey(outputSize))
-        ; sortedSizes%whichSide%[outputSize].Push(OutFileName)
-    ; else 
-        ; sortedSizes%whichSide%[outputSize]:=[OutFileName]
-; 
-    ; index:=1
-    ; for k, v in sortedSizes%whichSide% {
-        ; for key ,value in v {
-            ; if (value=OutFileName) {
-                ; sortedBySize%whichSide%.Insert(sortedBySize%whichSide%.Length()-index+2, value)
-                ; break 2
-            ; }
-            ; index++
-        ; }
-    ; }
 
     addToSizes(OutFileName,outputSize,whichSide)
 
@@ -1718,35 +1639,6 @@ fileDeleted(Byref whichSide, Byref path)
                     break
                 }
             }
-            ; ar:=sortedDates%whichSide%[obj.date]
-            ; if (ar.Length()=1) {
-            ; stuffByName%whichSide%.Delete(obj.date)
-            ; } else {
-            ; for k, v in ar {
-            ; if (v=OutFileName) {
-            ; sortedDates%whichSide%[obj.date].Remove(k)
-            ; break
-            ; }
-            ; }
-            ; }
-
-            ; for k, v in sortedBySize%whichSide% {
-                ; if (v=OutFileName) {
-                    ; sortedBySize%whichSide%.Remove(k)
-                    ; break
-                ; }
-            ; }
-            ; ar:=sortedSizes%whichSide%[obj.size]
-            ; if (ar.Length()=1) {
-                ; stuffByName%whichSide%.Delete(obj.size)
-            ; } else {
-                ; for k, v in ar {
-                    ; if (v=OutFileName) {
-                        ; sortedSizes%whichSide%[obj.size].Remove(k)
-                        ; break
-                    ; }
-                ; }
-            ; }
 
             removeFromSizes(OutFileName,whichSide)
 
@@ -2892,33 +2784,13 @@ renderCurrentDir()
             stuffByName%whichSide%[A_LoopFileName]:={date:A_LoopFileTimeModified,attri:A_LoopFileAttrib,size:A_LoopFileSize}
 
             sortedDates.Push({date:A_LoopFileTimeModified,name:A_LoopFileName})
-            ; if (sortedDates%whichSide%.HasKey(A_LoopFileTimeModified))
-            ; sortedDates%whichSide%[A_LoopFileTimeModified].Push(A_LoopFileName)
-            ; else 
-            ; sortedDates%whichSide%[A_LoopFileTimeModified]:=[A_LoopFileName]
         }
-        ; for k in stuffByName%whichSide% {
-        ; unsorted%whichSide%.Push(k)
-        ; }
-
-        ; for k, v in sortedDates%whichSide% {
-        ; for key ,value in v {
-        ; sortedByDate%whichSide%.Insert(1, value)
-        ; }
-        ; }
 
         sortedDates:=sortArrByKey(sortedDates,"date",true)
 
         for k, v in sortedDates {
             sortedByDate%whichSide%.Push(v["name"])
         }
-
-        ; clipboard:=array_ToNewLineString(sortedByDate%whichSide%)
-        ; p(sortedByDate%whichSide%)
-        ; 
-        ; return
-
-        ; sortedByDate%whichSide%:=sortArrayByArray(unsorted%whichSide%,stuffByName%whichSide%,true,"date")
 
         firstSizes%whichSide%:=true
         whichsort%whichSide%:="newOld"
