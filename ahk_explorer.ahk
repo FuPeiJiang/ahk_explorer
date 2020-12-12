@@ -10,13 +10,8 @@ currentDirSearch=
 ;%appdata%\ahk_explorer_settings
 FileRead, favoriteFolders, %A_AppData%\ahk_explorer_settings\favoriteFolders.txt
 favoriteFolders:=StrSplit(favoriteFolders,"`r`n")
-; FileRead, peazipPath, %A_AppData%\ahk_explorer_settings\peazipPath.txt
-; FileRead, vscodePath, %A_AppData%\ahk_explorer_settings\vscodePath.txt
-; FileRead, BGColorOfSelectedPane, %A_AppData%\ahk_explorer_settings\BGColorOfSelectedPane.txt
 loadSettings()
 ;gsettings
-
-; EcurrentDir1=C:\Users\Public\AHK\notes\tests\New Folder
 
 FOLDERID_Downloads := "{374DE290-123F-4565-9164-39C4925E467B}"
 RegRead, v, HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders, % FOLDERID_Downloads
@@ -26,13 +21,11 @@ EcurrentDir1:=downloads
 ; EcurrentDir1=C:\Users\Public\AHK\notes\tests
 ; EcurrentDir1=C:\Users\Public\AHK\notes\tests\File Watcher
 ; EcurrentDir2=C:\Users\Public\AHK
+; EcurrentDir1=C:\Users\Public\AHK\notes\tests\New Folder
 EcurrentDir2=C:\Users\Public\AHK\notes\tests\New Folder 3
 whichSide:=1
 
 lastDir1:="C:"
-; fileExist:=fileExist(EcurrentDir%whichSide%)
-; if (!InStr(fileExist, "D"))
-; EcurrentDir%whichSide%:="C:"
 
 for n, param in A_Args ; For each parameter:
 {
@@ -72,18 +65,12 @@ calculateDates:=1
 doIcons:=1
 global dropEffectFormat := DllCall("RegisterClipboardFormat", "Str", CFSTR_PREFERREDDROPEFFECT := "Preferred DropEffect", "UInt")
 
-; clipboard:=A_Programs
 Gui, main:New, +hwndthisHwnd
 thisUniqueWintitle:="ahk_id " thisHwnd
-; thisUniqueWintitle:="ahk_id " thisHwnd "ahk_explorer ahk_class AutoHotkeyGUI"
 Gui, main:Default
-; Gui, Font, s12
 Gui,Font, s10, Segoe UI
 
-; Gui, Font, s10, Segoe UI
-
 Gui, +LastFound
-; Gui, +LastFound +Resize
 hw_gui := WinExist()
 
 Gui, Margin, 0, 0
@@ -92,11 +79,6 @@ folderListViewWidth:=250
 favoritesListViewWidth:=130
 
 listViewWidth:=500
-; Gui, Add, Button, h40 w%favoritesListViewWidth% gDriveButtonEvents vDriveButton Left,
-; Gui, Add, Button,  w80, C:\`r`n7.06 GB/232.24 GB
-
-; Gui, Add, ListView, 0x2000 h28 w%favoritesListViewWidth% +WantF2 -ReadOnly vdriveSpace AltSubmit ,C:\ `r`n7.06 GB/232.24 GB
-; Gui, Add, ListView, r1 w%favoritesListViewWidth% y220 +WantF2 -ReadOnly vdriveSpace gdriveSpaceEvent AltSubmit ,Please enter your name:
 favoritesLenght:=favoriteFolders.Length()
 
 Gui, Add, Button, w%favoritesListViewWidth% ggsettings y212,settings
@@ -107,32 +89,16 @@ Gui, Add, ListView, r10 w%folderListViewWidth% x+0 y0 vfolderlistView2_1 gfolder
 
 Gui, Add, Edit, hwndEdithwnd1 r1 w%listViewWidth% y+0 x+-500 vvcurrentDirEdit1 gcurrentDirEdit1Changed, %EcurrentDir1%
 
-; Gui, Add, Edit, w100 h100
-; Gui, Add, Edit, w100 h100 vVarEdit2
-
-; Gui, Color, 0x161616
-
 Gui, Add, ListView, NoSort HwndListviewHwnd1 Count5000 r25 -WantF2 w%listViewWidth% -ReadOnly vvlistView1 glistViewEvents1 AltSubmit ,type|Name|Date|sortableDate|Size|sortableSize
 
 Gui, Add, ListView, r10 w%folderListViewWidth% y0 x+0 vfolderListView1_2 gfolderlistViewEvents1_2 AltSubmit ,Name
 Gui, Add, ListView, r10 w%folderListViewWidth% x+0 y0 vfolderlistView2_2 gfolderlistViewEvents2_2 AltSubmit ,Name
 Gui, Add, Edit, hwndEdithwnd2 r1 w%listViewWidth% y+0 x+-500 vvcurrentDirEdit2 gcurrentDirEdit2Changed, %EcurrentDir2%
 Gui, Add, ListView, NoSort HwndListviewHwnd2 Count5000 r25 -WantF2 w%listViewWidth% -ReadOnly vvlistView2 glistViewEvents2 AltSubmit ,type|Name|Date|sortableDate|Size|sortableSize
-; Gui, Add, ListView, NoSort HwndListviewHwnd Count200 r25 w%listViewWidth% +WantF2 -ReadOnly vlistView glistViewEvents AltSubmit ,Name|Date|sortableDate|Size|sortableSize
-;0x161616, 1305, 515
-;   Gui, Font, cwhite
-;   vvvvv:=["listView","favoritesListView","folderListView1","folderlistView2","currentDirEdit"]
-;   for k,v in vvvvv{
-;   GuiControl, +Background0x161616, %v%
-; GuiControl, Font, %v%
-;   }
 
-; MyInstance := New LV_Colors(ListviewHwnd,true,false)
-; MyInstance :=  LV_Colors.Attach(ListviewHwnd,true,false)
 OnMessage(0x4A, "WM_COPYDATA_READ")
 
 OnMessage(0x111, "HandleMessage" )
-; MyInstance.
 loop 2 {
     Gui, ListView, vlistView%A_Index%
     LV_Colors.OnMessage()
@@ -145,13 +111,11 @@ loop 2 {
 
     LV_ModifyCol(2, "Logical")
     LV_ModifyCol(6,"Integer")
-    ; LV_ModifyCol(2,"Integer Left")
+
     LV_ModifyCol(4,0) ; hides 3rd row
     LV_ModifyCol(6,0) ; hides 3rd row
     focused=flistView
     ImageListID%A_Index% := IL_Create(50)
-    ; ImageListID1 := IL_Create(200)
-    ; ImageListID1 := IL_Create(10)
     LV_SetImageList(ImageListID%A_Index%) ;desactivated this to test 
 }
 
@@ -159,12 +123,9 @@ Gui, Show,,ahk_explorer
 Gui, ListView, favoritesListView
 favoriteFoldersNames:=[]
 for k, v in favoriteFolders {
-    ; if (InStr(fileExist(v), "D"))
-    ; {
     SplitPath, v, OutFileName
     favoriteFoldersNames.Push(OutFileName)
     LV_Add(, OutFileName)
-    ; }
 }
 
 renderCurrentDir()
@@ -207,16 +168,13 @@ gsettings:
         editSize:=[1000, 200]
         textSize:=[190, editSize[2]]
         editPos:=[textSize[1]+30, 50]
-        ; editPos:=[textSize[1]+30, 10]
         textPos:=[10, ZTrim(editPos[2]+1.5) ]
         guiSize:=[editSize[1]+textSize[1]+20, editPos[2]+editSize[2]+10]
         guiPos:=[A_ScreenWidth/2-guiSize[1]/2,A_ScreenHeight/2-guiSize[2]/2]
         Gui,Font,s12 w500 q5, Consolas
 
         Gui, add, button, ggsaveSettings,Save Settings
-        ;p("x" textPos[1] " y" textPos[2] " h" 20 " w" 50)
         Gui,add,Text, % "x" textPos[1] " y" textPos[2] " w" textSize[1] " h" textSize[2], peazipPath`nvscodePath`nBGColorOfSelectedPane`nAhk2ExePath`nspekPath
-        ;Gui,add,Edit, % x75 y10 h200 w100 vE2,
         Gui,add,Edit, % "x" editPos[1] " y" editPos[2] " w" editSize[1] " h" editSize[2] " vvsettings -wrap",%settingsTxt%
     } else {
         Guicontrol, text, vsettings,%settingsTxt%
@@ -235,9 +193,7 @@ return
 gmultiRenameApply:
     multiRenameNames:=getMultiRenameNames()
     multiRenameNamesBak:=multiRenameNames.Clone()
-    ; multiRenameNamesBak:=A.cloneDeep(multiRenameNames)
     namesToMultiRenameBak:=namesToMultiRename.Clone()
-    ; namesToMultiRenameBak:=A.cloneDeep(namesToMultiRename)
 
     for k, v in multiRenameNamesBak {
         toRenamePath := multiRenameDir "\" namesToMultiRenameBak[k]
@@ -250,7 +206,6 @@ gmultiRenameApply:
         }
         toRenameExists:=fileExist(toRenamePath)
         if (toRenameExists) {
-            ; p(toRenamePath " | " renamedPath)
             if (InStr(toRenameExists, "D")) {
                 FileMoveDir, %toRenamePath%, %renamedPath%
             } else {
@@ -316,10 +271,9 @@ TypingInRenameSimple:
 
     }
 return
+;renameLabel
 grenameFileLabel:
     fromButton:=true
-    ; p(777)
-    ;renameLabel
 renameFileLabel:
     if (canRename) {
         gui, renameSimple:Default
@@ -354,20 +308,6 @@ renameFileLabel:
                         SourcePath:=randomPath
                     }
 
-                    ; LV_Modify(row,,, RenamingSimple)
-                    ; stuffByName[RenamingSimple]:=stuffByName[TextBeingRenamed]
-                    ; stuffByName.Delete(TextBeingRenamed)
-                    ; for k, v in stuffByName {
-                    ; if (v=TextBeingRenamed) {
-                    ; stuffByName.RemoveAt(k)
-                    ; stuffByName.InsertAt(k, RenamingSimple)
-                    ; }
-                    ; }
-                    ; for k, v in sortedByDate {
-                    ; if (sortedByDate[k]["name"]=TextBeingRenamed) {
-                    ; sortedByDate[k]["name"]:=RenamingSimple
-                    ; }
-                    ; }
                     if (InStr(fileExist, "D")) {
                         FileMoveDir, %SourcePath%, %DestPath%
                     } else {
@@ -390,11 +330,9 @@ renameFileLabel:
 
             gui, main:Default
             if (fromButton) {
-                ; fromButton:=false
                 ControlFocus,, % "ahk_id " ListviewHwnd%whichSide%
             }
         } else {
-            ; canRename:=true
             gui, main:Default
 
             gui, show
@@ -412,7 +350,7 @@ mainGuiClose:
         Process, Close, %PID_FolderWatcher2%
         Exitapp
     } else {
-        ; Process, Close, %PID_getFolderSizes%
+        Process, Close, %PID_getFolderSizes%
         windowHidden:=true
         Gui, main:Default
         Gui, hide
@@ -508,7 +446,6 @@ currentDirEdit2Changed:
     SetTimer, currentDirEdit1ChangedTimer, -0
 return
 currentDirEdit1ChangedTimer:
-
     Gui, main:Default
     gui, submit, nohide
     if (focused="searchCurrentDirEdit")
@@ -610,16 +547,7 @@ listViewEvents2:
                 row:=LV_GetNext("")
                 LV_GetText(TextBeingRenamed, row, 2)
                 ICELV%whichSide%.EditCell(row, 2)
-                ; return
                 sleep, 25
-                ; ControlGet, hCtl, Hwnd,, Edit2
-                ; ControlGet, hCtl2, Hwnd, , , , %text%
-                ; 
-                ; p(hCtl2 " " hCtl)
-                ; WinGetPos, xpos, ypos,,, % "ahk_id " hCtl
-
-                ; ControlGetPos , X, Y,,, Edit2 ;, WinTitle, WinText, ExcludeTitle, ExcludeText
-                ; WinGetPos, xpos, ypos,,, % "ahk_id " hCtl
                 WinGetPos, xpos, ypos,,,% ahk_explorer ahk_class AutoHotkeyGUI
                 if (whichSide=1)
                     xpos+=161
@@ -633,17 +561,13 @@ listViewEvents2:
                 gui, add, edit,y2 r1 w%renameTextWidthLimit% -wrap gTypingInRenameSimple vRenamingSimple hwndRenameHwnd, %TextBeingRenamed%
                 Gui, Add, Button, Hidden Default ggrenameFileLabel
 
-                ; xpos-=4
-                ; ypos-=3
-                ; WinSet, Style, -0xC00000,a ; remove the titlebar and border(s) 
                 gui, show, X%xpos% Y%ypos% h0,renamingWinTitle
                 WinSet, Style, -0xC00000,a ; remove the titlebar and border(s) 
 
                 gosub, TypingInRenameSimple
 
-                sleep, 500
-
                 return
+                sleep, 500
 
                 LV_GetText(OutputVar,A_EventInfo,2)
                 SplitPath, OutputVar, , , OutExtension, OutNameNoExt
@@ -697,39 +621,13 @@ listViewEvents2:
             }
             else if (key="NumpadDel") {
 
-                ; indexes:=[]
-                ; selectedNames:=[]
-                ; index:=0
-                ; loop {
-                ; index:=LV_GetNext(index)
-                ; LV_GetText(OutputVar,index,2)
-                ; if (!index)
-                ; break
-                ; selectedNames.Push(OutputVar)
-                ; }
                 selectedNames:=getSelectedNames()
-                ; deleteCount%whichSide%:=selectedNames.Length()
-                ; gosub, selectCurrent
-
-                ; finalStr:="""" A_AhkPath """ ""lib\fileRecycle.ahk"" """ EcurrentDir%whichSide% """ " array_tospacedstring(selectedNames)
 
                 for k, v in getSelectedNames() {
                     finalStr:="""" A_AhkPath """ ""lib\fileRecycle_one.ahk"" """ EcurrentDir%whichSide% "\" v """" 
-                    ; p(finalStr)
                     run, %finalStr%
                 }
 
-                ; clipboard:=finalStr
-                ; p(finalStr)
-                ; Run, 
-                ; for k, v in selectedNames {
-                ; FileRecycle, % EcurrentDir%whichSide% "\" v
-                ; if (ErrorLevel=1) {
-                ; p("File is in use or Requires PERMISSION to delete")
-                ; return
-                ; }
-                ; }
-                ; SoundPlay, *-1
                 return
             } else {
                 if (focused!="searchCurrentDirEdit")
@@ -755,7 +653,6 @@ listViewEvents2:
                             loop % LV_GetCount()
                             {
                                 LV_Modify(A_Index, "+Select") ; select                            
-                                ; LV_Modify(A_Index, "+Select +Focus") ; select                            
                             }
                         } else if (key="h") {
 
@@ -784,18 +681,7 @@ listViewEvents2:
                             soundplay, *-1
                             renderCurrentDir() ;refresh 
                             return
-                            ; } else if (key="c") {
-
                         } else if (key="v") {
-                            ; if (whichSide=1) {
-                            ; 
-                            ; gosub, selectPanel2
-                            ; } else {
-                            ; gosub, selectPanel1
-                            ; }
-
-                            ; action:=false
-
                             if (DllCall("IsClipboardFormatAvailable", "UInt", CF_HDROP := 15)) { ; file being copied
                                 if (DllCall("IsClipboardFormatAvailable", "UInt", dropEffectFormat)) {
                                     if (DllCall("OpenClipboard", "Ptr", A_ScriptHwnd)) {
@@ -826,25 +712,6 @@ listViewEvents2:
                                     }
                                 }
                             }
-
-                /* 
-                gui, main:default
-                whichSideBak:=whichSide
-                whichSide:=(whichSide=1) ? 2 : 1
-                Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
-                ; sleep, 1000
-                GuiControl, Focus, vlistView%whichSide% ;bad code
-                ControlFocus,, % "ahk_id " ListviewHwnd%whichSide%
-                GuiControl, +Background%BGColorOfSelectedPane%, vlistView%whichSide%
-                GuiControl, +BackgroundWhite, vlistView%whichSideBak%
-                
-                
-                ; p(whichSide)
-                ControlFocus,, % "ahk_id " ListviewHwnd%whichSide%
-                Gui, ListView, vlistView%whichSide%
-                
-                pasteFile()
-                            */
                             return
 
                         } 
@@ -853,7 +720,6 @@ listViewEvents2:
                         return
 
                     focused=searchCurrentDirEdit
-                    ; focused=searchCurrentDirEdit%whichSide%
                     GuiControl, Focus, vcurrentDirEdit%whichSide%
                     GuiControl, Text, vcurrentDirEdit%whichSide%,% searchString%whichSide% key
                     SendMessage, 0xB1, -2, -1,, % "ahk_id " Edithwnd%whichSide%
@@ -894,12 +760,10 @@ listViewEvents2:
                 whichsort%whichSide%:="oldNew"
                 oldNew%whichSide%:=true 
                 renderFunctionsToSort(sortedByDate%whichSide%, true)
-                ; sortColumn(4, "SortDesc")
             } else {
                 whichsort%whichSide%:="newOld"
                 oldNew%whichSide%:=false 
                 renderFunctionsToSort(sortedByDate%whichSide%)
-                ; sortColumn(4, "Sort")
             }
         } else if (A_EventInfo=5) {
             if (canSortBySize%whichSide%) {
@@ -908,13 +772,10 @@ listViewEvents2:
                     whichsort%whichSide%:="bigSmall"
                     bigSmall%whichSide%:=true 
                     renderFunctionsToSort(sortedBySize%whichSide%)
-
-                    ; sortColumn(6, "SortDesc")
                 } else {
                     whichsort%whichSide%:="smallBig"
                     bigSmall%whichSide%:=false 
                     renderFunctionsToSort(sortedBySize%whichSide%, true)
-                    ; sortColumn(6, "Sort")
                 }
             }
         }
@@ -1456,10 +1317,7 @@ revealFileInExplorer(folderPath, files)
         DllCall(VTable(pIShellFolder,3),"Ptr", pIShellFolder,"Ptr",win_hwnd,"Ptr",0,"Wstr",v,"Uint*",0,"Ptr*",tmpPIDL,"Uint*",0)
         NumPut(tmpPIDL, apidl, (k - 1)*A_PtrSize, "Ptr")
     }
-    ; DllCall(140733176445120, "Ptr", pidl, "UINT", length, "Ptr", &apidl, "Uint", 0)
     DllCall("shell32\SHOpenFolderAndSelectItems", "Ptr", pidl, "UINT", length, "Ptr", &apidl, "Uint", 0)
-
-    ; "Uint",length,"Ptr",&apidl,"Ptr",GUID4String(IID_IContextMenu,"{000214E4-0000-0000-C000-000000000046}"),"UINT*",0,"Ptr*",pIContextMenu)
     COM_CoUninitialize()
 }
 COM_CoInitialize()
@@ -1593,7 +1451,6 @@ fileAdded(whichSide, Byref path) {
 
     stuffByName%whichSide%[OutFileName]:={date:A_Now,attri:OutputAttri,size:outputSize}
 
-
     sortedByDate%whichSide%.InsertAt(1,OutFileName)
 
     addToSizes(OutFileName,outputSize,whichSide)
@@ -1677,8 +1534,6 @@ whereToAddFile(byref whichSide, byref OutFileName,byref date,byref size) {
                     name:=v["name"]
                     if (name=OutFileName) {
                         insertNum:=k
-
-                        ; insertRow(whichSide, OutFileName, k, A_Now, OutputAttri,outputSize)
                     }
                 }
             } else {
@@ -1692,8 +1547,6 @@ whereToAddFile(byref whichSide, byref OutFileName,byref date,byref size) {
                             SplitPath, v,,, OutExtension
                             if (!OutExtension) {
                                 insertNum:=k
-                                ; insertRow(whichSide, OutFileName, k, A_Now, OutputAttri,outputSize)
-
                             }
                         }
                     }
@@ -1716,19 +1569,16 @@ whereToAddFile(byref whichSide, byref OutFileName,byref date,byref size) {
                         name:=v["name"]
                         if (name=OutFileName) {
                             insertNum:=k
-                            ; insertRow(whichSide, OutFileName, k, A_Now, OutputAttri,outputSize)
                         }
                     }
                 }
 
             }
         } else {
-            ; insertRow(whichSide, OutFileName, 1, A_Now, OutputAttri,outputSize)
             insertNum:=1
         }
     } else if (whichsort%whichSide%="oldNew") {
         rowNums:=LV_GetCount()
-        ; insertRow(whichSide, OutFileName, rowNums+1, A_Now, OutputAttri,outputSize)
         insertNum:=rowNums+1
     } else if (whichsort%whichSide%="bigSmall") {
         for k, v in sortedBySize%whichSide% {
@@ -1736,7 +1586,6 @@ whereToAddFile(byref whichSide, byref OutFileName,byref date,byref size) {
                 break
             if (v=OutFileName) {
                 insertNum:=k
-                ; insertRow(whichSide, OutFileName, k, A_Now, OutputAttri,outputSize)
             }
         }
     } else if (whichsort%whichSide%="smallBig") {
@@ -1747,7 +1596,6 @@ whereToAddFile(byref whichSide, byref OutFileName,byref date,byref size) {
                 break
             if (v=OutFileName) {
                 insertNum:=k
-                ; insertRow(whichSide, OutFileName, k, A_Now, OutputAttri,outputSize)
             }
         }
     }
@@ -1770,24 +1618,6 @@ insertRow(byref whichSide, byref OutFileName,byref row,byref date,byref size)
 
     justOneIcon(OutFileName,row,whichSide)
     GuiControl, +Redraw, vlistView%whichSide% 
-    ; hIcon := DllCall("Shell32\ExtractAssociatedIcon", UInt, 0, Str, EcurrentDir%whichSide% "\" name , UShortP, iIndex)
-    ; if hIcon
-    ; {
-    ; IconNumber := DllCall("ImageList_ReplaceIcon", UInt, ImageListID%whichSide%, Int, -1, UInt, hIcon) + 1
-    ; DllCall("DestroyIcon", Uint, hIcon)
-    ; }
-    ; else
-    ; IconNumber = 1
-    ; LV_Modify(row,"Icon" . IconNumber)
-    ; lastIconNumber:=IconNumber
-    ; sleep, 3000
-
-    ; if (bothSides) {
-    ; Gui, ListView, vlistView%otherSide%
-    ; LV_Insert(row,,,name,var1,var2,formattedBytes,bytes)
-    ; LV_Colors.Cell(ListviewHwnd%otherSide%,row,3,color)
-    ; applyIcons([name])
-    ; }
 }
 
 pasteFile()
@@ -1799,6 +1629,7 @@ pasteFile()
             if (DllCall("OpenClipboard", "Ptr", A_ScriptHwnd)) {
                 if (data := DllCall("GetClipboardData", "UInt", dropEffectFormat, "Ptr")) {
                     if (effect := DllCall("GlobalLock", "Ptr", data, "UInt*")) {
+                        ; action:="copy"
                         if (effect & DROPEFFECT_COPY) {
                             files:=StrSplit(clipboard, "`r`n")
                             for k, v in files {
@@ -1816,23 +1647,16 @@ pasteFile()
                                     }
                                 }
                             }
-                            ; renderCurrentDir()
                             SoundPlay, *-1
                         }
-                        ; action:="copy"
+                        ; action:="move"
                         else if (effect & DROPEFFECT_MOVE) {
                             files:=StrSplit(clipboard, "`r`n")
                             if (files.Length()) {
-                                ; fromOtherPanel:=false
-                                ; otherPanel:=(whichSide=1) ? 2 : 1
                                 for k, v in files {
                                     fileExist:=FileExist(v)
                                     if (fileExist) {
                                         SplitPath, v , OutFileName
-                                        ; SplitPath, v , OutFileName, OutDir
-                                        ; if (Outdir=EcurrentDir%otherPanel%) {
-                                        ; fromOtherPanel:=true
-                                        ; }
                                         if (InStr(fileExist, "D")) {
                                             FileMoveDir, %v%, % EcurrentDir%whichSide% "\" OutFileName
                                         } else {
@@ -1849,7 +1673,6 @@ pasteFile()
                             }
 
                         }
-                        ; action:="move"
                         DllCall("GlobalUnlock", "Ptr", data)
                     }
                 }
@@ -2027,7 +1850,6 @@ applySizes() {
         Run, "%A_AhkPath%" "lib\getFolderSizes.ahk" %namesStr%,,,PID_getFolderSizes
     } else {
         Process, Close, %PID_getFolderSizes%
-        ; sortedBySize%whichSide%:=sortArrayByArray(unsorted%whichSide%,stuffByName%whichSide%,true,"size")
         sortSizes()
         canSortBySize%whichSide%:=true
     }
@@ -2038,7 +1860,6 @@ justOneIcon(byref name,byref row, byref whichSide) {
         hIcon := DllCall("Shell32\ExtractAssociatedIcon", UInt, 0, Str, EcurrentDir%whichSide% "\" name , UShortP, iIndex)
         if hIcon
         {
-            ; DllCall("ImageList_ReplaceIcon", UInt, ImageListID1, Int, -1, UInt, hIcon)
             IconNumber := DllCall("ImageList_ReplaceIcon", UInt, ImageListID%whichSide%, Int, -1, UInt, hIcon) + 1
             DllCall("DestroyIcon", Uint, hIcon)
         }
@@ -2058,7 +1879,6 @@ applyIcons(byref names) {
             hIcon := DllCall("Shell32\ExtractAssociatedIcon", UInt, 0, Str, EcurrentDir%whichSide% "\" v , UShortP, iIndex)
             if hIcon
             {
-                ; DllCall("ImageList_ReplaceIcon", UInt, ImageListID1, Int, -1, UInt, hIcon)
                 IconNumber := DllCall("ImageList_ReplaceIcon", UInt, ImageListID%whichSide%, Int, -1, UInt, hIcon) + 1
                 DllCall("DestroyIcon", Uint, hIcon)
             }
@@ -2118,7 +1938,6 @@ renderFunctionsToSort(ByRef objectToSort, reverse:=false)
             }
         }
     }
-    ; p(startPos)
     k:=startPos
     loop % rowsToLoop {
         name:=objectToSort[k]
@@ -2130,7 +1949,6 @@ renderFunctionsToSort(ByRef objectToSort, reverse:=false)
         }
         calculateStuff(v["date"],v["size"],name,A_Index)
         LV_Add(,,name,var1,var2,formattedBytes,bytes)
-        ; LV_Add("Icon" . IconNumber,,name,var1,var2,formattedBytes,bytes)
         LV_Colors.Cell(ListviewHwnd%whichSide%,A_Index,3,color)
         namesForIcons%whichSide%.Push(name)
 
@@ -2139,7 +1957,6 @@ renderFunctionsToSort(ByRef objectToSort, reverse:=false)
             hIcon:=DllCall("Shell32\ExtractAssociatedIcon", UInt, 0, Str, "", UShortP, iIndex)
             if hIcon
             {
-                ; DllCall("ImageList_ReplaceIcon", UInt, ImageListID1, Int, -1, UInt, hIcon)
                 IconNumber := DllCall("ImageList_ReplaceIcon", UInt, ImageListID1, Int, -1, UInt, hIcon) + 1
                 DllCall("DestroyIcon", Uint, hIcon)
             }
@@ -2147,7 +1964,6 @@ renderFunctionsToSort(ByRef objectToSort, reverse:=false)
                 IconNumber = 1
             LV_Modify(A_Index,"Icon" . IconNumber)
             lastIconNumber:=IconNumber
-            ; lastIconNumber:=IconNumber
         }
 
         k+=inc
@@ -2616,11 +2432,6 @@ searchInCurrentDir() {
                         namesForIcons%whichSide%.Push(v)
                     }
                 }
-
-                ; for k,v in filesWithNoExt {
-                ; ar:=EntriesNameNoExt[v]
-                ; LV_Add(,ar["isFolder"],v,ar["date"],ar["sortableDate"],ar["size"],ar["sortableSize"])
-                ; }
             } else {
                 searchStringBak%whichSide%:=SubStr(searchString%whichSide%, 2)
                 counter:=0
@@ -2720,33 +2531,18 @@ renderCurrentDir()
             bothSameDir:=bothSameDir(whichSide)
             if (lastDir%whichSide%!="" and EcurrentDir%otherSide%!=lastDir%whichSide%) {
                 for k, v in watching%whichSide% {
-                    ; p(lastDir%whichSide%)
                     if (v=lastDir%whichSide%) {
                         watching%whichSide%.Remove(k)
                         dirToStopWatching:=v
                         break
                     }
                 }
-                ; p("stopped " lastDir%whichSide% )
-                ; p("stopped " dirToStopWatching )
                 stopWatchFolder(whichSide,dirToStopWatching) 
-                ; stopWatchFolder(dirToStopWatching) 
-                ; stopWatchFolder(dirToStopWatching) 
-                ; stopWatchFolder(lastDir%whichSide%) 
             }
 
             if (!bothSameDir) {
-
-                ; p("started " EcurrentDir%whichSide% )
                 watching%whichSide%.Push(EcurrentDir%whichSide%)
-                ; startWatchFolder(EcurrentDir%whichSide%)
-                ; if (watchersStarted) {
                 startWatchFolder(whichSide,EcurrentDir%whichSide%)
-                ; }
-                ; else {
-                ; watchersStarted:=true
-                ; }
-
             }
 
             if (lastDir%whichSide%!="" and !cannotDirHistory%whichSide%) {
@@ -2766,7 +2562,6 @@ renderCurrentDir()
         sizes:=[]
         sortableSizes:=[]
         dateColors:=[]
-        ; EntriesNameNoExt:={}
         filesWithNoExt:=[]
         if (lastIconNumber)
             rememberIconNumber:=lastIconNumber
@@ -2777,7 +2572,6 @@ renderCurrentDir()
         canSortBySize%whichSide%:=false
         stuffByName%whichSide%:={}
         sortedDates:=[]
-        ; sortedDates%whichSide%:={}
         sortedSizes%whichSide%:=[]
         Loop, Files, % EcurrentDir%whichSide% "\*", DF
         {
@@ -3265,16 +3059,8 @@ $\::
 
 return
 
-; tab::
-
-return
-
-$`::
+; $`::
     p(watching1,watching2)
-    ; p(sortedSizes1,sortedBySize1)
-    ; p(whichSide)
-    ; p(watching2)
-    ; p(focused)
 Return
 
 $^+r::
@@ -3360,8 +3146,6 @@ return
 copySelectedPaths:
 ^+c::
     Gui, main:Default
-    ; Gui, ListView, listView
-    ; GuiControlGet, FocusedControl, FocusV
     dontSearch:=true
     selectedNames:=getSelectedNames()
     finalStr=
@@ -3481,10 +3265,6 @@ $up::
         LV_Modify(A_Index, "-Select -Focus") ; select
     }
 
-    ; if (selectedRow=0) {
-    ; LV_Modify(numberOfRows, "+Select +Focus Vis") ; select
-    ; }
-    ; else 
     if (selectedRow<2) {
         LV_Modify(numberOfRows, "+Select +Focus Vis") ; select
     }
@@ -3599,10 +3379,6 @@ downLabel:
     else {
         LV_Modify(1, "+Select +Focus Vis") ; select
     }
-    ; } else {
-    ; p(6556)
-    ; send, {down}
-    ; }
 return
 ;how to fix $enter not working ? why ?
 ;sign out and sign in fixed it
@@ -3625,12 +3401,6 @@ $enter::
 return
 
 #if winactive("renamingWinTitle ahk_class AutoHotkeyGUI")
-; $enter::
-; WinGetTitle, OutputVar , A
-; p(OutputVar)
-; fromButton:=true
-; gosub, renameFileLabel
-; return
 
 $esc::
     if (focused="flistView") {
