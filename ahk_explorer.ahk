@@ -22,9 +22,9 @@ FOLDERID_Downloads := "{374DE290-123F-4565-9164-39C4925E467B}"
 RegRead, v, HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders, % FOLDERID_Downloads
 VarSetCapacity(downloads, (261 + !A_IsUnicode) << !!A_IsUnicode)
 DllCall("ExpandEnvironmentStrings", Str, v, Str, downloads, UInt, 260)
-; EcurrentDir1:=downloads
+EcurrentDir1:=downloads
 ; EcurrentDir1=C:\Users\Public\AHK\notes\tests
-EcurrentDir1=C:\Users\Public\AHK\notes\tests\File Watcher
+; EcurrentDir1=C:\Users\Public\AHK\notes\tests\File Watcher
 ; EcurrentDir2=C:\Users\Public\AHK
 EcurrentDir2=C:\Users\Public\AHK\notes\tests\New Folder 3
 whichSide:=1
@@ -142,7 +142,7 @@ loop 2 {
     LV_ModifyCol(2,300)
     LV_ModifyCol(3,"50 Right")
     LV_ModifyCol(5,"80 Right")
-    
+
     LV_ModifyCol(2, "Logical")
     LV_ModifyCol(6,"Integer")
     ; LV_ModifyCol(2,"Integer Left")
@@ -1286,6 +1286,41 @@ Return DllCall("Comctl32.dll\DefSubclassProc", "Ptr", H, "UInt", M, "Ptr", W, "P
 ; ======================================================================================================================
 ;start of functions start
 
+sortArrByKey(ar, byref key,byref reverse:=false) {
+    str=
+    for k,v in ar {
+        str.=v[key] "+" k "|"
+    }
+    length:=ar.Length()
+    firstValue:=ar[1][key]
+    if firstValue is number
+    {
+        sortType := "N"
+    }
+    Sort, str, % "D| " sortType
+    finalAr:=[]
+    barPos:=1
+    if (reverse) {
+        loop %length% {
+            plusPos:=InStr(str, "+",, barPos)
+            barPos:=InStr(str, "|",, plusPos)
+
+            num:=SubStr(str, plusPos + 1, barPos - plusPos - 1)
+            finalAr.Insert(1,ar[num])
+        }
+    } else {
+        loop %length% {
+            plusPos:=InStr(str, "+",, barPos)
+            barPos:=InStr(str, "|",, plusPos)
+
+            num:=SubStr(str, plusPos + 1, barPos - plusPos - 1)
+            finalAr.Push(ar[num])
+        }
+    }
+
+return finalAr
+}
+
 hashFiles(algorithm)
 {
     global EcurrentDir1, EcurrentDir2, whichSide
@@ -1360,23 +1395,57 @@ loadSettings()
     Ahk2ExePath:=settingsArr[4]
     spekPath:=settingsArr[5]
 }
+
+
+removeFromSizes(byref name, byref whichSide)
+{
+    for k, obj in sortedSizes%whichSide% {
+        if (obj["name"]=name) {
+            sortedSizes%whichSide%.Remove(k)
+            break
+        }
+    }
+}
+addToSizes(byref name, byref size, byref whichSide)
+{
+    sortedSizes%whichSide%.Push({size:size,name:name})
+    sortedSizes%whichSide%:=sortArrByKey(sortedSizes%whichSide%,"size",true)
+
+    sortedBySize%whichSide%:=[]
+    for k, v in sortedSizes%whichSide% {
+        sortedBySize%whichSide%.Push(v["name"])
+    }
+}
 sortSizes()
 {
     global
 
-    for k, v in sortedByDate%whichSide% {
-        oSize:=stuffByName%whichSide%[v]["size"]
-        if (sortedSizes%whichSide%.HasKey(oSize))
-            sortedSizes%whichSide%[oSize].Push(v)
-        else 
-            sortedSizes%whichSide%[oSize]:=[v]
+    sortedSizes%whichSide%:=[]
+    for name, obj in stuffByName%whichSide% {
+        sortedSizes%whichSide%.Push({size:obj["size"],name:name})
     }
 
+    sortedSizes%whichSide%:=sortArrByKey(sortedSizes%whichSide%,"size",true)
+    sortedBySize%whichSide%:=[]
     for k, v in sortedSizes%whichSide% {
-        for key ,value in v {
-            sortedBySize%whichSide%.Insert(1, value)
-        }
+        sortedBySize%whichSide%.Push(v["name"])
     }
+    ; clipboard:=array_ToNewLineString(sortedSizes)
+    ; p(sortedSizes)
+    
+    ; for k, v in sortedByDate%whichSide% {
+    ; oSize:=stuffByName%whichSide%[v]["size"]
+    ; if (sortedSizes%whichSide%.HasKey(oSize))
+    ; sortedSizes%whichSide%[oSize].Push(v)
+    ; else 
+    ; sortedSizes%whichSide%[oSize]:=[v]
+    ; }
+    ; 
+    ; for k, v in sortedSizes%whichSide% {
+    ; for key ,value in v {
+    ; sortedBySize%whichSide%.Insert(1, value)
+    ; }
+    ; }
 }
 
 bothSameDir(whichSide)
@@ -1508,47 +1577,51 @@ fileRenamed(whichSide, Byref renameFrom,Byref renameInto)
             break
         }
     }
-    ar:=sortedDates%whichSide%[obj.date]
-    for k, v in ar {
-        if (v=renameFrom) {
-            sortedDates%whichSide%[obj.date][k]:=renameInto
-            break
-        }
-    }
+    ; ar:=sortedDates%whichSide%[obj.date]
+    ; for k, v in ar {
+    ; if (v=renameFrom) {
+    ; sortedDates%whichSide%[obj.date][k]:=renameInto
+    ; break
+    ; }
+    ; }
+;separator 
+removeFromSizes(OutFileName, whichSide)
+addToSizes(byref name, byref size, whichSide)
+;separator 
 
-    for k, v in sortedBySize%whichSide% {
-        if (v=OutFileName) {
-            sortedBySize%whichSide%.Remove(k)
-            break
-        }
-    }
-    ar:=sortedSizes%whichSide%[obj.size]
-    if (ar.Length()=1) {
-        stuffByName%whichSide%.Delete(obj.size)
-    } else {
-        for k, v in ar {
-            if (v=OutFileName) {
-                sortedSizes%whichSide%[obj.size].Remove(k)
-                break
-            }
-        }
-    }
-
-    if (sortedSizes%whichSide%.HasKey(outputSize))
-        sortedSizes%whichSide%[outputSize].Push(OutFileName)
-    else 
-        sortedSizes%whichSide%[outputSize]:=[OutFileName]
-
-    index:=1
-    for k, v in sortedSizes%whichSide% {
-        for key ,value in v {
-            if (value=OutFileName) {
-                sortedBySize%whichSide%.Insert(sortedBySize%whichSide%.Length()-index+2, value)
-                break 2
-            }
-            index++
-        }
-    }
+    ; for k, v in sortedBySize%whichSide% {
+        ; if (v=OutFileName) {
+            ; sortedBySize%whichSide%.Remove(k)
+            ; break
+        ; }
+    ; }
+    ; ar:=sortedSizes%whichSide%[obj.size]
+    ; if (ar.Length()=1) {
+        ; stuffByName%whichSide%.Delete(obj.size)
+    ; } else {
+        ; for k, v in ar {
+            ; if (v=OutFileName) {
+                ; sortedSizes%whichSide%[obj.size].Remove(k)
+                ; break
+            ; }
+        ; }
+    ; }
+; 
+    ; if (sortedSizes%whichSide%.HasKey(outputSize))
+        ; sortedSizes%whichSide%[outputSize].Push(OutFileName)
+    ; else 
+        ; sortedSizes%whichSide%[outputSize]:=[OutFileName]
+; 
+    ; index:=1
+    ; for k, v in sortedSizes%whichSide% {
+        ; for key ,value in v {
+            ; if (value=OutFileName) {
+                ; sortedBySize%whichSide%.Insert(sortedBySize%whichSide%.Length()-index+2, value)
+                ; break 2
+            ; }
+            ; index++
+        ; }
+    ; }
     rowNums:=LV_GetCount()
     loop % rowNums {
         LV_GetText(OutputVar,A_Index,2)
@@ -1574,10 +1647,10 @@ fileAdded(whichSide, Byref path) {
 
     stuffByName%whichSide%[OutFileName]:={date:A_Now,attri:OutputAttri,size:outputSize}
 
-    if (sortedDates%whichSide%.HasKey(A_Now))
-        sortedDates%whichSide%[A_Now].Push(OutFileName)
-    else 
-        sortedDates%whichSide%[A_Now]:=[OutFileName]
+    ; if (sortedDates%whichSide%.HasKey(A_Now))
+    ; sortedDates%whichSide%[A_Now].Push(OutFileName)
+    ; else 
+    ; sortedDates%whichSide%[A_Now]:=[OutFileName]
     sortedByDate%whichSide%.InsertAt(1,OutFileName)
 
     if (sortedSizes%whichSide%.HasKey(outputSize))
@@ -1636,17 +1709,17 @@ fileDeleted(Byref whichSide, Byref path)
                     break
                 }
             }
-            ar:=sortedDates%whichSide%[obj.date]
-            if (ar.Length()=1) {
-                stuffByName%whichSide%.Delete(obj.date)
-            } else {
-                for k, v in ar {
-                    if (v=OutFileName) {
-                        sortedDates%whichSide%[obj.date].Remove(k)
-                        break
-                    }
-                }
-            }
+            ; ar:=sortedDates%whichSide%[obj.date]
+            ; if (ar.Length()=1) {
+            ; stuffByName%whichSide%.Delete(obj.date)
+            ; } else {
+            ; for k, v in ar {
+            ; if (v=OutFileName) {
+            ; sortedDates%whichSide%[obj.date].Remove(k)
+            ; break
+            ; }
+            ; }
+            ; }
 
             for k, v in sortedBySize%whichSide% {
                 if (v=OutFileName) {
@@ -2321,22 +2394,22 @@ compareTwoStrings2(para_string1,para_string2) {
 
     vCount := 0
     oArray := {}
-oArray := {base:{__Get:Func("Abs").Bind(0)}} ;make default key value 0 instead of a blank string
-Loop, % vCount1 := StrLen(para_string1) - 1
-    oArray["z" SubStr(para_string1, A_Index, 2)]++
-Loop, % vCount2 := StrLen(para_string2) - 1
-if (oArray["z" SubStr(para_string2, A_Index, 2)] > 0) {
-    oArray["z" SubStr(para_string2, A_Index, 2)]--
-    vCount++
-}
-vSDC := Round((2 * vCount) / (vCount1 + vCount2),2)
-; if (!vSDC || vSDC < 0.005) { ;round to 0 if less than 0.005
-; return 0
-; }
-if (vSDC = 1) {
-return 1
-}
-SetBatchLines, % savedBatchLines
+    oArray := {base:{__Get:Func("Abs").Bind(0)}} ;make default key value 0 instead of a blank string
+    Loop, % vCount1 := StrLen(para_string1) - 1
+        oArray["z" SubStr(para_string1, A_Index, 2)]++
+    Loop, % vCount2 := StrLen(para_string2) - 1
+    if (oArray["z" SubStr(para_string2, A_Index, 2)] > 0) {
+        oArray["z" SubStr(para_string2, A_Index, 2)]--
+        vCount++
+    }
+    vSDC := Round((2 * vCount) / (vCount1 + vCount2),2)
+    ; if (!vSDC || vSDC < 0.005) { ;round to 0 if less than 0.005
+    ; return 0
+    ; }
+    if (vSDC = 1) {
+        return 1
+    }
+    SetBatchLines, % savedBatchLines
 return vSDC
 }
 
@@ -2348,31 +2421,31 @@ compareTwoStrings(para_string1,para_string2)
 
     vCount := 0
     oArray := {}
-oArray := {base:{__Get:Func("Abs").Bind(0)}} ;make default key value 0 instead of a blank string
-Loop, % vCount1 := StrLen(para_string1)
-    ; Loop, % vCount1 := StrLen(para_string1) - 1
-oArray["z" SubStr(para_string1, A_Index, 1)]++
-; oArray["z" SubStr(para_string1, A_Index, 2)]++
-Loop, % vCount2 := StrLen(para_string2)
-    ; Loop, % vCount2 := StrLen(para_string2) - 1
-; p(oArray)
-if (oArray["z" SubStr(para_string2, A_Index, 1)] > 0) {
-    ; if (oArray["z" SubStr(para_string2, A_Index, 2)] > 0) {
-    oArray["z" SubStr(para_string2, A_Index, 1)]--
-    ; oArray["z" SubStr(para_string2, A_Index, 2)]--
-    vCount++
-}
-; p(vCount)
-vSDC := (vCount) / (vCount2)
-; vSDC := (2 * vCount) / (vCount1 + vCount2)
-; vSDC := Round((2 * vCount) / (vCount1 + vCount2),2)
-; if (!vSDC || vSDC < 0.005) { ;round to 0 if less than 0.005
-; return 0
-; }
-if (vSDC = 1) {
-return 1
-}
-SetBatchLines, % savedBatchLines
+    oArray := {base:{__Get:Func("Abs").Bind(0)}} ;make default key value 0 instead of a blank string
+    Loop, % vCount1 := StrLen(para_string1)
+        ; Loop, % vCount1 := StrLen(para_string1) - 1
+    oArray["z" SubStr(para_string1, A_Index, 1)]++
+    ; oArray["z" SubStr(para_string1, A_Index, 2)]++
+    Loop, % vCount2 := StrLen(para_string2)
+        ; Loop, % vCount2 := StrLen(para_string2) - 1
+    ; p(oArray)
+    if (oArray["z" SubStr(para_string2, A_Index, 1)] > 0) {
+        ; if (oArray["z" SubStr(para_string2, A_Index, 2)] > 0) {
+        oArray["z" SubStr(para_string2, A_Index, 1)]--
+        ; oArray["z" SubStr(para_string2, A_Index, 2)]--
+        vCount++
+    }
+    ; p(vCount)
+    vSDC := (vCount) / (vCount2)
+    ; vSDC := (2 * vCount) / (vCount1 + vCount2)
+    ; vSDC := Round((2 * vCount) / (vCount1 + vCount2),2)
+    ; if (!vSDC || vSDC < 0.005) { ;round to 0 if less than 0.005
+    ; return 0
+    ; }
+    if (vSDC = 1) {
+        return 1
+    }
+    SetBatchLines, % savedBatchLines
 return vSDC
 }
 
@@ -2800,25 +2873,39 @@ renderCurrentDir()
         sortedBySize%whichSide%:=[]
         canSortBySize%whichSide%:=false
         stuffByName%whichSide%:={}
-        sortedDates%whichSide%:={}
+        sortedDates:=[]
+        ; sortedDates%whichSide%:={}
         sortedSizes%whichSide%:=[]
         Loop, Files, % EcurrentDir%whichSide% "\*", DF
         {
             stuffByName%whichSide%[A_LoopFileName]:={date:A_LoopFileTimeModified,attri:A_LoopFileAttrib,size:A_LoopFileSize}
-            if (sortedDates%whichSide%.HasKey(A_LoopFileTimeModified))
-                sortedDates%whichSide%[A_LoopFileTimeModified].Push(A_LoopFileName)
-            else 
-                sortedDates%whichSide%[A_LoopFileTimeModified]:=[A_LoopFileName]
+
+            sortedDates.Push({date:A_LoopFileTimeModified,name:A_LoopFileName})
+            ; if (sortedDates%whichSide%.HasKey(A_LoopFileTimeModified))
+            ; sortedDates%whichSide%[A_LoopFileTimeModified].Push(A_LoopFileName)
+            ; else 
+            ; sortedDates%whichSide%[A_LoopFileTimeModified]:=[A_LoopFileName]
         }
         ; for k in stuffByName%whichSide% {
         ; unsorted%whichSide%.Push(k)
         ; }
 
-        for k, v in sortedDates%whichSide% {
-            for key ,value in v {
-                sortedByDate%whichSide%.Insert(1, value)
-            }
+        ; for k, v in sortedDates%whichSide% {
+        ; for key ,value in v {
+        ; sortedByDate%whichSide%.Insert(1, value)
+        ; }
+        ; }
+
+        sortedDates:=sortArrByKey(sortedDates,"date",true)
+
+        for k, v in sortedDates {
+            sortedByDate%whichSide%.Push(v["name"])
         }
+
+        ; clipboard:=array_ToNewLineString(sortedByDate%whichSide%)
+        ; p(sortedByDate%whichSide%)
+        ; 
+        ; return
 
         ; sortedByDate%whichSide%:=sortArrayByArray(unsorted%whichSide%,stuffByName%whichSide%,true,"date")
 
@@ -3179,7 +3266,7 @@ sortArrayByArray(toSort, sortWith, reverse=false, key=false)
 ;end of functions
 ;hotkeys
 #if winactive(thisUniqueWintitle)
-    ^e::
+^e::
     ; revealFileInExplorer(EcurrentDir%whichSide%, getSelectedNames())
     path:=getSelectedPaths()[1]
     if (path) {
@@ -3331,6 +3418,9 @@ $esc::
     stopSearching()
 return
 
+$^n::
+
+return
 $^+n::
     Gui, createFolder:Default
 
@@ -3652,7 +3742,7 @@ $enter::
 return
 
 #if winactive("renamingWinTitle ahk_class AutoHotkeyGUI")
-    ; $enter::
+; $enter::
 ; WinGetTitle, OutputVar , A
 ; p(OutputVar)
 ; fromButton:=true
