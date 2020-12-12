@@ -867,6 +867,8 @@ listViewEvents2:
     }
     else if (A_GuiEvent="ColClick")
     {
+        whichSide:=SubStr(A_GuiControl, 0)
+
         columnsToSort:=[1,2,4,6]
         if (A_EventInfo=1) {
             if (!foldersFirst)
