@@ -2,10 +2,17 @@
 #SingleInstance, force
 SendMode Input ; Recommended for new scripts due to its superior speed and reliability.
 SetWorkingDir %A_ScriptDir% ; Ensures a consistent starting directory.
+SetBatchLines, -1
+#KeyHistory 0
+ListLines Off
+
+SetWinDelay, -1
+SetControlDelay, -1
+
 #MaxThreads, 20
 #MaxThreadsPerHotkey, 4
-SetBatchLines, -1
 SetTitleMatchMode, 2
+
 currentDirSearch=
 ;%appdata%\ahk_explorer_settings
 FileRead, favoriteFolders, %A_AppData%\ahk_explorer_settings\favoriteFolders.txt
@@ -602,6 +609,8 @@ listViewEvents2:
 
             } else if (key="F1") {
                 send, {f1}
+            } else if (key="F3") {
+                send, {f3}
             } else if (key="F4") {
                 ; send, {f4}
             }
@@ -1162,6 +1171,7 @@ sortArrByKey(ar, byref key,byref reverse:=false) {
     }
     Sort, str, % "D| " sortType
     finalAr:=[]
+    finalAr.SetCapacity(length)
     barPos:=1
     if (reverse) {
         loop %length% {
@@ -3060,7 +3070,7 @@ $\::
 return
 
 ; $`::
-    p(watching1,watching2)
+p(watching1,watching2)
 Return
 
 $^+r::

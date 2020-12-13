@@ -1,9 +1,4 @@
-﻿#NoEnv ; Recommended for performance and compatibility with future AutoHotKey23 releases.
-#SingleInstance, force
-SendMode Input ; Recommended for new scripts due to its superior speed and reliability.
-SetWorkingDir %A_ScriptDir% ; Ensures a consistent starting directory.
-
-array_ToVerticleBarString(oArray)
+﻿array_ToVerticleBarString(oArray)
 {
     finalStr=
     length:=oArray.Length()
