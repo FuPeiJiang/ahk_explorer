@@ -16,7 +16,7 @@ SetTitleMatchMode, 2
 currentDirSearch=
 ;%appdata%\ahk_explorer_settings
 FileRead, favoriteFolders, %A_AppData%\ahk_explorer_settings\favoriteFolders.txt
-favoriteFolders:=StrSplit(favoriteFolders,"`r`n")
+favoriteFolders:=StrSplit(favoriteFolders,"`n","`r")
 loadSettings()
 ;gsettings
 
@@ -49,7 +49,7 @@ for n, param in A_Args ; For each parameter:
         }
     }
     else {
-        p("the folder or file you are trying to open doesn't exist`r`nyou were trying to open:`r`n" param)
+        p("the folder or file you are trying to open doesn't exist`nyou were trying to open:`n" param)
     }
     break
 }
@@ -162,7 +162,7 @@ gsaveSettings:
     gui, settingsGui:Default
     gui, submit
     FileRecycle, %A_AppData%\ahk_explorer_settings\settings.txt
-    FileAppend, %vsettings%, %A_AppData%\ahk_explorer_settings\settings.txt
+    FileAppend, %vsettings%, *%A_AppData%\ahk_explorer_settings\settings.txt
     loadSettings()
 return
 
@@ -269,7 +269,7 @@ TypingInRenameSimple:
         if (InStr(fileExist, "D"))
             SendMessage, 0xB1,0,% StrLen(TextBeingRenamed),, ahk_id %RenameHwnd% ;select all
         else
-            SendMessage, 0xB1,0,% StrLen(OutNameNoExt),, ahk_id %RenameHwnd%
+        SendMessage, 0xB1,0,% StrLen(OutNameNoExt),, ahk_id %RenameHwnd%
     } else {
         ControlGet, Outvar ,CurrentCol,, Edit1
         Outvar -=1
@@ -559,7 +559,7 @@ listViewEvents2:
                 if (whichSide=1)
                     xpos+=161
                 else
-                    xpos+=161+listViewWidth
+                xpos+=161+listViewWidth
 
                 ypos+=A_CaretY - 5
                 Gui, renameSimple:Default
@@ -697,7 +697,7 @@ listViewEvents2:
                                         if (data := DllCall("GetClipboardData", "UInt", dropEffectFormat, "Ptr")) {
                                             if (effect := DllCall("GlobalLock", "Ptr", data, "UInt*")) {
                                                 if (effect & DROPEFFECT_COPY) {
-                                                    files:=StrSplit(clipboard, "`r`n")
+                                                    files:=StrSplit(clipboard, "`n","`r")
                                                     for k, v in files {
                                                         fileExist:=FileExist(v)
                                                         if (fileExist) {
@@ -1065,7 +1065,7 @@ Class LV_Colors {
         If (Apply)
             This[HWND].NS := True
         Else
-            This[HWND].Remove("NS")
+        This[HWND].Remove("NS")
         Return True
     }
     ; ===================================================================================================================
@@ -1169,27 +1169,27 @@ sortArrByKey(ar, byref key,byref reverse:=false) {
     {
         sortType := "N"
     }
-    Sort, str, % "D| " sortType
+    Sort, str, % "D|" sortType (reverse ? "R" : "")
     finalAr:=[]
     finalAr.SetCapacity(length)
     barPos:=1
-    if (reverse) {
-        loop %length% {
-            plusPos:=InStr(str, "+",, barPos)
-            barPos:=InStr(str, "|",, plusPos)
+    ; if (reverse) {
+    loop %length% {
+        plusPos:=InStr(str, "+",, barPos)
+        barPos:=InStr(str, "|",, plusPos)
 
-            num:=SubStr(str, plusPos + 1, barPos - plusPos - 1)
-            finalAr.Insert(1,ar[num])
-        }
-    } else {
-        loop %length% {
-            plusPos:=InStr(str, "+",, barPos)
-            barPos:=InStr(str, "|",, plusPos)
-
-            num:=SubStr(str, plusPos + 1, barPos - plusPos - 1)
-            finalAr.Push(ar[num])
-        }
+        num:=SubStr(str, plusPos + 1, barPos - plusPos - 1)
+        finalAr.Insert(1,ar[num])
     }
+    ;} else {
+    ; loop %length% {
+    ; plusPos:=InStr(str, "+",, barPos)
+    ; barPos:=InStr(str, "|",, plusPos)
+    ; 
+    ; num:=SubStr(str, plusPos + 1, barPos - plusPos - 1)
+    ; finalAr.Push(ar[num])
+    ; }
+    ; }
 
 return finalAr
 }
@@ -1199,10 +1199,10 @@ hashFiles(algorithm)
     global EcurrentDir1, EcurrentDir2, whichSide
     finalStr=
     for notUsed, name in getSelectedNames() {
-        finalStr.=getHash(algorithm, EcurrentDir%whichSide% "\" name) "`r`n"
+        finalStr.=getHash(algorithm, EcurrentDir%whichSide% "\" name) "`n"
     }
     if (finalStr) {
-        StringTrimRight, finalStr, finalStr, 2 ;remove the last "`r`n" from the end
+        StringTrimRight, finalStr, finalStr, 1 ;remove the last "`n" from the end
         clipboard:=finalStr
         cMsgbox(finalStr)
     } else {
@@ -1281,7 +1281,8 @@ removeFromSizes(byref name, byref whichSide)
 addToSizes(byref name, byref size, byref whichSide)
 {
     sortedSizes%whichSide%.Push({size:size,name:name})
-    sortedSizes%whichSide%:=sortArrByKey(sortedSizes%whichSide%,"size",true)
+    sortedSizes%whichSide%:=sortArrByKey(sortedSizes%whichSide%,"size")
+    ; sortedSizes%whichSide%:=sortArrByKey(sortedSizes%whichSide%,"size",true)
 
     sortedBySize%whichSide%:=[]
     for k, v in sortedSizes%whichSide% {
@@ -1297,7 +1298,8 @@ sortSizes()
         sortedSizes%whichSide%.Push({size:obj["size"],name:name})
     }
 
-    sortedSizes%whichSide%:=sortArrByKey(sortedSizes%whichSide%,"size",true)
+    sortedSizes%whichSide%:=sortArrByKey(sortedSizes%whichSide%,"size")
+    ; sortedSizes%whichSide%:=sortArrByKey(sortedSizes%whichSide%,"size",true)
     sortedBySize%whichSide%:=[]
     for k, v in sortedSizes%whichSide% {
         sortedBySize%whichSide%.Push(v["name"])
@@ -1494,7 +1496,7 @@ fileDeleted(Byref whichSide, Byref path)
                     LV_Modify(A_Index-1, "+Select +Focus Vis") ; select
                 }
                 else
-                    LV_Modify(A_Index, "+Select +Focus Vis") ; select
+                LV_Modify(A_Index, "+Select +Focus Vis") ; select
             }
             ; GuiControl, +Redraw, vlistView%whichSide% 
             obj:=stuffByName%whichSide%[OutFileName]
@@ -1641,7 +1643,7 @@ pasteFile()
                     if (effect := DllCall("GlobalLock", "Ptr", data, "UInt*")) {
                         ; action:="copy"
                         if (effect & DROPEFFECT_COPY) {
-                            files:=StrSplit(clipboard, "`r`n")
+                            files:=StrSplit(clipboard, "`n","`r")
                             for k, v in files {
                                 fileExist:=FileExist(v)
                                 if (fileExist) {
@@ -1661,7 +1663,7 @@ pasteFile()
                         }
                         ; action:="move"
                         else if (effect & DROPEFFECT_MOVE) {
-                            files:=StrSplit(clipboard, "`r`n")
+                            files:=StrSplit(clipboard, "`n","`r")
                             if (files.Length()) {
                                 for k, v in files {
                                     fileExist:=FileExist(v)
@@ -1847,7 +1849,7 @@ calculateStuff(ByRef date:="", ByRef size:="", ByRef name:="", Byref k:="") {
 
         if (bytes!="")
             formattedBytes:=autoByteFormat(bytes)
-    } 
+        } 
 }
 applySizes() {
     global
@@ -1874,7 +1876,7 @@ justOneIcon(byref name,byref row, byref whichSide) {
             DllCall("DestroyIcon", Uint, hIcon)
         }
         else
-            IconNumber = 1
+        IconNumber = 1
 
         LV_Modify(row,"Icon" . IconNumber)
         lastIconNumber:=IconNumber
@@ -1893,7 +1895,7 @@ applyIcons(byref names) {
                 DllCall("DestroyIcon", Uint, hIcon)
             }
             else
-                IconNumber = 1
+            IconNumber = 1
 
             LV_Modify(k,"Icon" . IconNumber)
             lastIconNumber:=IconNumber
@@ -1971,7 +1973,7 @@ renderFunctionsToSort(ByRef objectToSort, reverse:=false)
                 DllCall("DestroyIcon", Uint, hIcon)
             }
             else
-                IconNumber = 1
+            IconNumber = 1
             LV_Modify(A_Index,"Icon" . IconNumber)
             lastIconNumber:=IconNumber
         }
@@ -2028,7 +2030,7 @@ manageCMDArguments(pathArgument)
         }
     }
     else {
-        p("the folder or file you are trying to open doesn't exist`r`nyou were trying to open: pathArgument=`r`n" pathArgument)
+        p("the folder or file you are trying to open doesn't exist`nyou were trying to open: pathArgument=`n" pathArgument)
         clipboard:=pathArgument
         cmdFileExist:=fileExist(pathArgument)
         p(cmdFileExist " pathArgument was copied to clip" )
@@ -2530,6 +2532,7 @@ renderCurrentDir()
     if (lastChar="\")
         EcurrentDir%whichSide%:=SubStr(EcurrentDir%whichSide%, 1, StrLen(EcurrentDir%whichSide%)-1)
     EcurrentDir%whichSide%:=Rtrim(EcurrentDir%whichSide%," ")
+    EcurrentDir%whichSide%:=StrReplace(EcurrentDir%whichSide%, "/" , "\")
     Gui, ListView, vlistView%whichSide%
 
     currentDirSearch:=""
@@ -2590,7 +2593,8 @@ renderCurrentDir()
             sortedDates.Push({date:A_LoopFileTimeModified,name:A_LoopFileName})
         }
 
-        sortedDates:=sortArrByKey(sortedDates,"date",true)
+        sortedDates:=sortArrByKey(sortedDates,"date")
+        ; sortedDates:=sortArrByKey(sortedDates,"date",true)
 
         for k, v in sortedDates {
             sortedByDate%whichSide%.Push(v["name"])
@@ -2662,7 +2666,7 @@ renderCurrentDir()
             DriveGet, totalSpace, Capacity, %drive%:
             DriveSpaceFree, freeSpace, %drive%:
 
-            text:=drive ":\ " Round(100-100*freeSpace/totalSpace, 2) "%`r`n" autoMegaByteFormat(freeSpace) "/" autoMegaByteFormat(totalSpace)
+            text:=drive ":\ " Round(100-100*freeSpace/totalSpace, 2) "%`n" autoMegaByteFormat(freeSpace) "/" autoMegaByteFormat(totalSpace)
             if (i>numberOfDrives) {
                 gui, add, button,h40 y%y% w%favoritesListViewWidth% vDrive%i% x0 Left ggChangeDrive, % text
             }
@@ -2739,7 +2743,7 @@ ShellContextMenu(folderPath, files, win_hwnd = 0 )
     If sPath Is Not Integer
         DllCall("shell32\SHParseDisplayName", "Wstr", folderPath, "Ptr", 0, "Ptr*", pidl, "Uint", 0, "Uint", 0)
     else
-        DllCall("shell32\SHGetFolderLocation", "Ptr", 0, "int", folderPath, "Ptr", 0, "Uint", 0, "Ptr*", pidl)
+    DllCall("shell32\SHGetFolderLocation", "Ptr", 0, "int", folderPath, "Ptr", 0, "Uint", 0, "Ptr*", pidl)
     DllCall("shell32\SHBindToObject","Ptr",0,"Ptr",pidl,"Ptr",0,"Ptr",GUID4String(IID_IShellFolder,"{000214E6-0000-0000-C000-000000000046}"),"Ptr*",pIShellFolder)
 
     length:=files.Length()
@@ -3039,6 +3043,12 @@ selectPanel2:
     GuiControl, +BackgroundWhite, vlistView1
 
 return
+$RAlt::
+    if (focused="searchCurrentDirEdit" or focused="flistView" or focused="listViewInSearch") {
+        Run,"C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe", % EcurrentDir%whichSide%
+    }
+return
+
 $RCtrl::
     if (focused="searchCurrentDirEdit" or focused="flistView" or focused="listViewInSearch") {
         Run,"%ComSpec%", % EcurrentDir%whichSide%
@@ -3118,8 +3128,8 @@ $^+n::
         ;Segoe UI
         gui, createFolder: add, text,, Folder Name: ; Save this control's position and start a new section.
         gui, createFolder: add, edit, w250 vcreateFolderName hwndfolderCreationHwnd, %newFolderName%
-        gui, createFolder: add, button, Default w125 x11 vcreate gcreateLabel,Create Folder`r`n{Enter}
-        gui, createFolder: add, button, w125 x+2 vcreateAndOpen gcreateAndOpenLabel,Create and Open`r`n{Shift + Enter}
+        gui, createFolder: add, button, Default w125 x11 vcreate gcreateLabel,Create Folder`n{Enter}
+        gui, createFolder: add, button, w125 x+2 vcreateAndOpen gcreateAndOpenLabel,Create and Open`n{Shift + Enter}
     } else {
         ; GuiControl, text, createFolderName, %newFolderName%
         ControlSetText,, %newFolderName%, ahk_id %folderCreationHwnd%
@@ -3165,7 +3175,7 @@ copySelectedPaths:
             finalStr.=EcurrentDir%whichSide% "\" v
         }
         else {
-            finalStr.=EcurrentDir%whichSide% "\" v "`r`n"
+            finalStr.=EcurrentDir%whichSide% "\" v "`n"
         }
     }
     clipboard:=finalStr
@@ -3201,9 +3211,9 @@ $!up::
     renderCurrentDir()
 return
 
-$^l::
-$/::
-; p(434)
+^l::
+/::
+    ; p(434)
     focused:="changePath"
     ControlFocus,, % "ahk_id " Edithwnd%whichSide%
     SendMessage, 177, 0, -1,, % "ahk_id " Edithwnd%whichSide%
