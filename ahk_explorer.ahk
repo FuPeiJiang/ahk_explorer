@@ -3188,9 +3188,15 @@ return
 
 return
 goToParentDir:
+    focusDirOnBack:=true
 $!left::
     Gui, main:Default
-    SplitPath, % EcurrentDir%whichSide%,, ParentDir1
+    SplitPath, % EcurrentDir%whichSide%,OutDirName, ParentDir1
+    if (focusDirOnBack) {
+        focusDirOnBack:=false
+        toFocus:=OutDirName
+    }
+
     EcurrentDir%whichSide%:=ParentDir1
     renderCurrentDir()
 return
