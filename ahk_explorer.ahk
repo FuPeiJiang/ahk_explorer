@@ -3069,7 +3069,9 @@ $\::
         selectedPaths:=getSelectedPaths()
         if (selectedPaths.Length()) {
             for k,v in selectedPaths {
-                toRun:= """" vscodePath """ """ v """"
+                ; toRun:= """" vscodePath """ """ v """"
+                 toRun:= """" A_AhkPath """ /CP65001 ""lib\vscode_runner.ahk"" """ v """"
+                ;  d(toRun)
                 run, %toRun%
             }
         } 
@@ -3159,7 +3161,7 @@ return
     for notUsed, name in selectedNames {
         SplitPath, name,,,, OutNameNoExt
         FileRecycle, % EcurrentDir%whichSide% "\" OutNameNoExt ".exe"
-        Run, "%Ahk2ExePath%" /in "%name%" /bin "%Ahk2ExePath%\..\Unicode 64-bit.bin", % EcurrentDir%whichSide%
+        Run, "%Ahk2ExePath%" /in "%name%" /bin "%Ahk2ExePath%\..\Unicode 32-bit.bin", % EcurrentDir%whichSide%
     }
 return
 
