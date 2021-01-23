@@ -2528,6 +2528,10 @@ renderCurrentDir()
 {
     global
     Gui, main:Default
+    
+    EcurrentDir%whichSide%:=LTrim(EcurrentDir%whichSide%,"file:///")
+    EcurrentDir%whichSide%:=StrReplace(EcurrentDir%whichSide%, "%20", " ")
+    ; d(EcurrentDir%whichSide%)
     lastChar:=SubStr(EcurrentDir%whichSide%, 0)
     if (lastChar="\")
         EcurrentDir%whichSide%:=SubStr(EcurrentDir%whichSide%, 1, StrLen(EcurrentDir%whichSide%)-1)
@@ -3189,9 +3193,10 @@ copySelectedPaths:
 return
 
 return
-goToParentDir:
-    focusDirOnBack:=true
+
 $!left::
+    focusDirOnBack:=true
+goToParentDir:
     Gui, main:Default
     SplitPath, % EcurrentDir%whichSide%,OutDirName, ParentDir1
     if (focusDirOnBack) {

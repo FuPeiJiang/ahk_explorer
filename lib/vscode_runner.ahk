@@ -14,7 +14,7 @@ if (A_Args>1) {
     Msgbox % "more than 1 argument passed, please tell me your use case here"
     ExitApp
 }
-; p(argPath)
+; p(A_Args[1])
 fileExist:=FileExist(A_Args[1])
 if (!fileExist)
     ExitApp
