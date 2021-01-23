@@ -269,7 +269,7 @@ TypingInRenameSimple:
         if (InStr(fileExist, "D"))
             SendMessage, 0xB1,0,% StrLen(TextBeingRenamed),, ahk_id %RenameHwnd% ;select all
         else
-        SendMessage, 0xB1,0,% StrLen(OutNameNoExt),, ahk_id %RenameHwnd%
+            SendMessage, 0xB1,0,% StrLen(OutNameNoExt),, ahk_id %RenameHwnd%
     } else {
         ControlGet, Outvar ,CurrentCol,, Edit1
         Outvar -=1
@@ -559,7 +559,7 @@ listViewEvents2:
                 if (whichSide=1)
                     xpos+=161
                 else
-                xpos+=161+listViewWidth
+                    xpos+=161+listViewWidth
 
                 ypos+=A_CaretY - 5
                 Gui, renameSimple:Default
@@ -1065,7 +1065,7 @@ Class LV_Colors {
         If (Apply)
             This[HWND].NS := True
         Else
-        This[HWND].Remove("NS")
+            This[HWND].Remove("NS")
         Return True
     }
     ; ===================================================================================================================
@@ -1496,7 +1496,7 @@ fileDeleted(Byref whichSide, Byref path)
                     LV_Modify(A_Index-1, "+Select +Focus Vis") ; select
                 }
                 else
-                LV_Modify(A_Index, "+Select +Focus Vis") ; select
+                    LV_Modify(A_Index, "+Select +Focus Vis") ; select
             }
             ; GuiControl, +Redraw, vlistView%whichSide% 
             obj:=stuffByName%whichSide%[OutFileName]
@@ -1849,7 +1849,7 @@ calculateStuff(ByRef date:="", ByRef size:="", ByRef name:="", Byref k:="") {
 
         if (bytes!="")
             formattedBytes:=autoByteFormat(bytes)
-        } 
+    } 
 }
 applySizes() {
     global
@@ -1876,7 +1876,7 @@ justOneIcon(byref name,byref row, byref whichSide) {
             DllCall("DestroyIcon", Uint, hIcon)
         }
         else
-        IconNumber = 1
+            IconNumber = 1
 
         LV_Modify(row,"Icon" . IconNumber)
         lastIconNumber:=IconNumber
@@ -1895,7 +1895,7 @@ applyIcons(byref names) {
                 DllCall("DestroyIcon", Uint, hIcon)
             }
             else
-            IconNumber = 1
+                IconNumber = 1
 
             LV_Modify(k,"Icon" . IconNumber)
             lastIconNumber:=IconNumber
@@ -1973,7 +1973,7 @@ renderFunctionsToSort(ByRef objectToSort, reverse:=false)
                 DllCall("DestroyIcon", Uint, hIcon)
             }
             else
-            IconNumber = 1
+                IconNumber = 1
             LV_Modify(A_Index,"Icon" . IconNumber)
             lastIconNumber:=IconNumber
         }
@@ -2125,22 +2125,22 @@ compareTwoStrings2(para_string1,para_string2) {
 
     vCount := 0
     oArray := {}
-    oArray := {base:{__Get:Func("Abs").Bind(0)}} ;make default key value 0 instead of a blank string
-    Loop, % vCount1 := StrLen(para_string1) - 1
-        oArray["z" SubStr(para_string1, A_Index, 2)]++
-    Loop, % vCount2 := StrLen(para_string2) - 1
-    if (oArray["z" SubStr(para_string2, A_Index, 2)] > 0) {
-        oArray["z" SubStr(para_string2, A_Index, 2)]--
-        vCount++
-    }
-    vSDC := Round((2 * vCount) / (vCount1 + vCount2),2)
-    ; if (!vSDC || vSDC < 0.005) { ;round to 0 if less than 0.005
-    ; return 0
-    ; }
-    if (vSDC = 1) {
-        return 1
-    }
-    SetBatchLines, % savedBatchLines
+oArray := {base:{__Get:Func("Abs").Bind(0)}} ;make default key value 0 instead of a blank string
+Loop, % vCount1 := StrLen(para_string1) - 1
+    oArray["z" SubStr(para_string1, A_Index, 2)]++
+Loop, % vCount2 := StrLen(para_string2) - 1
+if (oArray["z" SubStr(para_string2, A_Index, 2)] > 0) {
+    oArray["z" SubStr(para_string2, A_Index, 2)]--
+    vCount++
+}
+vSDC := Round((2 * vCount) / (vCount1 + vCount2),2)
+; if (!vSDC || vSDC < 0.005) { ;round to 0 if less than 0.005
+; return 0
+; }
+if (vSDC = 1) {
+return 1
+}
+SetBatchLines, % savedBatchLines
 return vSDC
 }
 
@@ -2152,31 +2152,31 @@ compareTwoStrings(para_string1,para_string2)
 
     vCount := 0
     oArray := {}
-    oArray := {base:{__Get:Func("Abs").Bind(0)}} ;make default key value 0 instead of a blank string
-    Loop, % vCount1 := StrLen(para_string1)
-        ; Loop, % vCount1 := StrLen(para_string1) - 1
-    oArray["z" SubStr(para_string1, A_Index, 1)]++
-    ; oArray["z" SubStr(para_string1, A_Index, 2)]++
-    Loop, % vCount2 := StrLen(para_string2)
-        ; Loop, % vCount2 := StrLen(para_string2) - 1
-    ; p(oArray)
-    if (oArray["z" SubStr(para_string2, A_Index, 1)] > 0) {
-        ; if (oArray["z" SubStr(para_string2, A_Index, 2)] > 0) {
-        oArray["z" SubStr(para_string2, A_Index, 1)]--
-        ; oArray["z" SubStr(para_string2, A_Index, 2)]--
-        vCount++
-    }
-    ; p(vCount)
-    vSDC := (vCount) / (vCount2)
-    ; vSDC := (2 * vCount) / (vCount1 + vCount2)
-    ; vSDC := Round((2 * vCount) / (vCount1 + vCount2),2)
-    ; if (!vSDC || vSDC < 0.005) { ;round to 0 if less than 0.005
-    ; return 0
-    ; }
-    if (vSDC = 1) {
-        return 1
-    }
-    SetBatchLines, % savedBatchLines
+oArray := {base:{__Get:Func("Abs").Bind(0)}} ;make default key value 0 instead of a blank string
+Loop, % vCount1 := StrLen(para_string1)
+    ; Loop, % vCount1 := StrLen(para_string1) - 1
+oArray["z" SubStr(para_string1, A_Index, 1)]++
+; oArray["z" SubStr(para_string1, A_Index, 2)]++
+Loop, % vCount2 := StrLen(para_string2)
+    ; Loop, % vCount2 := StrLen(para_string2) - 1
+; p(oArray)
+if (oArray["z" SubStr(para_string2, A_Index, 1)] > 0) {
+    ; if (oArray["z" SubStr(para_string2, A_Index, 2)] > 0) {
+    oArray["z" SubStr(para_string2, A_Index, 1)]--
+    ; oArray["z" SubStr(para_string2, A_Index, 2)]--
+    vCount++
+}
+; p(vCount)
+vSDC := (vCount) / (vCount2)
+; vSDC := (2 * vCount) / (vCount1 + vCount2)
+; vSDC := Round((2 * vCount) / (vCount1 + vCount2),2)
+; if (!vSDC || vSDC < 0.005) { ;round to 0 if less than 0.005
+; return 0
+; }
+if (vSDC = 1) {
+return 1
+}
+SetBatchLines, % savedBatchLines
 return vSDC
 }
 
@@ -2528,7 +2528,7 @@ renderCurrentDir()
 {
     global
     Gui, main:Default
-    
+
     EcurrentDir%whichSide%:=LTrim(EcurrentDir%whichSide%,"file:///")
     EcurrentDir%whichSide%:=StrReplace(EcurrentDir%whichSide%, "%20", " ")
     ; d(EcurrentDir%whichSide%)
@@ -2670,118 +2670,118 @@ renderCurrentDir()
             DriveGet, totalSpace, Capacity, %drive%:
             DriveSpaceFree, freeSpace, %drive%:
 
-            text:=drive ":\ " Round(100-100*freeSpace/totalSpace, 2) "%`n" autoMegaByteFormat(freeSpace) "/" autoMegaByteFormat(totalSpace)
-            if (i>numberOfDrives) {
-                gui, add, button,h40 y%y% w%favoritesListViewWidth% vDrive%i% x0 Left ggChangeDrive, % text
+                text:=drive ":\ " Round(100-100*freeSpace/totalSpace, 2) "%`n" autoMegaByteFormat(freeSpace) "/" autoMegaByteFormat(totalSpace)
+                if (i>numberOfDrives) {
+                    gui, add, button,h40 y%y% w%favoritesListViewWidth% vDrive%i% x0 Left ggChangeDrive, % text
+                }
+                else {
+                    GuiControl, Show, Drive%i%
+                    GuiControl, Text, Drive%i%, % text
+                }
             }
-            else {
-                GuiControl, Show, Drive%i%
-                GuiControl, Text, Drive%i%, % text
+
+            loop % numberOfDrives {
+                if (A_Index>length) {
+                    GuiControl, Hide, Drive%A_Index%
+                }
             }
-        }
 
-        loop % numberOfDrives {
-            if (A_Index>length) {
-                GuiControl, Hide, Drive%A_Index%
-            }
-        }
-
-        if (length>numberOfDrives)
-            numberOfDrives:=length
-    } else {
-        SplitPath, EcurrentDir%whichSide%, OutFileName%whichSide%, OutDir%whichSide%
-        if (InStr(fileExist(OutDir%whichSide%), "D")) {
-            toFocus:=OutFileName%whichSide%
-            EcurrentDir%whichSide%:=OutDir%whichSide%
-
-            renderCurrentDir()
-
+            if (length>numberOfDrives)
+                numberOfDrives:=length
         } else {
-            ; p(fileExist(currentDir))
-            EcurrentDir%whichSide%:=lastDir%whichSide%
-            GuiControl, Text,vcurrentDirEdit%whichSide%, % EcurrentDir%whichSide%
+            SplitPath, EcurrentDir%whichSide%, OutFileName%whichSide%, OutDir%whichSide%
+            if (InStr(fileExist(OutDir%whichSide%), "D")) {
+                toFocus:=OutFileName%whichSide%
+                EcurrentDir%whichSide%:=OutDir%whichSide%
 
-            if (focused!="changePath") {
                 renderCurrentDir()
-            }
-            ; lastDir:=currentDir
-        } 
 
+            } else {
+                ; p(fileExist(currentDir))
+                EcurrentDir%whichSide%:=lastDir%whichSide%
+                GuiControl, Text,vcurrentDirEdit%whichSide%, % EcurrentDir%whichSide%
+
+                if (focused!="changePath") {
+                    renderCurrentDir()
+                }
+                ; lastDir:=currentDir
+            } 
+
+        }
+        Gui, ListView, vlistView%whichSide%
     }
-    Gui, ListView, vlistView%whichSide%
-}
-findNextDirNameNumberIteration(path)
-{
-    global left
-    global right
-    SplitPath, path, OutFileName, OutDir, OutExtension, OutNameNoExt, OutDrive
-    getLeftRight(OutNameNoExt, "*")
-    pathToCheck:=OutDir "\" left right
-    incrementNumber:=2
-    while (FileExist(pathToCheck)) {
-        pathToCheck:=OutDir "\" left incrementNumber right
-        incrementNumber++
-    }
-return pathToCheck
-}
-
-getLeftRight(string, needle)
-{
-    global left
-    global right
-    asteriskPos:=InStr(string, "*")
-    left:=SubStr(string, 1, asteriskPos-1)
-    right:=SubStr(string, asteriskPos+1)
-}
-
-ShellContextMenu(folderPath, files, win_hwnd = 0 )
-{
-    if ( !folderPath )
-        return
-    if !win_hwnd
+    findNextDirNameNumberIteration(path)
     {
-        Gui,SHELL_CONTEXT:New, +hwndwin_hwnd
-        Gui,Show
+        global left
+        global right
+        SplitPath, path, OutFileName, OutDir, OutExtension, OutNameNoExt, OutDrive
+        getLeftRight(OutNameNoExt, "*")
+        pathToCheck:=OutDir "\" left right
+        incrementNumber:=2
+        while (FileExist(pathToCheck)) {
+            pathToCheck:=OutDir "\" left incrementNumber right
+            incrementNumber++
+        }
+        return pathToCheck
     }
 
-    If sPath Is Not Integer
-        DllCall("shell32\SHParseDisplayName", "Wstr", folderPath, "Ptr", 0, "Ptr*", pidl, "Uint", 0, "Uint", 0)
-    else
-    DllCall("shell32\SHGetFolderLocation", "Ptr", 0, "int", folderPath, "Ptr", 0, "Uint", 0, "Ptr*", pidl)
-    DllCall("shell32\SHBindToObject","Ptr",0,"Ptr",pidl,"Ptr",0,"Ptr",GUID4String(IID_IShellFolder,"{000214E6-0000-0000-C000-000000000046}"),"Ptr*",pIShellFolder)
-
-    length:=files.Length()
-    VarSetCapacity(apidl, length * A_PtrSize, 0)
-    for k, v in files {
-        ;IShellFolder:ParseDisplayName 
-        DllCall(VTable(pIShellFolder,3),"Ptr", pIShellFolder,"Ptr",win_hwnd,"Ptr",0,"Wstr",v,"Uint*",0,"Ptr*",tmpPIDL,"Uint*",0)
-        NumPut(tmpPIDL, apidl, (k - 1)*A_PtrSize, "Ptr")
+    getLeftRight(string, needle)
+    {
+        global left
+        global right
+        asteriskPos:=InStr(string, "*")
+        left:=SubStr(string, 1, asteriskPos-1)
+        right:=SubStr(string, asteriskPos+1)
     }
-    ;IShellFolder->GetUIObjectOf
-    DllCall(VTable(pIShellFolder,10),"Ptr",pIShellFolder,"Ptr",win_hwnd,"Uint",length,"Ptr",&apidl,"Ptr",GUID4String(IID_IContextMenu,"{000214E4-0000-0000-C000-000000000046}"),"UINT*",0,"Ptr*",pIContextMenu)
 
-    ObjRelease(pIShellFolder)
-    CoTaskMemFree(pidl)
+    ShellContextMenu(folderPath, files, win_hwnd = 0 )
+    {
+        if ( !folderPath )
+            return
+        if !win_hwnd
+        {
+            Gui,SHELL_CONTEXT:New, +hwndwin_hwnd
+            Gui,Show
+        }
 
-    hMenu := DllCall("CreatePopupMenu")
-    ;IContextMenu->QueryContextMenu
-    ;http://msdn.microsoft.com/en-us/library/bb776097%28v=VS.85%29.aspx
-    DllCall(VTable(pIContextMenu, 3), "Ptr", pIContextMenu, "Ptr", hMenu, "Uint", 0, "Uint", 3, "Uint", 0x7FFF, "Uint", 0x100) ;CMF_EXTENDEDVERBS
-    ; p(hMenu)
-    ComObjError(0)
-    global pIContextMenu2 := ComObjQuery(pIContextMenu, IID_IContextMenu2:="{000214F4-0000-0000-C000-000000000046}")
-    global pIContextMenu3 := ComObjQuery(pIContextMenu, IID_IContextMenu3:="{BCFCE0A0-EC17-11D0-8D10-00A0C90F2719}")
-    e := A_LastError ;GetLastError()
-    ComObjError(1)
-    if (e != 0)
-        goTo, StopContextMenu
-    Global WPOld:= DllCall("SetWindowLongPtr", "Ptr", win_hwnd, "int",-4, "Ptr",RegisterCallback("WindowProc"),"UPtr")
-    DllCall("GetCursorPos", "int64*", pt)
-    ; DllCall("InsertMenu", "Ptr", hMenu, "Uint", 0, "Uint", 0x0400|0x800, "Ptr", 2, "Ptr", 0)
-    ; DllCall("InsertMenu", "Ptr", hMenu, "Uint", 0, "Uint", 0x0400|0x002, "Ptr", 1, "Ptr", &sPath)
-    idn := DllCall("TrackPopupMenuEx", "Ptr", hMenu, "Uint", 0x0100|0x0001, "int", pt << 32 >> 32, "int", pt >> 32, "Ptr", win_hwnd, "Uint", 0)
-    ; p(idn)
-    ; return
+        If sPath Is Not Integer
+            DllCall("shell32\SHParseDisplayName", "Wstr", folderPath, "Ptr", 0, "Ptr*", pidl, "Uint", 0, "Uint", 0)
+        else
+            DllCall("shell32\SHGetFolderLocation", "Ptr", 0, "int", folderPath, "Ptr", 0, "Uint", 0, "Ptr*", pidl)
+        DllCall("shell32\SHBindToObject","Ptr",0,"Ptr",pidl,"Ptr",0,"Ptr",GUID4String(IID_IShellFolder,"{000214E6-0000-0000-C000-000000000046}"),"Ptr*",pIShellFolder)
+
+        length:=files.Length()
+        VarSetCapacity(apidl, length * A_PtrSize, 0)
+        for k, v in files {
+            ;IShellFolder:ParseDisplayName 
+            DllCall(VTable(pIShellFolder,3),"Ptr", pIShellFolder,"Ptr",win_hwnd,"Ptr",0,"Wstr",v,"Uint*",0,"Ptr*",tmpPIDL,"Uint*",0)
+            NumPut(tmpPIDL, apidl, (k - 1)*A_PtrSize, "Ptr")
+        }
+        ;IShellFolder->GetUIObjectOf
+        DllCall(VTable(pIShellFolder,10),"Ptr",pIShellFolder,"Ptr",win_hwnd,"Uint",length,"Ptr",&apidl,"Ptr",GUID4String(IID_IContextMenu,"{000214E4-0000-0000-C000-000000000046}"),"UINT*",0,"Ptr*",pIContextMenu)
+
+        ObjRelease(pIShellFolder)
+        CoTaskMemFree(pidl)
+
+        hMenu := DllCall("CreatePopupMenu")
+        ;IContextMenu->QueryContextMenu
+        ;http://msdn.microsoft.com/en-us/library/bb776097%28v=VS.85%29.aspx
+        DllCall(VTable(pIContextMenu, 3), "Ptr", pIContextMenu, "Ptr", hMenu, "Uint", 0, "Uint", 3, "Uint", 0x7FFF, "Uint", 0x100) ;CMF_EXTENDEDVERBS
+        ; p(hMenu)
+        ComObjError(0)
+        global pIContextMenu2 := ComObjQuery(pIContextMenu, IID_IContextMenu2:="{000214F4-0000-0000-C000-000000000046}")
+        global pIContextMenu3 := ComObjQuery(pIContextMenu, IID_IContextMenu3:="{BCFCE0A0-EC17-11D0-8D10-00A0C90F2719}")
+        e := A_LastError ;GetLastError()
+        ComObjError(1)
+        if (e != 0)
+            goTo, StopContextMenu
+        Global WPOld:= DllCall("SetWindowLongPtr", "Ptr", win_hwnd, "int",-4, "Ptr",RegisterCallback("WindowProc"),"UPtr")
+        DllCall("GetCursorPos", "int64*", pt)
+        ; DllCall("InsertMenu", "Ptr", hMenu, "Uint", 0, "Uint", 0x0400|0x800, "Ptr", 2, "Ptr", 0)
+        ; DllCall("InsertMenu", "Ptr", hMenu, "Uint", 0, "Uint", 0x0400|0x002, "Ptr", 1, "Ptr", &sPath)
+        idn := DllCall("TrackPopupMenuEx", "Ptr", hMenu, "Uint", 0x0100|0x0001, "int", pt << 32 >> 32, "int", pt >> 32, "Ptr", win_hwnd, "Uint", 0)
+        ; p(idn)
+        ; return
         /*
         typedef struct _CMINVOKECOMMANDINFOEX {
             DWORD   cbSize;          0
@@ -2801,125 +2801,125 @@ ShellContextMenu(folderPath, files, win_hwnd = 0 )
             POINT   ptInvoke;        16+10*A_PtrSize
         } CMINVOKECOMMANDINFOEX, *LPCMINVOKECOMMANDINFOEX;
         http://msdn.microsoft.com/en-us/library/bb773217%28v=VS.85%29.aspx
-    */
-    struct_size := 16+11*A_PtrSize
-    VarSetCapacity(pici,struct_size,0)
-    NumPut(struct_size,pici,0,"Uint") ;cbSize
-    NumPut(0x4000|0x20000000|0x00100000,pici,4,"Uint") ;fMask
-    NumPut(win_hwnd,pici,8,"UPtr") ;hwnd
-    NumPut(1,pici,8+4*A_PtrSize,"Uint") ;nShow
-    NumPut(idn-3,pici,8+A_PtrSize,"UPtr") ;lpVerb
-    NumPut(idn-3,pici,16+6*A_PtrSize,"UPtr") ;lpVerbW
-    NumPut(pt,pici,16+10*A_PtrSize,"Uptr") ;ptInvoke
+        */
+        struct_size := 16+11*A_PtrSize
+        VarSetCapacity(pici,struct_size,0)
+        NumPut(struct_size,pici,0,"Uint") ;cbSize
+        NumPut(0x4000|0x20000000|0x00100000,pici,4,"Uint") ;fMask
+        NumPut(win_hwnd,pici,8,"UPtr") ;hwnd
+        NumPut(1,pici,8+4*A_PtrSize,"Uint") ;nShow
+        NumPut(idn-3,pici,8+A_PtrSize,"UPtr") ;lpVerb
+        NumPut(idn-3,pici,16+6*A_PtrSize,"UPtr") ;lpVerbW
+        NumPut(pt,pici,16+10*A_PtrSize,"Uptr") ;ptInvoke
 
-    DllCall(VTable(pIContextMenu, 4), "Ptr", pIContextMenu, "Ptr", &pici) ; InvokeCommand
+        DllCall(VTable(pIContextMenu, 4), "Ptr", pIContextMenu, "Ptr", &pici) ; InvokeCommand
 
-    DllCall("GlobalFree", "Ptr", DllCall("SetWindowLongPtr", "Ptr", win_hwnd, "int", -4, "Ptr", WPOld,"UPtr"))
-    DllCall("DestroyMenu", "Ptr", hMenu)
-StopContextMenu:
-    ObjRelease(pIContextMenu3)
-    ObjRelease(pIContextMenu2)
-    ObjRelease(pIContextMenu)
-    pIContextMenu2:=pIContextMenu3:=WPOld:=0
-    Gui,SHELL_CONTEXT:Destroy
-return idn
-}
-WindowProc(hWnd, nMsg, wParam, lParam)
-{
-    Global pIContextMenu2, pIContextMenu3, WPOld
-    If pIContextMenu3
-    { ;IContextMenu3->HandleMenuMsg2
-        If !DllCall(VTable(pIContextMenu3, 7), "Ptr", pIContextMenu3, "Uint", nMsg, "Ptr", wParam, "Ptr", lParam, "Ptr*", lResult)
-            Return lResult
+        DllCall("GlobalFree", "Ptr", DllCall("SetWindowLongPtr", "Ptr", win_hwnd, "int", -4, "Ptr", WPOld,"UPtr"))
+        DllCall("DestroyMenu", "Ptr", hMenu)
+        StopContextMenu:
+            ObjRelease(pIContextMenu3)
+            ObjRelease(pIContextMenu2)
+            ObjRelease(pIContextMenu)
+            pIContextMenu2:=pIContextMenu3:=WPOld:=0
+            Gui,SHELL_CONTEXT:Destroy
+        return idn
     }
-    Else If pIContextMenu2
-    { ;IContextMenu2->HandleMenuMsg
-        If !DllCall(VTable(pIContextMenu2, 6), "Ptr", pIContextMenu2, "Uint", nMsg, "Ptr", wParam, "Ptr", lParam)
-            Return 0
-    }
-Return DllCall("user32.dll\CallWindowProcW", "Ptr", WPOld, "Ptr", hWnd, "Uint", nMsg, "Ptr", wParam, "Ptr", lParam)
-}
-VTable(ppv, idx)
-{
-Return NumGet(NumGet(1*ppv)+A_PtrSize*idx)
-}
-
-other_vtable(ptr, n) {
-return NumGet(NumGet(ptr+0), n*A_PtrSize)
-}
-
-GUID4String(ByRef CLSID, String)
-{
-    VarSetCapacity(CLSID, 16,0)
-return DllCall("ole32\CLSIDFromString", "wstr", String, "Ptr", &CLSID) >= 0 ? &CLSID : ""
-}
-Guid_FromStr(sGuid, ByRef VarOrAddress)
-{
-    if IsByRef(VarOrAddress) && (VarSetCapacity(VarOrAddress) < 16)
-        VarSetCapacity(VarOrAddress, 16) ; adjust capacity
-    pGuid := IsByRef(VarOrAddress) ? &VarOrAddress : VarOrAddress
-    if ( DllCall("ole32\CLSIDFromString", "WStr", sGuid, "Ptr", pGuid) < 0 )
-        throw Exception("Invalid GUID", -1, sGuid)
-return pGuid ; return address of GUID struct
-}
-Guid_ToStr(ByRef VarOrAddress)
-{
-    pGuid := IsByRef(VarOrAddress) ? &VarOrAddress : VarOrAddress
-    VarSetCapacity(sGuid, 78) ; (38 + 1) * 2
-    if !DllCall("ole32\StringFromGUID2", "Ptr", pGuid, "Ptr", &sGuid, "Int", 39)
-        throw Exception("Invalid GUID", -1, Format("<at {1:p}>", pGuid))
-return StrGet(&sGuid, "UTF-16")
-}
-CoTaskMemFree(pv)
-{
-Return DllCall("ole32\CoTaskMemFree", "Ptr", pv)
-}
-FileToClipboard(PathToCopy,Method="copy")
-{
-    FileCount:=0
-    PathLength:=0
-    FileCount:=PathToCopy.Length()
-    ; Count files and total string length
-
-    for k, v in PathToCopy {
-        PathLength+=StrLen(v)
-    }
-    ; Loop,Parse,PathToCopy,`n,`r
-    ; {
-    ; PathLength+=StrLen(A_LoopField)
-    ; }
-
-    pid:=DllCall("GetCurrentProcessId","uint")
-    hwnd:=WinExist("ahk_pid " . pid)
-    ; 0x42 = GMEM_MOVEABLE(0x2) | GMEM_ZEROINIT(0x40)
-    hPath := DllCall("GlobalAlloc","uint",0x42,"uint",20 + (PathLength + FileCount + 1) * 2,"UPtr")
-    pPath := DllCall("GlobalLock","UPtr",hPath)
-    NumPut(20,pPath+0),pPath += 16 ; DROPFILES.pFiles = offset of file list
-    NumPut(1,pPath+0),pPath += 4 ; fWide = 0 -->ANSI,fWide = 1 -->Unicode
-    Offset:=0
-    for k, v in PathToCopy {
-        offset += StrPut(v,pPath+offset,StrLen(v)+1,"UTF-16") * 2
-    }
-    ; Loop,Parse,PathToCopy,`n,`r ; Rows are delimited by linefeeds (`r`n).
-    ; offset += StrPut(A_LoopField,pPath+offset,StrLen(A_LoopField)+1,"UTF-16") * 2
-    ; 
-    DllCall("GlobalUnlock","UPtr",hPath)
-    DllCall("OpenClipboard","UPtr",hwnd)
-    DllCall("EmptyClipboard")
-    DllCall("SetClipboardData","uint",0xF,"UPtr",hPath) ; 0xF = CF_HDROP
-
-    ; Write Preferred DropEffect structure to clipboard to switch between copy/cut operations
-    ; 0x42 = GMEM_MOVEABLE(0x2) | GMEM_ZEROINIT(0x40)
-    mem := DllCall("GlobalAlloc","uint",0x42,"uint",4,"UPtr")
-    str := DllCall("GlobalLock","UPtr",mem)
-
-    if (Method="copy")
-        DllCall("RtlFillMemory","UPtr",str,"uint",1,"UChar",0x05)
-    else if (Method="cut")
-        DllCall("RtlFillMemory","UPtr",str,"uint",1,"UChar",0x02)
-    else
+    WindowProc(hWnd, nMsg, wParam, lParam)
     {
-        DllCall("CloseClipboard")
+        Global pIContextMenu2, pIContextMenu3, WPOld
+        If pIContextMenu3
+        { ;IContextMenu3->HandleMenuMsg2
+            If !DllCall(VTable(pIContextMenu3, 7), "Ptr", pIContextMenu3, "Uint", nMsg, "Ptr", wParam, "Ptr", lParam, "Ptr*", lResult)
+                Return lResult
+        }
+        Else If pIContextMenu2
+        { ;IContextMenu2->HandleMenuMsg
+            If !DllCall(VTable(pIContextMenu2, 6), "Ptr", pIContextMenu2, "Uint", nMsg, "Ptr", wParam, "Ptr", lParam)
+                Return 0
+        }
+        Return DllCall("user32.dll\CallWindowProcW", "Ptr", WPOld, "Ptr", hWnd, "Uint", nMsg, "Ptr", wParam, "Ptr", lParam)
+    }
+    VTable(ppv, idx)
+    {
+        Return NumGet(NumGet(1*ppv)+A_PtrSize*idx)
+    }
+
+    other_vtable(ptr, n) {
+        return NumGet(NumGet(ptr+0), n*A_PtrSize)
+    }
+
+    GUID4String(ByRef CLSID, String)
+    {
+        VarSetCapacity(CLSID, 16,0)
+        return DllCall("ole32\CLSIDFromString", "wstr", String, "Ptr", &CLSID) >= 0 ? &CLSID : ""
+        }
+        Guid_FromStr(sGuid, ByRef VarOrAddress)
+        {
+            if IsByRef(VarOrAddress) && (VarSetCapacity(VarOrAddress) < 16)
+                VarSetCapacity(VarOrAddress, 16) ; adjust capacity
+            pGuid := IsByRef(VarOrAddress) ? &VarOrAddress : VarOrAddress
+            if ( DllCall("ole32\CLSIDFromString", "WStr", sGuid, "Ptr", pGuid) < 0 )
+                throw Exception("Invalid GUID", -1, sGuid)
+        return pGuid ; return address of GUID struct
+    }
+    Guid_ToStr(ByRef VarOrAddress)
+    {
+        pGuid := IsByRef(VarOrAddress) ? &VarOrAddress : VarOrAddress
+        VarSetCapacity(sGuid, 78) ; (38 + 1) * 2
+        if !DllCall("ole32\StringFromGUID2", "Ptr", pGuid, "Ptr", &sGuid, "Int", 39)
+            throw Exception("Invalid GUID", -1, Format("<at {1:p}>", pGuid))
+        return StrGet(&sGuid, "UTF-16")
+    }
+    CoTaskMemFree(pv)
+    {
+        Return DllCall("ole32\CoTaskMemFree", "Ptr", pv)
+    }
+    FileToClipboard(PathToCopy,Method="copy")
+    {
+        FileCount:=0
+        PathLength:=0
+        FileCount:=PathToCopy.Length()
+        ; Count files and total string length
+
+        for k, v in PathToCopy {
+            PathLength+=StrLen(v)
+        }
+        ; Loop,Parse,PathToCopy,`n,`r
+        ; {
+        ; PathLength+=StrLen(A_LoopField)
+        ; }
+
+        pid:=DllCall("GetCurrentProcessId","uint")
+        hwnd:=WinExist("ahk_pid " . pid)
+        ; 0x42 = GMEM_MOVEABLE(0x2) | GMEM_ZEROINIT(0x40)
+        hPath := DllCall("GlobalAlloc","uint",0x42,"uint",20 + (PathLength + FileCount + 1) * 2,"UPtr")
+        pPath := DllCall("GlobalLock","UPtr",hPath)
+        NumPut(20,pPath+0),pPath += 16 ; DROPFILES.pFiles = offset of file list
+        NumPut(1,pPath+0),pPath += 4 ; fWide = 0 -->ANSI,fWide = 1 -->Unicode
+        Offset:=0
+        for k, v in PathToCopy {
+            offset += StrPut(v,pPath+offset,StrLen(v)+1,"UTF-16") * 2
+        }
+        ; Loop,Parse,PathToCopy,`n,`r ; Rows are delimited by linefeeds (`r`n).
+        ; offset += StrPut(A_LoopField,pPath+offset,StrLen(A_LoopField)+1,"UTF-16") * 2
+        ; 
+        DllCall("GlobalUnlock","UPtr",hPath)
+        DllCall("OpenClipboard","UPtr",hwnd)
+        DllCall("EmptyClipboard")
+        DllCall("SetClipboardData","uint",0xF,"UPtr",hPath) ; 0xF = CF_HDROP
+
+        ; Write Preferred DropEffect structure to clipboard to switch between copy/cut operations
+        ; 0x42 = GMEM_MOVEABLE(0x2) | GMEM_ZEROINIT(0x40)
+        mem := DllCall("GlobalAlloc","uint",0x42,"uint",4,"UPtr")
+        str := DllCall("GlobalLock","UPtr",mem)
+
+        if (Method="copy")
+            DllCall("RtlFillMemory","UPtr",str,"uint",1,"UChar",0x05)
+        else if (Method="cut")
+            DllCall("RtlFillMemory","UPtr",str,"uint",1,"UChar",0x02)
+        else
+        {
+            DllCall("CloseClipboard")
         return
     }
 
@@ -2928,7 +2928,7 @@ FileToClipboard(PathToCopy,Method="copy")
     cfFormat := DllCall("RegisterClipboardFormat","Str","Preferred DropEffect")
     DllCall("SetClipboardData","uint",cfFormat,"UPtr",mem)
     DllCall("CloseClipboard")
-return
+    return
 }
 
 sortArrayByArray(toSort, sortWith, reverse=false, key=false)
@@ -2955,13 +2955,13 @@ sortArrayByArray(toSort, sortWith, reverse=false, key=false)
             finalAr.Push(v[1])
         }
     }
-return finalAr
+    return finalAr
 }
 
 ;end of functions
 ;hotkeys
 #if winactive(thisUniqueWintitle)
-^e::
+    ^e::
     ; revealFileInExplorer(EcurrentDir%whichSide%, getSelectedNames())
     path:=getSelectedPaths()[1]
     if (path) {
@@ -3074,7 +3074,7 @@ $\::
         if (selectedPaths.Length()) {
             for k,v in selectedPaths {
                 ; toRun:= """" vscodePath """ """ v """"
-                 toRun:= """" A_AhkPath """ /CP65001 ""lib\vscode_runner.ahk"" """ v """"
+                toRun:= """" A_AhkPath """ /CP65001 ""lib\vscode_runner.ahk"" """ v """"
                 ;  d(toRun)
                 run, %toRun%
             }
