@@ -1158,6 +1158,23 @@ Return DllCall("Comctl32.dll\DefSubclassProc", "Ptr", H, "UInt", M, "Ptr", W, "P
 ; ======================================================================================================================
 ;start of functions start
 
+URItoPath(vPathUrl)
+{
+    vChars := 300 ;300 is an arbitrary number
+    VarSetCapacity(vPath, vChars*2)
+    DllCall("shlwapi\PathCreateFromUrl" (A_IsUnicode?"W":"A"), "Str",vPathUrl, "Str",vPath, "UInt*",vChars, "UInt",0)
+return vPath
+}
+
+decodeStrAs(source,encoding)
+{
+    ;example: "Ã©" -> "é"
+    sourceSize := VarSetCapacity(target,StrLen(source),0)
+    Loop % sourceSize
+        NumPut(NumGet(&source, A_Index*2-1-1, "UChar"), &target, A_Index-1, "UChar")
+return StrGet(&target, encoding)
+}
+
 sortArrByKey(ar, byref key,byref reverse:=false) {
     str=
     for k,v in ar {
@@ -2524,10 +2541,18 @@ getinsertPoint(index)
 return rowBak[index]+1
 
 }
+
 renderCurrentDir()
 {
     global
+    local ansiPath, bothSameDir, dirToStopWatching,i,k,v,y,drive,freeSpace,lastChar,text,totalSpace,OutputVar
+    ; global EcurrentDir1, EcurrentDir2, whichSide, currentDirSearch, stopSizes
     Gui, main:Default
+
+    if (SubStr(EcurrentDir%whichSide%,1,5)="file:") {
+        ansiPath:=URItoPath(EcurrentDir%whichSide%)
+        EcurrentDir%whichSide%:=decodeStrAs(ansiPath, "UTF-8")
+    }
 
     EcurrentDir%whichSide%:=LTrim(EcurrentDir%whichSide%,"file:///")
     EcurrentDir%whichSide%:=StrReplace(EcurrentDir%whichSide%, "%20", " ")
@@ -2574,12 +2599,12 @@ renderCurrentDir()
 
         filePaths:=[] 
         rowBak:=[]
-        dates:=[]
+        ; dates:=[]
         sortableDates:=[]
         sizes:=[]
         sortableSizes:=[]
-        dateColors:=[]
-        filesWithNoExt:=[]
+        ; dateColors:=[]
+        ; filesWithNoExt:=[]
         if (lastIconNumber)
             rememberIconNumber:=lastIconNumber
 
@@ -2710,6 +2735,8 @@ renderCurrentDir()
         }
         Gui, ListView, vlistView%whichSide%
     }
+
+
     findNextDirNameNumberIteration(path)
     {
         global left
