@@ -35,7 +35,7 @@ WM_COPYDATA_READ(wp, lp) {
     } else if (match2=2) {
         StopWatchFolder(match1)
     } else {
-        p("WatchFolder2: something went wrong")
+        Msgbox, % "WatchFolder2: something went wrong"
     }
 }
 send_stringData(stringToSend:="") 

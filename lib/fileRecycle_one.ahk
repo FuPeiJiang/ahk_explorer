@@ -5,7 +5,7 @@ SetWorkingDir %A_ScriptDir%  ; Ensures a consistent starting directory.
 
 FileRecycle, % A_Args[1]
 if (ErrorLevel=1) {
-    p("File is in use or Requires PERMISSION to delete")
+    Msgbox, % "File is in use or Requires PERMISSION to delete"
     ExitApp
 }
 
