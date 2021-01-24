@@ -3194,6 +3194,28 @@ return
         Run, "%Ahk2ExePath%" /in "%name%" /bin "%Ahk2ExePath%\..\Unicode 32-bit.bin", % EcurrentDir%whichSide%
     }
 return
+!c::
+copySelectedNames:
+    Gui, main:Default
+    dontSearch:=true
+    selectedNames:=getSelectedNames()
+    finalStr=
+    length:=selectedNames.Length()
+    for k, v in selectedNames {
+        if (k=length) {
+            finalStr.=v
+        }
+        else {
+            finalStr.=v "`n"
+        }
+    }
+    clipboard:=finalStr
+    dontSearch:=false
+
+    #Persistent
+    ToolTip, % length
+    SetTimer, RemoveToolTip,-1000
+return
 
 copySelectedPaths:
 ^+c::
