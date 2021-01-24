@@ -2736,7 +2736,6 @@ renderCurrentDir()
         Gui, ListView, vlistView%whichSide%
     }
 
-
     findNextDirNameNumberIteration(path)
     {
         global left
@@ -3449,8 +3448,11 @@ $enter::
         if (focused="flistView" or focused="searchCurrentDirEdit" or focused="listViewInSearch") {
             stopSizes:=false
             gui, ListView, vlistView%whichSide%
-            row:=LV_GetNext("")
-            doubleClickedNormal(row)
+            for unused, fullPath in getSelectedPaths() {
+                doubleClickedFolderOrFile(fullPath) 
+            }
+            ; row:=LV_GetNext("")
+            ; doubleClickedNormal(row)
             ControlFocus,, % "ahk_id " ListviewHwnd%whichSide%
         } else if (focused="changePath" or focused="renaming") {
             ControlFocus,, % "ahk_id " ListviewHwnd%whichSide%
