@@ -8,7 +8,7 @@ A_Args.RemoveAt(1)
 for k, v in A_Args {
     FileRecycle, % currentDir "\" v
     if (ErrorLevel=1) {
-        p("File is in use or Requires PERMISSION to delete")
+        Msgbox, % "File is in use or Requires PERMISSION to delete"
         ExitApp
     }
 }

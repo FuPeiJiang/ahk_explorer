@@ -1,9 +1,4 @@
-﻿#NoEnv ; Recommended for performance and compatibility with future AutoHotKey23 releases.
-#SingleInstance, force
-    SendMode Input ; Recommended for new scripts due to its superior speed and reliability.
-SetWorkingDir %A_ScriptDir% ; Ensures a consistent starting directory.
-
-array_ToVerticleBarString(oArray)
+﻿array_ToVerticleBarString(oArray)
 {
     finalStr=
     length:=oArray.Length()
@@ -13,12 +8,31 @@ array_ToVerticleBarString(oArray)
     return finalStr
 }
 
-array_ToNewLineString(oArray)
+obj_toString(obj) {
+    finalStr=
+    length:=obj.Count()
+    for k, v in obj {
+        finalStr.=(A_Index=length) ? k ":" Array_String(v, true) : k ":" Array_String(v, true) "`r`n"
+    }
+    return finalStr
+}
+
+array_ToNewLineString(Byref oArray)
 {
     finalStr=
-    length:=oArray.Length()
-    for k, v in oArray {
-        finalStr.=(k=length) ? v : v "`r`n"
+    if IsArray(oArray) {
+        length:=oArray.Length()
+        if (IsObject(oArray[1])) { ;if array of objects 
+            for k, v in oArray {
+                finalStr.=(k=length) ? obj_toString(v) : obj_toString(v) "`r`n"
+            }
+        } else {
+            for k, v in oArray {
+                finalStr.=(k=length) ? v : v "`r`n"
+            }
+        }
+    } else {
+        finalStr:=obj_toString(oArray)
     }
     return finalStr
 }
@@ -29,27 +43,54 @@ array_ToSpacedString(oArray)
     length:=oArray.Length()
     for k, v in oArray {
         if v is number 
-        finalStr.=(k=length) ? v : v " "
+            finalStr.=(k=length) ? v : v " "
         else
-        finalStr.=(k=length) ? """" v """" : """" v """ "
+            finalStr.=(k=length) ? """" v """" : """" v """ "
     }
     return finalStr
 }
 
-array_tostring(oArray)
+array_toCompactString(Byref oArray,Byref addBrackets:=false)
 {
-    return Array_String(oArray)
-}
-
-Array_String(oArray)
-{
-    
     if IsObject(oArray)
     {
         if IsArray(oArray)
-            return Array_Print(oArray)
+            return (addBrackets) ? "[" Array_Print_nospace(oArray,true) "]" : Array_Print_nospace(oArray,true)
         else
-            return ObjectPrint(oArray)
+            return (addBrackets) ? "{" ObjectPrint_nospace(oArray,true) "}" : ObjectPrint_nospace(oArray,true)
+    }
+    Else
+        toReturn:=oArray
+    return toReturn
+}
+array_toCommaString(oArray) ;no space
+{
+    if IsObject(oArray)
+    {
+        if IsArray(oArray)
+            toReturn:=Array_Print_nospace(oArray)
+        else
+            toReturn:=ObjectPrint_nospace(oArray)
+    }
+    Else
+        toReturn:=oArray
+
+    return toReturn
+}
+
+array_tostring(oArray, addBrackets:=false)
+{
+    return Array_String(oArray,addBrackets)
+}
+
+Array_String(oArray, addBrackets:=false)
+{
+    if IsObject(oArray)
+    {
+        if IsArray(oArray)
+            return (addBrackets) ? "[" Array_Print(oArray) "]" : Array_Print(oArray)
+        else
+            return (addBrackets) ? "{" ObjectPrint(oArray) "}" : ObjectPrint(oArray)
     }
     Else
         return oArray
@@ -60,7 +101,7 @@ Array_Same(array1, array2)
     global arrayEqual:=true
     a(array1, array2)
     return arrayEqual
-    
+
 }
 
 a(arrayOrString1, arrayOrString2)
@@ -107,58 +148,110 @@ Sort777(x, delim="") { ; LOGIC SORT, x IS terminated with delimiter!
     y=
     z=
     count1=0
-    
+
     IfEqual delim,, SetEnv delim, `n
-        
+
     Sort x, D%delim%
-    
+
     Loop Parse, x, %delim%
     {
         count1++
         If (p = PreText777(A_LoopField))
-            
+
         y = %y%%delim%%A_LoopField%
-            
+
         Else {
-            
+
             Sort y, % "N D" delim " P" StrLen(p)+1
-            
+
             z = %z%%y%%delim%
-            
+
             p := PreText777(A_LoopField)
-            
+
             y = %A_LoopField%
-                
+
         }
-        
+
     }
-    
+
     StringTrimLeft z, z, 1
-    
+
     Return [z, count1]
-    
+
 }
 
 PreText777(x) {
-    
+
     Loop Parse, x, 0123456789
-        
+
     Return A_LoopField
-        
+
 }
 
 ;https://autohotkey.com/board/topic/85201-array-deep-copy-treeview-viewer-and-more/ by GeekDude
-
-Array_Print(Array) 
+Array_Print_nospace(Array,noQuotes:=false) 
 {
-    
     ; if Array_IsCircle(Array)
     ; return "Error: Circular reference"
     Output=
     For Key23, Value24 in Array
     {
-        
-        
+
+        If (IsObject(Value24))
+        {
+            if IsArray(Value24)
+                Output .= "[" . Array_Print_nospace(Value24,noQuotes) . "]"
+            else
+                Output .= "{" . ObjectPrint_nospace(Value24,noQuotes) . "}"
+        }
+        Else If Value24 is not number
+            Output .= """" . Value24 . """"
+        Else
+            Output .= Value24
+
+        Output .= ","
+    }
+    StringTrimRight, OutPut, OutPut, 1 ;remove the last "," from the end
+    Return OutPut
+}
+
+ObjectPrint_nospace(Array, noQuotes:=false) {
+    ; if Array_IsCircle(Array)
+    ; return "Error: Circular refrence"
+    Output=
+    For Key23, Value24 in Array
+    {
+        If Key23 is not Number
+            Output .= (noQuotes) ? Key23 ":" : """" . Key23 . """:"
+        Else
+            Output .= Key23 . ":"
+
+        If (IsObject(Value24))
+        {
+            if IsArray(Value24)
+                Output .= "[" . Array_Print_nospace(Value24,noQuotes) . "]"
+            else
+                Output .= "{" . ObjectPrint_nospace(Value24,noQuotes) . "}"
+        }
+        Else If Value24 is not number
+            Output .= """" . Value24 . """"
+        Else
+            Output .= Value24
+
+        Output .= ","
+    }
+    StringTrimRight, OutPut, OutPut, 1 ;remove the last "," from the end
+    Return OutPut
+}
+
+Array_Print(Array) 
+{
+    ; if Array_IsCircle(Array)
+    ; return "Error: Circular reference"
+    Output=
+    For Key23, Value24 in Array
+    {
+
         If (IsObject(Value24))
         {
             if IsArray(Value24)
@@ -166,15 +259,15 @@ Array_Print(Array)
             else
                 Output .= "{" . ObjectPrint(Value24) . "}"
         }
-        
+
         Else If Value24 is not number
             Output .= """" . Value24 . """"
         Else
             Output .= Value24
-        
+
         Output .= ", "
     }
-    StringTrimRight, OutPut, OutPut, 2
+    StringTrimRight, OutPut, OutPut, 2 ;remove the last 2 "," from the end
     Return OutPut
 }
 
@@ -188,7 +281,7 @@ ObjectPrint(Array) {
             Output .= """" . Key23 . """:"
         Else
             Output .= Key23 . ":"
-        
+
         If (IsObject(Value24))
         {
             if IsArray(Value24)
@@ -200,10 +293,10 @@ ObjectPrint(Array) {
             Output .= """" . Value24 . """"
         Else
             Output .= Value24
-        
+
         Output .= ", "
     }
-    StringTrimRight, OutPut, OutPut, 2
+    StringTrimRight, OutPut, OutPut, 2 ;remove the last 2 "," from the end
     Return OutPut
 }
 
@@ -225,8 +318,6 @@ ObjectPrint(Array) {
 ; Array_Print, Array_DeepClone, Array_IsCircle
 ; Example:
 ; Array_Gui({"GeekDude":["Smart", "Charming", "Interesting"], "tidbit":"Weird"})
-;
-
 Array_Gui(Array, Parent="") {
     static
     global GuiArrayTree, GuiArrayTreeX, GuiArrayTreeY
@@ -240,14 +331,14 @@ Array_Gui(Array, Parent="") {
         Gui, +HwndDefault
         Gui, GuiArray:New, +HwndGuiArray +LabelGuiArray +Resize
         Gui, Add, TreeView, vGuiArrayTree
-        
+
         Parent := "P1"
         %Parent% := TV_Add("Array", 0, "+Expand")
         Array_Gui(Array, Parent)
         GuiControlGet, GuiArrayTree, Pos
         Gui, Show,, GuiArray
         Gui, %Default%:Default
-        
+
         WinWaitActive, ahk_id%GuiArray%
         WinWaitClose, ahk_id%GuiArray%
         return
@@ -262,11 +353,11 @@ Array_Gui(Array, Parent="") {
             %Key23Parent%C1 := TV_Add(Value24, %Key23Parent%)
     }
     return
-    
+
     GuiArrayClose:
         Gui, Destroy
     return
-    
+
     GuiArraySize:
         if !(A_GuiWidth || A_GuiHeight) ; Minimized
             return
