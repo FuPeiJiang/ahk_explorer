@@ -2878,14 +2878,14 @@ renderCurrentDir()
     {
         VarSetCapacity(CLSID, 16,0)
         return DllCall("ole32\CLSIDFromString", "wstr", String, "Ptr", &CLSID) >= 0 ? &CLSID : ""
-        }
-        Guid_FromStr(sGuid, ByRef VarOrAddress)
-        {
-            if IsByRef(VarOrAddress) && (VarSetCapacity(VarOrAddress) < 16)
-                VarSetCapacity(VarOrAddress, 16) ; adjust capacity
-            pGuid := IsByRef(VarOrAddress) ? &VarOrAddress : VarOrAddress
-            if ( DllCall("ole32\CLSIDFromString", "WStr", sGuid, "Ptr", pGuid) < 0 )
-                throw Exception("Invalid GUID", -1, sGuid)
+    }
+    Guid_FromStr(sGuid, ByRef VarOrAddress)
+    {
+        if IsByRef(VarOrAddress) && (VarSetCapacity(VarOrAddress) < 16)
+            VarSetCapacity(VarOrAddress, 16) ; adjust capacity
+        pGuid := IsByRef(VarOrAddress) ? &VarOrAddress : VarOrAddress
+        if ( DllCall("ole32\CLSIDFromString", "WStr", sGuid, "Ptr", pGuid) < 0 )
+            throw Exception("Invalid GUID", -1, sGuid)
         return pGuid ; return address of GUID struct
     }
     Guid_ToStr(ByRef VarOrAddress)
