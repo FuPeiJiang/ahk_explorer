@@ -3485,6 +3485,12 @@ $enter::
 
 return
 
+!f4::
+    Process, Close, %PID_getFolderSizes%
+    Process, Close, %PID_FolderWatcher2%
+    Exitapp
+return
+
 #if winactive("renamingWinTitle ahk_class AutoHotkeyGUI")
 
 $esc::
