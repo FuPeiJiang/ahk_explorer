@@ -14,6 +14,10 @@
 
 <br>
 
+* hotkey to open folder: see `hotkey open folder.ahk`: I use <kbd>Win</kbd>+<kbd>Shift</kbd>+<kbd>D</kbd> to open `C:\Users\User\Downloads` and <kbd>Win</kbd>+<kbd>1</kbd> to open `C:\Users\Public\AHK`
+
+<br>
+
 * Favorite folders on the left, <kbd>DoubleClick</kbd> to open
 * <kbd>Click</kbd> on Favorites to edit your favorite folders using [vscode](#to-open-default-apps,-Fill-in-the-settings-you-need)
 
