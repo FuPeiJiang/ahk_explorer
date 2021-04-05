@@ -14,7 +14,7 @@
 
 <br>
 
-* hotkey to open folder: see `hotkey open folder.ahk`: I use <kbd>Win</kbd>+<kbd>Shift</kbd>+<kbd>D</kbd> to open `C:\Users\User\Downloads` and <kbd>Win</kbd>+<kbd>1</kbd> to open `C:\Users\Public\AHK`
+* hotkey to open folder: see **[hotkey open folder.ahk](hotkey%20open%20folder.ahk)**: I use <kbd>Win</kbd>+<kbd>Shift</kbd>+<kbd>D</kbd> to open `C:\Users\User\Downloads` and <kbd>Win</kbd>+<kbd>1</kbd> to open `C:\Users\Public\AHK`
 
 <br>
 
@@ -69,7 +69,7 @@ ctrl+shift+left : panel : left <- right\
 ctrl+shift+right : panel : left -> right
 ___
 
-you can change the hotkeys to what you want: in `ahk_explorer.ahk`, search for `;hotkeys`, that's where hotkeys start.
+you can change the hotkeys to what you want: in **[ahk_explorer.ahk](ahk_explorer.ahk)**, search for `;hotkeys`, that's where hotkeys start.
 ___
 
 it uses `LastAccessDate` for dates, so its inconsistent, but it works better for me.\
@@ -81,7 +81,7 @@ feedback and suggestions are much appreciated!\
 ## download and use
 
 * git clone using [GitHub Desktop](https://desktop.github.com)
-* run ahk_explorer.ahk (I suggest making a hotkey like <kbd>Win</kbd> + <kbd>e</kbd> to run this)
+* run [ahk_explorer.ahk](ahk_explorer.ahk) (I suggest making a hotkey like <kbd>Win</kbd> + <kbd>e</kbd> to run this)
 
 pull origin to update!
 
