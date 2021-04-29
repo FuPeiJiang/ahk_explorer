@@ -2996,6 +2996,30 @@ sortArrayByArray(toSort, sortWith, reverse=false, key=false)
         Run, % "explorer.exe """ EcurrentDir%whichSide% """"
     }
 return
+; rotate JPEG images in a lossless way
++r::
+; https://www.etcwiki.org/wiki/IrfanView_Command_Line_Options
+; i_view64.exe "c:\test.jpg" /jpg_rotate=(
+;   Rotate 270:5, 
+;   optimize:1, 
+;   Set EXIF date:1, 
+;   Keep current date:0, 
+;   Set DPI:0, 
+;   DPI value:0, 
+;   Marker option: Keep all (0), Clean all (1), Custom (2):0, 
+;   Custom markers values (can be combined (add values)):0
+;   )
+path:=getSelectedPaths()[1]
+if (path) {
+    SplitPath, path,, OutDir, OutExtension, OutNameNoExt
+    if (OutExtension="jpg" or OutExtension="jpeg") {
+        Run % """lib\irfanview\i_view64.exe"" """ path """ /jpg_rotate=(5,1,1,0,0,0,0,0) /cmdexit"
+    } else {
+        p("need to select .jpg or .jpeg")
+    }
+}
+return
+
 ; extract embedded images from PDF
 ; https://superuser.com/questions/49099/how-do-i-save-an-image-pdf-file-as-an-image#answer-107773
 ; I like to think pdf -> jpg
