@@ -2996,7 +2996,20 @@ sortArrayByArray(toSort, sortWith, reverse=false, key=false)
         Run, % "explorer.exe """ EcurrentDir%whichSide% """"
     }
 return
-
+; extract embedded images from PDF
+; https://superuser.com/questions/49099/how-do-i-save-an-image-pdf-file-as-an-image#answer-107773
+; I like to think pdf -> jpg
+^j::
+path:=getSelectedPaths()[1]
+if (path) {
+    SplitPath, path,, OutDir, OutExtension, OutNameNoExt
+    if (OutExtension="pdf") {
+        Run % """lib\pdfimages.exe"" -j -list """ path """ """ OutDir "\" OutNameNoExt """"
+    } else {
+        p("need to select .pdf")
+    }
+}
+return
 #d::
     if (focused="changePath") {
         focused:="flistView"
