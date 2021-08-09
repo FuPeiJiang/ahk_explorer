@@ -1211,16 +1211,21 @@ sortArrByKey(ar, byref key,byref reverse:=false) {
 return finalAr
 }
 
-hashFiles(algorithm)
+hashFiles(algorithm, algoDisplayName:=false)
 {
     global EcurrentDir1, EcurrentDir2, whichSide
     finalStr=
     for notUsed, name in getSelectedNames() {
-        finalStr.=getHash(algorithm, EcurrentDir%whichSide% "\" name) "`n"
+        hash:=getHash(algorithm, EcurrentDir%whichSide% "\" name)
+        StringUpper, uppercaseHash, hash
+        finalStr.=uppercaseHash "`n"
     }
     if (finalStr) {
         StringTrimRight, finalStr, finalStr, 1 ;remove the last "`n" from the end
         clipboard:=finalStr
+        if (algoDisplayName!=false) {
+            finalStr:=algoDisplayName ":`n" finalStr
+        }
         cMsgbox(finalStr)
     } else {
         p("couldn't get hash")
@@ -3216,11 +3221,11 @@ return
 return
 
 !h::
-    hashFiles("sha256")
+    hashFiles("sha256","SHA-256")
 return
 
 ^h::
-    hashFiles("md5")
+    hashFiles("md5","MD5")
 return
 
 ^+e::
