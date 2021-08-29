@@ -2016,25 +2016,24 @@ renderFunctionsToSort(ByRef objectToSort, reverse:=false)
     }
     GuiControl, +Redraw, vlistView%whichSide% 
     applyIcons(namesForIcons%whichSide%)
-    if (firstSizes%whichSide%) {
-        firstSizes%whichSide%:=false
-        for key in objectToSort {
-            if (reverse) {
-                k:=length-key+1
-            } else {
-                k:=key
-            }
-            name:=objectToSort[k]
-            v:=stuffByName%whichSide%[name]
-            if (InStr(v["attri"], "D")) {
-                if (key<51)
-                    rowsForSizes%whichSide%.Push(key)
-                namesForSizes%whichSide%.Push(name)
-            }
-        } 
-        applySizes()
-    }
-    stopSizes:=true
+    ; if (firstSizes%whichSide%) {
+        ; firstSizes%whichSide%:=false
+        ; for key in objectToSort {
+            ; if (reverse) {
+                ; k:=length-key+1
+            ; } else {
+                ; k:=key
+            ; }
+            ; name:=objectToSort[k]
+            ; v:=stuffByName%whichSide%[name]
+            ; if (InStr(v["attri"], "D")) {
+                ; if (key<51)
+                    ; rowsForSizes%whichSide%.Push(key)
+                ; namesForSizes%whichSide%.Push(name)
+            ; }
+        ; } 
+        ; applySizes()
+    ; }
 }
 
 manageCMDArguments(pathArgument)
@@ -2551,7 +2550,7 @@ renderCurrentDir()
 {
     global
     local ansiPath, bothSameDir, dirToStopWatching,i,k,v,y,drive,freeSpace,lastChar,text,totalSpace,OutputVar
-    ; global EcurrentDir1, EcurrentDir2, whichSide, currentDirSearch, stopSizes
+    ; global EcurrentDir1, EcurrentDir2, whichSide, currentDirSearch
     Gui, main:Default
 
     if (SubStr(EcurrentDir%whichSide%,1,5)="file:") {
@@ -2572,8 +2571,6 @@ renderCurrentDir()
     currentDirSearch:=""
     if (InStr(fileExist(EcurrentDir%whichSide%), "D"))
     {
-        stopSizes:=false
-
         if (lastDir%whichSide%!=EcurrentDir%whichSide% ) {
             bothSameDir:=bothSameDir(whichSide)
             if (lastDir%whichSide%!="" and EcurrentDir%otherSide%!=lastDir%whichSide%) {
@@ -3510,7 +3507,6 @@ $enter::
     Gui, main:Default
     if (!canRename) {
         if (focused="flistView" or focused="searchCurrentDirEdit" or focused="listViewInSearch") {
-            stopSizes:=false
             gui, ListView, vlistView%whichSide%
             for unused, fullPath in getSelectedPaths() {
                 doubleClickedFolderOrFile(fullPath) 
