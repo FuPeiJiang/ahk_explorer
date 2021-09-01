@@ -83,7 +83,7 @@ hw_gui := WinExist()
 Gui, Margin, 0, 0
 
 folderListViewWidth:=250
-favoritesListViewWidth:=130
+favoritesListViewWidth:=140
 
 listViewWidth:=500
 favoritesLenght:=favoriteFolders.Length()
@@ -544,46 +544,7 @@ listViewEvents2:
             if (key="Backspace")
             {
             }
-            else if (key="f2") {
-                canRename:=true
-                ; focused:="renaming"
-                firstRename:=false
-                fromButton:=false
-                renameTextWidthLimit:=200
-
-                row:=LV_GetNext("")
-                LV_GetText(TextBeingRenamed, row, 2)
-                ICELV%whichSide%.EditCell(row, 2)
-                sleep, 25
-                WinGetPos, xpos, ypos,,,% ahk_explorer ahk_class AutoHotkeyGUI
-                if (whichSide=1)
-                    xpos+=161
-                else
-                    xpos+=161+listViewWidth
-
-                ypos+=A_CaretY - 5
-                Gui, renameSimple:Default
-                Gui,Font, s10, Segoe UI
-                Gui, Margin , 0,0,0,0
-                gui, add, edit,y2 r1 w%renameTextWidthLimit% -wrap gTypingInRenameSimple vRenamingSimple hwndRenameHwnd, %TextBeingRenamed%
-                Gui, Add, Button, Hidden Default ggrenameFileLabel
-
-                gui, show, X%xpos% Y%ypos% h0,renamingWinTitle
-                WinSet, Style, -0xC00000,a ; remove the titlebar and border(s) 
-
-                gosub, TypingInRenameSimple
-
-                return
-                sleep, 500
-
-                LV_GetText(OutputVar,A_EventInfo,2)
-                SplitPath, OutputVar, , , OutExtension, OutNameNoExt
-                if (OutNameNoExt) {
-                    Postmessage,0xB1, 0, % StrLen(OutNameNoExt), Edit2
-                } else {
-                    Postmessage,0xB1, 1, % StrLen(OutExtension)+1, Edit2
-                }
-            }
+            ; else if (key="f2") {}
             else if (key="Lwin") {
 
             }
@@ -3176,6 +3137,78 @@ return
 $^r::
 $esc::
     stopSearching()
+return
+
+$f2::
+if (!dontSearch) {
+    gui, main:default ;NEEDED
+    ControlFocus,, % "ahk_id " ListviewHwnd%whichSide%
+    Gui, ListView, vlistView%whichSide%
+
+
+    canRename:=true
+    ; focused:="renaming"
+    firstRename:=false
+    fromButton:=false
+    renameTextWidthLimit:=200
+
+    row:=LV_GetNext("")
+    LV_GetText(TextBeingRenamed, row, 2)
+    ICELV%whichSide%.EditCell(row, 2)
+    sleep, 25
+    WinGetPos, xpos, ypos,,, ahk_explorer ahk_class AutoHotkeyGUI
+
+    renameGuiOffsetWidth:=1
+    iconWidth:=30
+
+    ; https://winaero.com/change-dpi-scaling-level-for-display-in-windows-10/
+    ; it's everything x0.96
+    ; it's A_ScreenDPI *25/24
+    ; 96 = default 100%
+    ; 120 = medium 125%
+    ; 144 = larger 150%
+    ; 192 = extra large 200%
+    ; 240 = custom 250%
+    ; 288 = custom 300%
+    ; 384 = custom 400%
+    ; 480 = custom 500%
+    ; https://www.autohotkey.com/docs/commands/Gui.htm#DPIScale
+    ; BRUH, IT'S PROPERTIONAL TO favoritesListViewWidth
+    ; adding favoritesListViewWidth is not the same width
+    ;130 is actually 162
+
+    dpiMultiplier:=A_ScreenDPI*25/2400
+    realFavoritesListViewWidth:=favoritesListViewWidth*dpiMultiplier
+    realListViewWidth:=listViewWidth*dpiMultiplier
+
+    if (whichSide=1)
+        xpos+=renameGuiOffsetWidth+realFavoritesListViewWidth+iconWidth
+    else
+        xpos+=renameGuiOffsetWidth+realFavoritesListViewWidth+realListViewWidth+iconWidth
+
+    ypos+=A_CaretY - 5
+    Gui, renameSimple:Default
+    Gui, Font, s10, Segoe UI
+    Gui, Margin , 0,0,0,0
+    gui, add, edit,y2 r1 w%renameTextWidthLimit% -wrap gTypingInRenameSimple vRenamingSimple hwndRenameHwnd, %TextBeingRenamed%
+    Gui, Add, Button, Hidden Default ggrenameFileLabel
+
+    gui, show, X%xpos% Y%ypos% h0,renamingWinTitle
+    WinSet, Style, -0xC00000,a ; remove the titlebar and border(s) 
+
+    gosub, TypingInRenameSimple
+
+    return
+    sleep, 500
+
+    LV_GetText(OutputVar,A_EventInfo,2)
+    SplitPath, OutputVar, , , OutExtension, OutNameNoExt
+    if (OutNameNoExt) {
+        Postmessage,0xB1, 0, % StrLen(OutNameNoExt), Edit2
+    } else {
+        Postmessage,0xB1, 1, % StrLen(OutExtension)+1, Edit2
+    }
+}            
 return
 
 $^n::
