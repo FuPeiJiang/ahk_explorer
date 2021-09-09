@@ -3086,7 +3086,7 @@ $RCtrl::
 return
 $RShift::
     if (focused="searchCurrentDirEdit" or focused="flistView" or focused="listViewInSearch") {
-        toRun:= """" vscodePath """ """ EcurrentDir%whichSide% """"
+        toRun:= """" vscodePath """ """ EcurrentDir%whichSide% "\."""
         run, %toRun%
     } else {
         send, +\
