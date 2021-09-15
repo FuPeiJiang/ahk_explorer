@@ -1745,7 +1745,8 @@ getMultiRenameNames()
             nameInstance:=SubStr(nameInstance, 1, value[1]-1) SubStr(nameInstance, value[1] + value[2])
         }
 
-        SplitPath, v,,, OutExtension
+        SplitPath, v,,, OutExtension, OutNameNoExt
+        nameInstance:=StrReplace(nameInstance, "|namenoext", OutNameNoExt)
         nameInstance:=StrReplace(nameInstance, "|name", v)
         nameInstance:=StrReplace(nameInstance, "|ext", OutExtension)
 
@@ -3129,8 +3130,10 @@ $^+r::
     Gui, Add, Button, h30 w200 y+5 x+-705 ggmultiRenamePreview,preview
     Gui, Add, Button, h30 w200 x+5 ggmultiRenameApply,apply
 
-    Gui, Add, ListBox, r%multiRenamelength% w500 y+5 vvmultiRenameTargets x+-405 , % array_ToVerticleBarString(selectedNames)
-    Gui, Add, ListBox, r%multiRenamelength% w500 x+5 vvmultiRenamePreview,
+    width:=500
+    Gui, Add, ListBox, r%multiRenamelength% w%width% y+5 vvmultiRenameTargets x+-405 , % array_ToVerticleBarString(selectedNames)
+    Gui, Add, ListBox, r%multiRenamelength% w%width% x+5 vvmultiRenamePreview,
+    Gui, Add, Text, % "x+-" 2*width " y+10" ,|namenoext`n|name`n|ext`n*`n?
     Gui, show,,multiRenameGui
 return
 
