@@ -645,6 +645,7 @@ listViewEvents2:
                             EcurrentDir%whichSide%:=EcurrentDir%whichSide% "\" OutNameNoExt
                             renderCurrentDir() 
                             return
+                        } else if (key="z") {
                         } else if (key="d") {
                             files:=array_ToSpacedString(getSelectedPaths()) 
                             runwait, "%peazipPath%" -add2archive %files%
@@ -1118,6 +1119,8 @@ Return DllCall("Comctl32.dll\DefSubclassProc", "Ptr", H, "UInt", M, "Ptr", W, "P
 }
 ; ======================================================================================================================
 ;start of functions start
+
+
 
 URItoPath(vPathUrl)
 {
@@ -2700,28 +2703,20 @@ renderCurrentDir()
         Gui, ListView, vlistView%whichSide%
     }
 
-    findNextDirNameNumberIteration(path)
+    findNextDirNameNumberIteration(pathWithAsterisk)
     {
-        global left
-        global right
-        SplitPath, path, OutFileName, OutDir, OutExtension, OutNameNoExt, OutDrive
-        getLeftRight(OutNameNoExt, "*")
-        pathToCheck:=OutDir "\" left right
-        incrementNumber:=2
-        while (FileExist(pathToCheck)) {
-            pathToCheck:=OutDir "\" left incrementNumber right
-            incrementNumber++
-        }
-        return pathToCheck
-    }
+    SplitPath, pathWithAsterisk,, OutDir,,OutNameNoExt
+    asteriskPos:=InStr(OutNameNoExt, "*")
+    left:=SubStr(OutNameNoExt, 1, asteriskPos-1)
+    right:=SubStr(OutNameNoExt, asteriskPos+1)
 
-    getLeftRight(string, needle)
-    {
-        global left
-        global right
-        asteriskPos:=InStr(string, "*")
-        left:=SubStr(string, 1, asteriskPos-1)
-        right:=SubStr(string, asteriskPos+1)
+    pathToCheck:=OutDir "\" left right
+    incrementNumber:=2
+    while (FileExist(pathToCheck)) {
+        pathToCheck:=OutDir "\" left incrementNumber right
+        incrementNumber++
+    }
+    return pathToCheck
     }
 
     ShellContextMenu(folderPath, files, win_hwnd = 0 )
