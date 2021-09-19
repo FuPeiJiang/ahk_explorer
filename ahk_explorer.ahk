@@ -57,7 +57,6 @@ for n, param in A_Args ; For each parameter:
 watching1:=["control"]
 watching2:=["control"]
 maxRows:=50
-rememberIconNumber:=0
 lastInputSearchCurrentDir:=false
 dirHistory1:=[]
 dirHistory2:=[]
@@ -1396,7 +1395,6 @@ fileRenamed(whichSide, Byref renameFrom,Byref renameInto)
     global
     Gui, main:Default
     Gui, ListView, vlistView%whichSide%
-    clipboard:=EcurrentDir%whichSide% "\" renameInto
     FileGetSize, outputSize, % EcurrentDir%whichSide% "\" renameInto
     obj:=stuffByName%whichSide%[renameFrom]
     stuffByName%whichSide%[renameInto]:=stuffByName%whichSide%[renameFrom]
@@ -1420,9 +1418,7 @@ fileRenamed(whichSide, Byref renameFrom,Byref renameInto)
         if (OutputVar=renameFrom) {
             calculateStuff(,outputSize,OutputVar,A_Index)
 
-            LV_Modify(A_Index,, ,renameInto,,,formattedBytes,bytes)
-
-            justOneIcon(renameInto,A_Index,whichSide)
+            LV_Modify(A_Index,"Icon" getIconNum(EcurrentDir%whichSide% "\" renameInto), ,renameInto,,,formattedBytes,bytes)
 
             break
         }
@@ -1601,10 +1597,9 @@ insertRow(byref whichSide, byref OutFileName,byref row,byref date,byref size)
     Gui, ListView, vlistView%whichSide%
     calculateStuff(date,size,OutFileName,row)
     GuiControl, -Redraw, vlistView%whichSide% 
-    LV_Insert(row,,,OutFileName,var1,var2,formattedBytes,bytes)
+    LV_Insert(row,"Icon" getIconNum(EcurrentDir%whichSide% "\" OutFileName),,OutFileName,var1,var2,formattedBytes,bytes)
     LV_Colors.Cell(ListviewHwnd%whichSide%,row,3,color)
 
-    justOneIcon(OutFileName,row,whichSide)
     GuiControl, +Redraw, vlistView%whichSide% 
 }
 
@@ -1843,43 +1838,6 @@ applySizes() {
         canSortBySize%whichSide%:=true
     }
 }
-justOneIcon(byref name,byref row, byref whichSide) {
-    global
-    if (doIcons) {
-        hIcon := DllCall("Shell32\ExtractAssociatedIcon", UInt, 0, Str, EcurrentDir%whichSide% "\" name , UShortP, iIndex)
-        if hIcon
-        {
-            IconNumber := DllCall("ImageList_ReplaceIcon", UInt, ImageListID%whichSide%, Int, -1, UInt, hIcon) + 1
-            DllCall("DestroyIcon", Uint, hIcon)
-        }
-        else
-            IconNumber = 1
-
-        LV_Modify(row,"Icon" . IconNumber)
-        lastIconNumber:=IconNumber
-    }
-
-}
-
-applyIcons(byref names) {
-    global
-    if (doIcons) {
-        for k, v in names {
-            hIcon := DllCall("Shell32\ExtractAssociatedIcon", UInt, 0, Str, EcurrentDir%whichSide% "\" v , UShortP, iIndex)
-            if hIcon
-            {
-                IconNumber := DllCall("ImageList_ReplaceIcon", UInt, ImageListID%whichSide%, Int, -1, UInt, hIcon) + 1
-                DllCall("DestroyIcon", Uint, hIcon)
-            }
-            else
-                IconNumber = 1
-
-            LV_Modify(k,"Icon" . IconNumber)
-            lastIconNumber:=IconNumber
-        }
-
-    }
-}
 
 renderFunctionsToSort(ByRef objectToSort, reverse:=false)
 {
@@ -1889,7 +1847,7 @@ renderFunctionsToSort(ByRef objectToSort, reverse:=false)
     ControlFocus,, % "ahk_id " ListviewHwnd%whichSide%
 
     GuiControl,Text,vcurrentDirEdit%whichSide%, % EcurrentDir%whichSide%
-    searchString%whichSide%=
+    searchString%whichSide%:=""
 
     GuiControl, -Redraw, vlistView%whichSide% 
     LV_Delete()
@@ -1904,7 +1862,6 @@ renderFunctionsToSort(ByRef objectToSort, reverse:=false)
         inc:=1
         reverseSort:=false
     }
-    namesForIcons%whichSide%:=[]
     namesForSizes%whichSide%:=[]
     rowsForSizes%whichSide%:=[]
 
@@ -1928,6 +1885,7 @@ renderFunctionsToSort(ByRef objectToSort, reverse:=false)
         }
     }
     k:=startPos
+    currentDirCache:=EcurrentDir%whichSide% "\"
     loop % rowsToLoop {
         name:=objectToSort[k]
         v:=stuffByName%whichSide%[name]
@@ -1937,23 +1895,8 @@ renderFunctionsToSort(ByRef objectToSort, reverse:=false)
             rowToFocus:=A_Index
         }
         calculateStuff(v["date"],v["size"],name,A_Index)
-        LV_Add(,,name,var1,var2,formattedBytes,bytes)
+        LV_Add("Icon" getIconNum(currentDirCache name),,name,var1,var2,formattedBytes,bytes)
         LV_Colors.Cell(ListviewHwnd%whichSide%,A_Index,3,color)
-        namesForIcons%whichSide%.Push(name)
-
-        if (!quickFixIcon%whichSide%) {
-            quickFixIcon%whichSide%:=true
-            hIcon:=DllCall("Shell32\ExtractAssociatedIcon", UInt, 0, Str, "", UShortP, iIndex)
-            if hIcon
-            {
-                IconNumber := DllCall("ImageList_ReplaceIcon", UInt, ImageListID1, Int, -1, UInt, hIcon) + 1
-                DllCall("DestroyIcon", Uint, hIcon)
-            }
-            else
-                IconNumber = 1
-            LV_Modify(A_Index,"Icon" . IconNumber)
-            lastIconNumber:=IconNumber
-        }
 
         k+=inc
     }
@@ -1970,25 +1913,6 @@ renderFunctionsToSort(ByRef objectToSort, reverse:=false)
         ICELV%whichSide%.SetColumns(0)
     }
     GuiControl, +Redraw, vlistView%whichSide% 
-    applyIcons(namesForIcons%whichSide%)
-    ; if (firstSizes%whichSide%) {
-        ; firstSizes%whichSide%:=false
-        ; for key in objectToSort {
-            ; if (reverse) {
-                ; k:=length-key+1
-            ; } else {
-                ; k:=key
-            ; }
-            ; name:=objectToSort[k]
-            ; v:=stuffByName%whichSide%[name]
-            ; if (InStr(v["attri"], "D")) {
-                ; if (key<51)
-                    ; rowsForSizes%whichSide%.Push(key)
-                ; namesForSizes%whichSide%.Push(name)
-            ; }
-        ; } 
-        ; applySizes()
-    ; }
 }
 
 manageCMDArguments(pathArgument)
@@ -2471,10 +2395,8 @@ searchInCurrentDir() {
 
     ignoreOut:=true
     objectToSort:=[]
-    namesForIcons%whichSide%:=[]
 
     currentDirCache:=EcurrentDir%whichSide% "\"
-
     GuiControl, -Redraw, vlistView%whichSide%
     LV_Delete()
     if (SubStr(searchString%whichSide%, 1, 1)!=".") {
@@ -2507,7 +2429,6 @@ searchInCurrentDir() {
             LV_Add("Icon" getIconNum(currentDirCache name),,name,var1,var2,formattedBytes,bytes)
             ; LV_Add(,,name,var1,var2,formattedBytes,bytes)
             LV_Colors.Cell(ListviewHwnd%whichSide%,k,3,color)
-            namesForIcons%whichSide%.Push(name)
         }
     } else {
         searchFoldersOnly:=(searchString%whichSide%=".") ? true : false
@@ -2524,7 +2445,6 @@ searchInCurrentDir() {
 
                     LV_Add("Icon" getIconNum(currentDirCache name),,name,var1,var2,formattedBytes,bytes)
                     LV_Colors.Cell(ListviewHwnd%whichSide%,k,3,color)
-                    namesForIcons%whichSide%.Push(name)
                 }
             }
         } else {
@@ -2550,12 +2470,10 @@ searchInCurrentDir() {
 
                 LV_Add("Icon" getIconNum(currentDirCache name),,name,var1,var2,formattedBytes,bytes)
                 LV_Colors.Cell(ListviewHwnd%whichSide%,k,3,color)
-                namesForIcons%whichSide%.Push(name)
             }
         }
 
     }
-    ; applyIcons(namesForIcons%whichSide%)
 
     ; loop % LV_GetCount() - 1 {
         ; LV_Modify(A_Index+1, "-Select -Focus") ; select
@@ -2667,8 +2585,6 @@ renderCurrentDir()
         sortableSizes:=[]
         ; dateColors:=[]
         ; filesWithNoExt:=[]
-        if (lastIconNumber)
-            rememberIconNumber:=lastIconNumber
 
         unsorted%whichSide%:=[]
         sortedByDate%whichSide%:=[]
