@@ -541,65 +541,39 @@ listViewEvents2:
             Gui, ListView, vlistView%whichSide%
 
             key := GetKeyName(Format("vk{:x}", A_EventInfo))
-            if (key="Backspace")
-            {
-            }
-            ; else if (key="f2") {}
-            else if (key="Lwin") {
+            switch (key) {
 
-            }
-            else if (key="NumpadRight") {
-
-            }
-            else if (key="NumpadLeft") {
-
-            }
-            else if (key="NumpadUp") {
-
-            }
-            else if (key="NumpadDown") {
-
-            }
-            else if (key="Alt") {
-
-            }
-            else if (key="Control") {
-
-            }
-            else if (key="Shift") {
-
-            } else if (key="F1") {
+            case "Backspace":
+            case "Lwin":
+            case "NumpadRight":
+            case "NumpadLeft":
+            case "NumpadUp":
+            case "NumpadDown":
+            case "Alt":
+            case "Control":
+            case "Shift":
+            case "F1":
                 send, {f1}
-            } else if (key="F3") {
+            case "F3":
                 send, {f3}
-            } else if (key="F4") {
+            case "F4":
                 ; send, {f4}
-            }
-            else if (key="\") {
-            }
-            else if (key="NumpadEnd") {
-            }
-            else if (key="Numpad0") {
-            }
-            else if (key="NumpadHome") {
-            }
-            else if (key="NumpadPgDn") {
-            }
-            else if (key="NumpadPgUp") {
-            }
-            else if (key="]") {
-            }
-            else if (key="NumpadDel") {
-
+            case "\":
+            case "NumpadEnd":
+            case "Numpad0":
+            case "NumpadHome":
+            case "NumpadPgDn":
+            case "NumpadPgUp":
+            case "]":
+            case "NumpadDel":
                 selectedNames:=getSelectedNames()
 
                 for k, v in getSelectedNames() {
                     finalStr:="""" A_AhkPath """ ""lib\fileRecycle_one.ahk"" """ EcurrentDir%whichSide% "\" v """" 
                     run, %finalStr%
                 }
-
                 return
-            } else {
+            Default:
                 if (focused!="searchCurrentDirEdit")
                 {
                     ShiftIsDown := GetKeyState("Shift")
@@ -692,9 +666,12 @@ listViewEvents2:
 
                     focused=searchCurrentDirEdit
                     GuiControl, Focus, vcurrentDirEdit%whichSide%
+                    ; set text to key, append if there's already text
                     GuiControl, Text, vcurrentDirEdit%whichSide%,% searchString%whichSide% key
+                    ; move caret to end
                     SendMessage, 0xB1, -2, -1,, % "ahk_id " Edithwnd%whichSide%
                 }
+
             }
         }
     }
