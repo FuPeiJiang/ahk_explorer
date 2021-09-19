@@ -106,25 +106,7 @@ Gui, Add, ListView, NoSort HwndListviewHwnd2 Count5000 r25 -WantF2 w%listViewWid
 OnMessage(0x4A, "WM_COPYDATA_READ")
 
 OnMessage(0x111, "HandleMessage" )
-loop 2 {
-    Gui, ListView, vlistView%A_Index%
-    LV_Colors.OnMessage()
-    LV_Colors.Attach(ListviewHwnd%A_Index%, 1, 0)
-
-    LV_ModifyCol(1,20)
-    LV_ModifyCol(2,300)
-    LV_ModifyCol(3,"50 Right")
-    LV_ModifyCol(5,"80 Right")
-
-    LV_ModifyCol(2, "Logical")
-    LV_ModifyCol(6,"Integer")
-
-    LV_ModifyCol(4,0) ; hides 3rd row
-    LV_ModifyCol(6,0) ; hides 3rd row
-    focused=flistView
-    ImageListID%A_Index% := IL_Create(50)
-    LV_SetImageList(ImageListID%A_Index%) ;desactivated this to test 
-}
+initIconStuff()
 
 Gui, Show,,ahk_explorer
 Gui, ListView, favoritesListView
@@ -450,8 +432,39 @@ folderlistViewEvents2_2:
 return
 currentDirEdit1Changed:
 currentDirEdit2Changed:
-    SetTimer, currentDirEdit1ChangedTimer, -0
+    ; SetTimer, currentDirEdit1ChangedTimer, -0
+    if (focused="searchCurrentDirEdit") {
+        EditOnInput()
+    }
 return
+
+EditOnInput() {
+  global EditSearchRunning, EditSearchSleep_tick
+  if (EditSearchRunning) {
+    EditSearchSleep_tick:=A_TickCount + 0
+  } else {
+    EditSearchRunning:=true
+    EditSearchSleep_tick:=A_TickCount + 0
+    GoSub, pleaseDoNotBlock
+    if (EditSearchRunning) {
+        SetTimer, pleaseDoNotBlock, 0
+    }
+  }
+
+}
+pleaseDoNotBlock:
+    if (A_TickCount < EditSearchSleep_tick) {
+        return
+    }
+    EditSearchRunning:=false
+    SetTimer, pleaseDoNotBlock, Off
+
+    ; Retrieves the contents of the control.
+    GuiControlGet, currentDirEditText,, vcurrentDirEdit%whichSide%
+    searchString%whichSide%:=currentDirEditText
+    searchInCurrentDir()
+return
+
 currentDirEdit1ChangedTimer:
     Gui, main:Default
     gui, submit, nohide
@@ -2262,12 +2275,31 @@ stopSearching()
     renderCurrentDir()
 }
 
+; hex(num) {
+;   return Format("0x{1:X}", num)
+; }
 HandleMessage( p_w, p_l, p_m, p_hw )
 {
     global
     local control
     ; return
     ; p(p_w)
+
+    ; switch p_w {
+    ; case 0x1000003:
+        ; focusedControl:="Edit"
+    ; case 0x2000003:
+        ; focusedControl:="Listview"
+    ; case 0x3000003:
+        ; EditOnInput()
+    ; case 0x4000003:
+    ; 0x3000007
+    ; 0x300000B
+    ; default:
+        ; tooltip % hex(p_w) ", " hex(p_l) ", " hex(p_m) ", " hex(p_hw)
+    ; }
+    ; return
+
     if (!ignoreOut) {
         if (p_w=0x1000007) {
             ; p(p_l)
@@ -2343,108 +2375,194 @@ HandleMessage( p_w, p_l, p_m, p_hw )
 }
 return
 
+initIconStuff() {
+    global ImageListID1, ImageListID2, IconCacheObj, IconNopeExtension, sfi
+
+    LV_Colors.OnMessage()
+    ImageListID%A_Index% := IL_Create(50)
+    ; Create an ImageList so that the ListView can display some icons:
+    ImageListID1 := IL_Create(10)
+    ImageListID2 := IL_Create(10, 10, true) ; A list of large icons to go with the small ones.
+    loop 2 {
+        Gui, ListView, vlistView%A_Index%
+        LV_Colors.Attach(ListviewHwnd%A_Index%, 1, 0)
+
+        LV_ModifyCol(1,20)
+        LV_ModifyCol(2,300)
+        LV_ModifyCol(3,"50 Right")
+        LV_ModifyCol(5,"80 Right")
+
+        LV_ModifyCol(2, "Logical")
+        LV_ModifyCol(6,"Integer")
+
+        LV_ModifyCol(4,0) ; hides 3rd row
+        LV_ModifyCol(6,0) ; hides 3rd row
+
+        ; Attach the ImageLists to the ListView so that it can later display the icons:
+        LV_SetImageList(ImageListID1)
+        LV_SetImageList(ImageListID2)
+    }
+
+    IconCacheObj:={}
+    IconNopeExtension:={EXE:1,ICO:1,ANI:1,CUR:1}
+    VarSetCapacity(sfi, A_PtrSize + 8 + (A_IsUnicode ? 680 : 340))
+
+}
+
+getIconNum(FileName) {
+  global ImageListID1, ImageListID2, IconCacheObj, IconNopeExtension, sfi
+  ; Build a unique extension ID to avoid characters that are illegal in variable names,
+  ; such as dashes. This unique ID method also performs better because finding an item
+  ; in the array does not require search-loop.
+  SplitPath, FileName,,, FileExt ; Get the file's extension.
+  if IconNopeExtension[FileExt]
+  {
+    ExtID := FileExt ; Special ID as a placeholder.
+    IconNumber := 0 ; Flag it as not found so that these types can each have a unique icon.
+  }
+  else ; Some other extension/file-type, so calculate its unique ID.
+  {
+    ExtID := 0 ; Initialize to handle extensions that are shorter than others.
+    Loop 7 ; Limit the extension to 7 characters so that it fits in a 64-bit value.
+    {
+      ExtChar := SubStr(FileExt, A_Index, 1)
+      if not ExtChar ; No more characters.
+        break
+      ; Derive a Unique ID by assigning a different bit position to each character:
+      ExtID := ExtID | (Asc(ExtChar) << (8 * (A_Index - 1)))
+    }
+    ; Check if this file extension already has an icon in the ImageLists. If it does,
+    ; several calls can be avoided and loading performance is greatly improved,
+    ; especially for a folder containing hundreds of files:
+    IconNumber := IconCacheObj[ExtID]
+  }
+
+  if not IconNumber ; There is not yet any icon for this extension, so load it.
+  {
+    ; Get the high-quality small-icon associated with this file extension:
+    if not DllCall("Shell32\SHGetFileInfo" . (A_IsUnicode ? "W":"A"), "Str", FileName
+      , "UInt", 0, "Ptr", &sfi, "UInt", sfi_size, "UInt", 0x101) ; 0x101 is SHGFI_ICON+SHGFI_SMALLICON
+    IconNumber := 9999999 ; Set it out of bounds to display a blank icon.
+    else ; Icon successfully loaded.
+    {
+      ; Extract the hIcon member from the structure:
+      hIcon := NumGet(sfi, 0)
+      ; Add the HICON directly to the small-icon and large-icon lists.
+      ; Below uses +1 to convert the returned index from zero-based to one-based:
+      IconNumber := DllCall("ImageList_ReplaceIcon", "Ptr", ImageListID1, "Int", -1, "Ptr", hIcon) + 1
+      DllCall("ImageList_ReplaceIcon", "Ptr", ImageListID2, "Int", -1, "Ptr", hIcon)
+      ; Now that it's been copied into the ImageLists, the original should be destroyed:
+      DllCall("DestroyIcon", "Ptr", hIcon)
+      ; Cache the icon to save memory and improve loading performance:
+      IconCacheObj[ExtID] := IconNumber
+    }
+  }
+return IconNumber
+}
+
 searchInCurrentDir() {
     global
-    if (searchString%whichSide%="") {
-    } 
-    else {
-        searching:=true
-        Gui, main:Default
-        Gui, ListView, vlistView%whichSide%
+    if (searchString%whichSide%=="") {
+        return
+    }
+    searching:=true
+    Gui, main:Default
+    Gui, ListView, vlistView%whichSide%
 
-        ignoreOut:=true
+    ignoreOut:=true
+    objectToSort:=[]
+    namesForIcons%whichSide%:=[]
+
+    currentDirCache:=EcurrentDir%whichSide% "\"
+
+    GuiControl, -Redraw, vlistView%whichSide%
+    LV_Delete()
+    if (SubStr(searchString%whichSide%, 1, 1)!=".") {
+        counter:=0
         objectToSort:=[]
-        namesForIcons%whichSide%:=[]
 
-        GuiControl, -Redraw, vlistView%whichSide%
-        LV_Delete()
-        if (SubStr(searchString%whichSide%, 1, 1)!=".") {
+        for k,v in sortedByDate%whichSide% {
+            if (counter>maxRows)
+                break
+            attri:=stuffByName%whichSide%[v]["attri"]
+            if InStr(attri, "D") {
+                pos:=InStr(v, searchString%whichSide%)
+            } else {
+                SplitPath, v,,,, OutNameNoExt
+                pos:=InStr(OutNameNoExt, searchString%whichSide%)
+            }
+
+            if (pos) {
+                counter++
+                objectToSort.Push({name:v,pos:pos})
+            }
+        }
+        objectToSort:=ObjectSort(objectToSort,"pos")
+
+        for k,v in objectToSort {
+            name:=v["name"]
+            obj:=stuffByName%whichSide%[name]
+            calculateStuff(obj["date"],obj["size"],name,k)
+
+            LV_Add("Icon" getIconNum(currentDirCache name),,name,var1,var2,formattedBytes,bytes)
+            ; LV_Add(,,name,var1,var2,formattedBytes,bytes)
+            LV_Colors.Cell(ListviewHwnd%whichSide%,k,3,color)
+            namesForIcons%whichSide%.Push(name)
+        }
+    } else {
+        searchFoldersOnly:=(searchString%whichSide%=".") ? true : false
+        if (searchFoldersOnly) {
+            counter:=0
+            for k,name in sortedByDate%whichSide% {
+                if (counter>maxRows)
+                    break
+                SplitPath, name,,, OutExtension
+                if (!OutExtension) {
+                    obj:=stuffByName%whichSide%[name]
+
+                    calculateStuff(obj["date"],obj["size"],name,k)
+
+                    LV_Add("Icon" getIconNum(currentDirCache name),,name,var1,var2,formattedBytes,bytes)
+                    LV_Colors.Cell(ListviewHwnd%whichSide%,k,3,color)
+                    namesForIcons%whichSide%.Push(name)
+                }
+            }
+        } else {
+            searchStringBak%whichSide%:=SubStr(searchString%whichSide%, 2)
             counter:=0
             objectToSort:=[]
-
             for k,v in sortedByDate%whichSide% {
                 if (counter>maxRows)
                     break
-                attri:=stuffByName%whichSide%[v]["attri"]
-                if InStr(attri, "D") {
-                    pos:=InStr(v, searchString%whichSide%)
-                } else {
-                    SplitPath, v,,,, OutNameNoExt
-                    pos:=InStr(OutNameNoExt, searchString%whichSide%)
-                }
-
+                SplitPath, v,,, OutExtension
+                pos:=InStr(OutExtension, searchStringBak%whichSide%)
                 if (pos) {
                     counter++
                     objectToSort.Push({name:v,pos:pos})
                 }
             }
             objectToSort:=ObjectSort(objectToSort,"pos")
-
             for k,v in objectToSort {
                 name:=v["name"]
                 obj:=stuffByName%whichSide%[name]
+
                 calculateStuff(obj["date"],obj["size"],name,k)
 
-                LV_Add(,,name,var1,var2,formattedBytes,bytes)
+                LV_Add("Icon" getIconNum(currentDirCache name),,name,var1,var2,formattedBytes,bytes)
                 LV_Colors.Cell(ListviewHwnd%whichSide%,k,3,color)
                 namesForIcons%whichSide%.Push(name)
             }
-        } else {
-            searchFoldersOnly:=(searchString%whichSide%=".") ? true : false
-            if (searchFoldersOnly) {
-                counter:=0
-                for k,v in sortedByDate%whichSide% {
-                    if (counter>maxRows)
-                        break
-                    SplitPath, v,,, OutExtension
-                    if (!OutExtension) {
-                        obj:=stuffByName%whichSide%[v]
-
-                        calculateStuff(obj["date"],obj["size"],v,k)
-
-                        LV_Add(,,v,var1,var2,formattedBytes,bytes)
-                        LV_Colors.Cell(ListviewHwnd%whichSide%,k,3,color)
-                        namesForIcons%whichSide%.Push(v)
-                    }
-                }
-            } else {
-                searchStringBak%whichSide%:=SubStr(searchString%whichSide%, 2)
-                counter:=0
-                objectToSort:=[]
-                for k,v in sortedByDate%whichSide% {
-                    if (counter>maxRows)
-                        break
-                    SplitPath, v,,, OutExtension
-                    pos:=InStr(OutExtension, searchStringBak%whichSide%)
-                    if (pos) {
-                        counter++
-                        objectToSort.Push({name:v,pos:pos})
-                    }
-                }
-                objectToSort:=ObjectSort(objectToSort,"pos")
-                for k,v in objectToSort {
-                    name:=v["name"]
-                    obj:=stuffByName%whichSide%[name]
-
-                    calculateStuff(obj["date"],obj["size"],name,k)
-
-                    LV_Add(,,name,var1,var2,formattedBytes,bytes)
-                    LV_Colors.Cell(ListviewHwnd%whichSide%,k,3,color)
-                    namesForIcons%whichSide%.Push(name)
-                }
-            }
-
         }
-        GuiControl, +Redraw, vlistView%whichSide%
-        applyIcons(namesForIcons%whichSide%)
+
     }
+    ; applyIcons(namesForIcons%whichSide%)
 
-    loop % LV_GetCount() - 1 {
-
-        LV_Modify(A_Index+1, "-Select -Focus") ; select
-    }
-
+    ; loop % LV_GetCount() - 1 {
+        ; LV_Modify(A_Index+1, "-Select -Focus") ; select
+    ; }
     LV_Modify(1, "+Select +Focus Vis") ; select
+
+    GuiControl, +Redraw, vlistView%whichSide%
 
     searching:=false
     ignoreOut:=false
