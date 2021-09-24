@@ -2540,10 +2540,18 @@ renderCurrentDir()
     EcurrentDir%whichSide%:=StrReplace(EcurrentDir%whichSide%, "%20", " ")
     ; d(EcurrentDir%whichSide%)
     lastChar:=SubStr(EcurrentDir%whichSide%, 0)
-    if (lastChar="\")
-        EcurrentDir%whichSide%:=SubStr(EcurrentDir%whichSide%, 1, StrLen(EcurrentDir%whichSide%)-1)
+    
     EcurrentDir%whichSide%:=Rtrim(EcurrentDir%whichSide%," ")
     EcurrentDir%whichSide%:=StrReplace(EcurrentDir%whichSide%, "/" , "\")
+
+    ; path "\\" -> "\" and "\\\\\" -> "\"
+    while ((replaced:=StrReplace(EcurrentDir%whichSide%, "\\" , "\"))!=EcurrentDir%whichSide%) {
+        EcurrentDir%whichSide%:=replaced
+    }
+
+    if (lastChar="\")
+        EcurrentDir%whichSide%:=SubStr(EcurrentDir%whichSide%, 1, StrLen(EcurrentDir%whichSide%)-1)
+
     Gui, ListView, vlistView%whichSide%
 
     currentDirSearch:=""
