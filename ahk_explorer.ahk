@@ -726,7 +726,7 @@ listViewEvents2:
                 renderFunctionsToSort(sortedByDate%whichSide%)
             }
         } else if (A_EventInfo=5) {
-            if (canSortBySize%whichSide%) {
+            ; if (canSortBySize%whichSide%) {
                 if (!bigSmall%whichSide%)
                 { 
                     whichsort%whichSide%:="bigSmall"
@@ -737,7 +737,7 @@ listViewEvents2:
                     bigSmall%whichSide%:=false 
                     renderFunctionsToSort(sortedBySize%whichSide%, true)
                 }
-            }
+            ; }
         }
     }
 
@@ -2599,19 +2599,24 @@ renderCurrentDir()
         sortedBySize%whichSide%:=[]
         canSortBySize%whichSide%:=false
         stuffByName%whichSide%:={}
-        sortedDates:=[]
-        sortedSizes%whichSide%:=[]
+        arrSortedByDate:=[]
+        arrSortedBySize:=[]
+        ; sortedSizes%whichSide%:=[]
         Loop, Files, % EcurrentDir%whichSide% "\*", DF
         {
             stuffByName%whichSide%[A_LoopFileName]:={date:A_LoopFileTimeModified,attri:A_LoopFileAttrib,size:A_LoopFileSize}
 
-            sortedDates.Push({date:A_LoopFileTimeModified,name:A_LoopFileName})
+            arrSortedByDate.Push({date:A_LoopFileTimeModified,name:A_LoopFileName})
+
+            arrSortedBySize.Push({size:A_LoopFileSize,name:A_LoopFileName})
+        }
+        arrSortedBySize:=sortArrByKey(arrSortedBySize,"size")
+        for unused, v in arrSortedBySize {
+            sortedBySize%whichSide%.Push(v["name"])
         }
 
-        sortedDates:=sortArrByKey(sortedDates,"date")
-        ; sortedDates:=sortArrByKey(sortedDates,"date",true)
-
-        for k, v in sortedDates {
+        arrSortedByDate:=sortArrByKey(arrSortedByDate,"date")
+        for k, v in arrSortedByDate {
             sortedByDate%whichSide%.Push(v["name"])
         }
 
