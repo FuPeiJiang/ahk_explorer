@@ -139,6 +139,15 @@ Exitapp
 return
 
 ;labels
+;Ltrim new folder name since it's invalid
+gcreateFolder:
+    GuiControlGet, createFolderName,, % folderCreationHwnd
+    newCreateFolderName:=LTrim(createFolderName)
+    if !(newCreateFolderName==createFolderName) {
+        GuiControl, Text, vcreateFolder, % newCreateFolderName
+    }
+return
+
 gsaveSettings:
     gui, settingsGui:Default
     gui, submit
@@ -351,7 +360,7 @@ couldNotCreateFolder()
     Gui, createFolder:Default
     creatingNewFolder:=true
     dontSearch:=true
-    ControlSetText,, %createFolderName%, ahk_id %folderCreationHwnd%
+    ControlSetText,, %vcreateFolder%, ahk_id %folderCreationHwnd%
     SendMessage, 0xB1, 0, -1,, % "ahk_id " folderCreationHwnd
     gui, createFolder: show,, create_folder
     dontSearch:=false
@@ -360,7 +369,7 @@ couldNotCreateFolder()
 ;create folder
 createLabel:
     gui, createFolder: submit
-    toCreate:=EcurrentDir%whichSide% "\" createFolderName
+    toCreate:=EcurrentDir%whichSide% "\" vcreateFolder
     if (!fileExist(toCreate)) {
         FileCreateDir, %toCreate%
         if (ErrorLevel) {
@@ -380,7 +389,7 @@ return
 
 createAndOpenLabel:
     gui, createFolder: submit
-    toCreate:=EcurrentDir%whichSide% "\" createFolderName
+    toCreate:=EcurrentDir%whichSide% "\" vcreateFolder
     if (!fileExist(toCreate)) {
         FileCreateDir, %toCreate%
         if (ErrorLevel) {
@@ -679,7 +688,7 @@ listViewEvents2:
                     focused=searchCurrentDirEdit
                     GuiControl, Focus, vcurrentDirEdit%whichSide%
                     ; set text to key, append if there's already text
-                    GuiControl, Text, vcurrentDirEdit%whichSide%,% searchString%whichSide% key
+                    GuiControl, Text, vcurrentDirEdit%whichSide%, % searchString%whichSide% key
                     ; move caret to end
                     SendMessage, 0xB1, -2, -1,, % "ahk_id " Edithwnd%whichSide%
                 }
@@ -3253,11 +3262,11 @@ $^+n::
         Gui, createFolder: Font, s10, Segoe UI
         ;Segoe UI
         gui, createFolder: add, text,, Folder Name: ; Save this control's position and start a new section.
-        gui, createFolder: add, edit, w250 vcreateFolderName hwndfolderCreationHwnd, %newFolderName%
+        gui, createFolder: add, edit, w250 vvcreateFolder ggcreateFolder hwndfolderCreationHwnd, %newFolderName%
         gui, createFolder: add, button, Default w125 x11 vcreate gcreateLabel,Create Folder`n{Enter}
         gui, createFolder: add, button, w125 x+2 vcreateAndOpen gcreateAndOpenLabel,Create and Open`n{Shift + Enter}
     } else {
-        ; GuiControl, text, createFolderName, %newFolderName%
+        ; GuiControl, text, vcreateFolder, %newFolderName%
         ControlSetText,, %newFolderName%, ahk_id %folderCreationHwnd%
         SendMessage, 0xB1, 0, -1,, % "ahk_id " folderCreationHwnd
     }
