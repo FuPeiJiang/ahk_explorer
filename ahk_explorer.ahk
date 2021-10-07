@@ -1924,7 +1924,7 @@ renderFunctionsToSort(ByRef objectToSort, reverse:=false)
     GuiControl, +Redraw, vlistView%whichSide% 
 }
 
-manageCMDArguments(pathArgument)
+openInAhkExplorer(pathArgument)
 {
     global
     Gui, main:Default
@@ -1947,6 +1947,8 @@ manageCMDArguments(pathArgument)
     winactivate, ahk_explorer ahk_class AutoHotkeyGUI
     renderCurrentDir()
     ControlFocus,, % "ahk_id " ListviewHwnd%whichSide%
+    SetTimer, label_toCurrentDesktop , -0 ;SetTimer IS NEEDED SOMEHOW, you can't just call a function
+
 }
 
 receivedFolderSize(string) {
@@ -1966,7 +1968,7 @@ receivedFolderSize(string) {
     stuffByName%whichSide%[ar[1]]["size"]:=ar[3]
 }
 ;virtual desktop
-revealAhk_Explorer:
+label_toCurrentDesktop:
     CurrentIVirtualDesktop := 0
     GetCurrentDesktop_return_value := DllCall(GetCurrentDesktop, "UPtr", IVirtualDesktopManagerInternal, "UPtrP", CurrentIVirtualDesktop, "UInt")
 
@@ -1983,7 +1985,7 @@ WM_COPYDATA_READ(wp, lp) {
     RegExMatch(data, "s)(.*)\|(\d+)", match)
 
     if (match2=1) {
-        manageCMDArguments(match1)
+        openInAhkExplorer(match1)
     } else if (match2=2) {
         ; p(match1)
         receivedFolderSize(match1)
@@ -2001,7 +2003,15 @@ WM_COPYDATA_READ(wp, lp) {
             ; gui, hide
             gui, show
         } else {
-            SetTimer, revealAhk_Explorer , -0
+            ; SetTimer, revealAhk_Explorer, -0
+            ; Gosub, revealAhk_Explorer
+            ; revealAhk_Explorer()
+            ; WinHide % thisUniqueWintitle
+            ; WinShow % thisUniqueWintitle
+            ; WinRestore % thisUniqueWintitle
+            ; VD_sendToCurrentDesktop(thisUniqueWintitle, true)
+            ; VD_sendToCurrentDesktop("ahk_explorer", true)
+            SetTimer, label_toCurrentDesktop , -0 ;SetTimer IS NEEDED SOMEHOW, you can't just call a function
         }
     } else if (match2=7) {
         Action_OldName_Name:=StrSplit(match1, "|")
