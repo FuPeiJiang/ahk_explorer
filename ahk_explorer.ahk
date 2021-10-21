@@ -2352,12 +2352,21 @@ initIconStuff() {
 
 }
 
-getIconNum(FileName) {
+getIconNum(fullPath) {
   global ImageListID1, ImageListID2, IconCacheObj, IconNopeExtension, sfi
+  global stuffByName, whichSide
   ; Build a unique extension ID to avoid characters that are illegal in variable names,
   ; such as dashes. This unique ID method also performs better because finding an item
   ; in the array does not require search-loop.
-  SplitPath, FileName,,, FileExt ; Get the file's extension.
+
+  FileExt:=""
+  SplitPath, fullPath,OutFileName,, OutExtension ; Get the file's extension.
+  ; ahk_parser.js is a folder, don't put .js icon
+  ;if not a folder
+  if (!InStr(stuffByName%whichSide%[OutFileName].attri, "D", true)) {
+      FileExt:=OutExtension
+  }
+
   if IconNopeExtension[FileExt]
   {
     ExtID := FileExt ; Special ID as a placeholder.
@@ -2383,7 +2392,7 @@ getIconNum(FileName) {
   if not IconNumber ; There is not yet any icon for this extension, so load it.
   {
     ; Get the high-quality small-icon associated with this file extension:
-    if not DllCall("Shell32\SHGetFileInfo" . (A_IsUnicode ? "W":"A"), "Str", FileName
+    if not DllCall("Shell32\SHGetFileInfo" . (A_IsUnicode ? "W":"A"), "Str", fullPath
       , "UInt", 0, "Ptr", &sfi, "UInt", sfi_size, "UInt", 0x101) ; 0x101 is SHGFI_ICON+SHGFI_SMALLICON
     IconNumber := 9999999 ; Set it out of bounds to display a blank icon.
     else ; Icon successfully loaded.
