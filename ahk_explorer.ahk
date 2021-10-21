@@ -2347,7 +2347,7 @@ initIconStuff() {
     }
 
     IconCacheObj:={}
-    IconNopeExtension:={EXE:1,ICO:1,ANI:1,CUR:1}
+    IconNopeExtension:={EXE:1,ICO:1,ANI:1,CUR:1,LNK:1} ;.exe, .lnk
     VarSetCapacity(sfi, A_PtrSize + 8 + (A_IsUnicode ? 680 : 340))
 
 }
