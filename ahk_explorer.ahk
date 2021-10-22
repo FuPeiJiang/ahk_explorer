@@ -2345,58 +2345,69 @@ initIconStuff() {
         LV_SetImageList(ImageListID1)
         LV_SetImageList(ImageListID2)
     }
-
-    IconCacheObj:={}
     IconNopeExtension:={EXE:1,ICO:1,ANI:1,CUR:1,LNK:1} ;.exe, .lnk
     VarSetCapacity(sfi, A_PtrSize + 8 + (A_IsUnicode ? 680 : 340))
+    IconCacheObj:={}
+
+    _getIconFromFullPath("C:\Windows") ;this is a folder that's always there
+    ;the first will always be 1
 
 }
 
 getIconNum(fullPath) {
-    global ImageListID1, ImageListID2, IconCacheObj, IconNopeExtension, sfi
+    global IconCacheObj, IconNopeExtension
     global stuffByName, whichSide
     ; Build a unique extension ID to avoid characters that are illegal in variable names,
     ; such as dashes. This unique ID method also performs better because finding an item
     ; in the array does not require search-loop.
 
-    FileExt:=""
-    SplitPath, fullPath,OutFileName,, OutExtension ; Get the file's extension.
-    ; ahk_parser.js is a folder, don't put .js icon
-    ;if not a folder
-    if (!InStr(stuffByName%whichSide%[OutFileName].attri, "D", true)) {
-        FileExt:=OutExtension
-    }
-
-    if IconNopeExtension[FileExt]
-    {
-        ExtID := FileExt ; Special ID as a placeholder.
-        IconNumber := 0 ; Flag it as not found so that these types can each have a unique icon.
-    }
-    else ; Some other extension/file-type, so calculate its unique ID.
-    {
-        ExtID := 0 ; Initialize to handle extensions that are shorter than others.
-        Loop 7 ; Limit the extension to 7 characters so that it fits in a 64-bit value.
+    SplitPath, fullPath,OutFileName,, FileExt ; Get the file's extension.
+    if (InStr(stuffByName%whichSide%[OutFileName].attri, "D", true)) {
+        return 1 ;the first will always be 1, set at _getIconFromFullPath("C:\Windows")
+    } else {
+        if (IconNopeExtension[FileExt])
         {
-        ExtChar := SubStr(FileExt, A_Index, 1)
-        if not ExtChar ; No more characters.
-            break
-        ; Derive a Unique ID by assigning a different bit position to each character:
-        ExtID := ExtID | (Asc(ExtChar) << (8 * (A_Index - 1)))
+            ExtID := FileExt ; Special ID as a placeholder.
+            IconNumber := false ; Flag it as not found so that these types can each have a unique icon.
         }
-        ; Check if this file extension already has an icon in the ImageLists. If it does,
-        ; several calls can be avoided and loading performance is greatly improved,
-        ; especially for a folder containing hundreds of files:
-        IconNumber := IconCacheObj[ExtID]
+        else ; Some other extension/file-type, so calculate its unique ID.
+        {
+            ExtID := 0 ; Initialize to handle extensions that are shorter than others.
+            Loop 7 ; Limit the extension to 7 characters so that it fits in a 64-bit value.
+            {
+            ExtChar := SubStr(FileExt, A_Index, 1)
+            if not ExtChar ; No more characters.
+                break
+            ; Derive a Unique ID by assigning a different bit position to each character:
+            ExtID := ExtID | (Asc(ExtChar) << (8 * (A_Index - 1)))
+            }
+            ; Check if this file extension already has an icon in the ImageLists. If it does,
+            ; several calls can be avoided and loading performance is greatly improved,
+            ; especially for a folder containing hundreds of files:
+            IconNumber := IconCacheObj[ExtID]
+        }
+
+        if (!IconNumber) ; There is not yet any icon for this extension, so load it.
+        {
+            IconNumber:=_getIconFromFullPath(fullPath)
+            ; Cache the icon to save memory and improve loading performance:
+            IconCacheObj[ExtID] := IconNumber
+        }
+
+        return IconNumber
     }
 
-    if not IconNumber ; There is not yet any icon for this extension, so load it.
-    {
-        ; Get the high-quality small-icon associated with this file extension:
-        if not DllCall("Shell32\SHGetFileInfo" . (A_IsUnicode ? "W":"A"), "Str", fullPath
-        , "UInt", 0, "Ptr", &sfi, "UInt", sfi_size, "UInt", 0x101) ; 0x101 is SHGFI_ICON+SHGFI_SMALLICON
+    
+
+}
+_getIconFromFullPath(fullPath) {
+    global ImageListID1, ImageListID2, sfi
+    ; Get the high-quality small-icon associated with this file extension:
+    if not DllCall("Shell32\SHGetFileInfo" . (A_IsUnicode ? "W":"A"), "Str", fullPath
+    , "UInt", 0, "Ptr", &sfi, "UInt", sfi_size, "UInt", 0x101) ; 0x101 is SHGFI_ICON+SHGFI_SMALLICON
         IconNumber := 9999999 ; Set it out of bounds to display a blank icon.
-        else ; Icon successfully loaded.
-        {
+    else ; Icon successfully loaded.
+    {
         ; Extract the hIcon member from the structure:
         hIcon := NumGet(sfi, 0)
         ; Add the HICON directly to the small-icon and large-icon lists.
@@ -2405,10 +2416,8 @@ getIconNum(fullPath) {
         DllCall("ImageList_ReplaceIcon", "Ptr", ImageListID2, "Int", -1, "Ptr", hIcon)
         ; Now that it's been copied into the ImageLists, the original should be destroyed:
         DllCall("DestroyIcon", "Ptr", hIcon)
-        ; Cache the icon to save memory and improve loading performance:
-        IconCacheObj[ExtID] := IconNumber
-        }
     }
+
     return IconNumber
 }
 
