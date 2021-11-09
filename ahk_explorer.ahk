@@ -25,11 +25,11 @@ RegRead, v, HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell F
 VarSetCapacity(downloads, (261 + !A_IsUnicode) << !!A_IsUnicode)
 DllCall("ExpandEnvironmentStrings", Str, v, Str, downloads, UInt, 260)
 EcurrentDir1:=downloads
-; EcurrentDir1=C:\Users\Public\AHK\notes\tests
-; EcurrentDir1=C:\Users\Public\AHK\notes\tests\File Watcher
-; EcurrentDir2=C:\Users\Public\AHK
-; EcurrentDir1=C:\Users\Public\AHK\notes\tests\New Folder
-EcurrentDir2=C:\Users\Public\AHK\notes\tests\New Folder 3
+; EcurrentDir1:="C:\Users\Public\AHK\notes\tests"
+; EcurrentDir1:="C:\Users\Public\AHK\notes\tests\File Watcher"
+; EcurrentDir2:="C:\Users\Public\AHK"
+; EcurrentDir1:="C:\Users\Public\AHK\notes\tests\New Folder"
+EcurrentDir2:="C:\Users\Public\AHK\notes\tests\New Folder 3"
 whichSide:=1
 
 lastDir1:="C:"
@@ -117,7 +117,6 @@ for k, v in favoriteFolders {
 }
 
 renderCurrentDir()
-run, "lib\FolderWatcher2.ahk",,,PID_FolderWatcher2
 
 IServiceProvider := ComObjCreate("{C2F03A33-21F5-47FA-B4BB-156362A2F239}", "{6D5140C1-7436-11CE-8034-00AA006009FA}")
 IVirtualDesktopManagerInternal := ComObjQuery(IServiceProvider, "{C5E0CDCA-7B6E-41B2-9FC4-D93975CC467B}", "{F31574D6-B682-4CDC-BD56-1827860ABEC6}")
@@ -344,7 +343,6 @@ return
 mainGuiClose: 
     if GetKeyState("Shift") {
         Process, Close, %PID_getFolderSizes%
-        Process, Close, %PID_FolderWatcher2%
         Exitapp
     } else {
         Process, Close, %PID_getFolderSizes%
@@ -754,6 +752,7 @@ return
 ;includes
 #include <Class_LV_InCellEdit>
 #include <cMsgbox>
+#include <WatchFolder2>
 ;Classes
 ; ======================================================================================================================
 ; Namespace:      LV_Colors
@@ -1324,43 +1323,27 @@ COM_CoUninitialize()
 {
     DllCall("ole32\CoUninitialize")
 }
-send_stringToFolderWatcher(whichFolderWatcher, num, stringToSend:="")
+startWatchFolder(whichSide, AcurrentDir)
 {
-    stringToSend .= "|" num
-    VarSetCapacity(message, size := StrPut(stringToSend, "UTF-16")*2, 0)
-    StrPut(stringToSend, &message, "UTF-16")
-    VarSetCapacity(COPYDATASTRUCT, A_PtrSize*3)
-    NumPut(size, COPYDATASTRUCT, A_PtrSize, "UInt")
-    NumPut(&message, COPYDATASTRUCT, A_PtrSize*2)
-    DetectHiddenWindows, On
-    SetTitleMatchMode, 2
-    SendMessage, WM_COPYDATA := 0x4A,, &COPYDATASTRUCT,, FolderWatcher%whichFolderWatcher%.ahk ahk_class AutoHotkey
-}
-startWatchFolder(byref whichSide, byref AcurrentDir)
-{
-    if (whichSide=1) {
-        If !WatchFolder(AcurrentDir, "Watch1", 0, 3) { ;files and folders
-            MsgBox, 0, Error, Call of WatchFolder() failed!
-            Return
-        }
-    } else {
-        send_stringToFolderWatcher(whichSide, 1, AcurrentDir) ;1 for watch 2 for stop
+    If (!WatchFolder.Add(AcurrentDir, "Watch" whichSide, 0, 3)) { ;files and folders
+        MsgBox, 0, Error, Call of WatchFolder.Add() failed!
     }
 }
-stopWatchFolder(byref whichSide, byref dirToStopWatching)
+stopWatchFolder(dirToStopWatching)
 {
-    if (whichSide=1) {
-        WatchFolder(dirToStopWatching, "**DEL")
-    } else {
-        send_stringToFolderWatcher(whichSide, 2, dirToStopWatching) ;1 for watch 2 for stop
-    }
+    WatchFolder.Remove(dirToStopWatching)
 }
 Watch1(Folder, Changes) {
     For Each, Change In Changes {
-        WatchN(1,Change.Action, Change.OldName, Change.Name)
+        WatchN(1,Change)
     }
 }
-WatchN(whichSide,Byref Action,Byref OldName,Byref Name)
+Watch2(Folder, Changes) {
+    For Each, Change In Changes {
+        WatchN(2,Change)
+    }
+}
+WatchN(whichSide, Change)
 {
     global EcurrentDir1,EcurrentDir2,vlistView1,vlistView2
     otherSide:=bothSameDir(whichSide)
@@ -1368,16 +1351,19 @@ WatchN(whichSide,Byref Action,Byref OldName,Byref Name)
     if (otherSide)
         GuiControl, -Redraw, vlistView%otherSide%
 
-    if (Action=1) {
-        fileAdded(whichSide, Name)
-    } else if (Action=2) {
-        fileDeleted(whichSide, Name)
+    switch (Change.Action) {
+    case 1:
+        fileAdded(whichSide, Change.Name)
+    case 2:
+        fileDeleted(whichSide, Change.Name)
         if (otherSide) {
-            fileDeleted(otherSide, Name)
+            fileDeleted(otherSide, Change.Name)
         }
-    } else if (Action=4) {
-        SplitPath, % Name, OutFileNameNew, OutDirNew
-        SplitPath, % OldName, OutFileNameOld, OutDirOld
+    case 4: ;rename
+        Name:=Change.Name
+        OldName:=Change.OldName
+        SplitPath, Name, OutFileNameNew, OutDirNew
+        SplitPath, OldName, OutFileNameOld, OutDirOld
         if (OutDirNew=EcurrentDir%whichSide%) { ;renamed
             fileRenamed(whichSide, OutFileNameOld, OutFileNameNew)
             if (otherSide) {
@@ -2013,9 +1999,6 @@ WM_COPYDATA_READ(wp, lp) {
             ; VD_sendToCurrentDesktop("ahk_explorer", true)
             SetTimer, label_toCurrentDesktop , -0 ;SetTimer IS NEEDED SOMEHOW, you can't just call a function
         }
-    } else if (match2=7) {
-        Action_OldName_Name:=StrSplit(match1, "|")
-        WatchN(2,Action_OldName_Name[1],Action_OldName_Name[2],Action_OldName_Name[3])
     } else {
         p("something went wrong")
     }
@@ -2604,7 +2587,7 @@ renderCurrentDir()
                         break
                     }
                 }
-                stopWatchFolder(whichSide,dirToStopWatching) 
+                stopWatchFolder(dirToStopWatching) 
             }
 
             if (!bothSameDir) {
@@ -3617,7 +3600,6 @@ return
 
 !f4::
     Process, Close, %PID_getFolderSizes%
-    Process, Close, %PID_FolderWatcher2%
     Exitapp
 return
 
