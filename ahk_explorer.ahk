@@ -1325,9 +1325,7 @@ COM_CoUninitialize()
 }
 startWatchFolder(whichSide, AcurrentDir)
 {
-    If (!WatchFolder.Add(AcurrentDir, "Watch" whichSide, 0, 3)) { ;files and folders
-        MsgBox, 0, Error, Call of WatchFolder.Add() failed!
-    }
+    WatchFolder.Add(AcurrentDir, "Watch" whichSide, 0, 3) ;files and folders
 }
 stopWatchFolder(dirToStopWatching)
 {
@@ -1444,7 +1442,7 @@ fileAdded(whichSide, Byref path) {
     }
 
 }
-fileDeleted(Byref whichSide, Byref path)
+fileDeleted(whichSide, path)
 {
     global
     Gui, main:Default

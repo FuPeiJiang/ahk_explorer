@@ -95,7 +95,6 @@ class WatchFolder {
       ; if it's already watching, remove it first
       this._Remove(Folder)
 
-      RebuildWaitObjects := False
       If (this.EventToFolderinfo_Count < this.MAXIMUM_WAIT_OBJECTS) { ; add
          If (IsFunc(UserFunc) && (UserFunc := Func(UserFunc)) && (UserFunc.MinParams >= 2)) && (Watch &= 0x017F) {
             Handle := DllCall("CreateFile", "Str", Folder . "\", "UInt", 0x01, "UInt", 0x07, "Ptr",0, "UInt", 0x03
@@ -117,35 +116,17 @@ class WatchFolder {
                this.EventToFolderinfo[Event] := FolderObj
                this.EventToFolderinfo_Count++
                this.FolderToEvent[Folder] := Event
-               RebuildWaitObjects := True
+               this._RebuildWaitObjects()
             }
          }
       }
-      If (RebuildWaitObjects) {
-         ; https://www.autohotkey.com/boards/viewtopic.php?f=5&t=4384#p24452
-
-         DllCall( "GlobalFree", "Ptr",this.WaitObjectsPtr )
-         ; thanks to "just me" https://www.autohotkey.com/boards/viewtopic.php?p=425240#p425240
-         ; GMEM_ZEROINIT
-         ; 0x0040
-         ; Initializes memory contents to zero.
-         this.WaitObjectsPtr := DllCall( "GlobalAlloc", "UInt",0x40, "UInt",this.MAXIMUM_WAIT_OBJECTS * A_PtrSize, "Ptr")
-         ; The movable-memory flags GHND and GMEM_MOVABLE add unnecessary overhead and require locking to be used safely. They should be avoided unless documentation specifically states that they should be used.
-         ; https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-globalalloc#remarks
-         ; GHND
-         ; 0x0042
-         ; Combines GMEM_MOVEABLE and GMEM_ZEROINIT.
-
-         OffSet := this.WaitObjectsPtr
-         For Event In this.EventToFolderinfo
-            Offset := NumPut(Event, Offset + 0, 0, "Ptr")
-      }
+      
       ; ===============================================================================================================================
       If (this.EventToFolderinfo_Count > 0) {
          timerFunc:=this.timerFunc
          SetTimer, % timerFunc, -100
       }
-      Return (RebuildWaitObjects) ; returns True on success, otherwise False
+      ; Return (RebuildWaitObjects) ; returns True on success, otherwise False
    }
 
    Pause() {
@@ -161,6 +142,7 @@ class WatchFolder {
          return
       }
       this._Remove(Folder)
+      this._RebuildWaitObjects()
    }
    _Remove(Folder) {
       If (this.FolderToEvent.HasKey(Folder)) { ; update or remove
@@ -171,9 +153,28 @@ class WatchFolder {
          this.EventToFolderinfo.Delete(Event)
          this.EventToFolderinfo_Count--
          this.FolderToEvent.Delete(Folder)
-         RebuildWaitObjects := True
       }
    }
+   _RebuildWaitObjects() {
+      ; https://www.autohotkey.com/boards/viewtopic.php?f=5&t=4384#p24452
+
+      DllCall( "GlobalFree", "Ptr",this.WaitObjectsPtr )
+      ; thanks to "just me" https://www.autohotkey.com/boards/viewtopic.php?p=425240#p425240
+      ; GMEM_ZEROINIT
+      ; 0x0040
+      ; Initializes memory contents to zero.
+      this.WaitObjectsPtr := DllCall( "GlobalAlloc", "UInt",0x40, "UInt",this.MAXIMUM_WAIT_OBJECTS * A_PtrSize, "Ptr")
+      ; The movable-memory flags GHND and GMEM_MOVABLE add unnecessary overhead and require locking to be used safely. They should be avoided unless documentation specifically states that they should be used.
+      ; https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-globalalloc#remarks
+      ; GHND
+      ; 0x0042
+      ; Combines GMEM_MOVEABLE and GMEM_ZEROINIT.
+
+      OffSet := this.WaitObjectsPtr
+      For Event In this.EventToFolderinfo
+         Offset := NumPut(Event, Offset + 0, 0, "Ptr")
+   }
+
    _SanitizeUserInput(Folder) {
       If (Folder == "")
          Return False
