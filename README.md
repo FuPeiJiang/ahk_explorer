@@ -91,18 +91,3 @@ you need [AutoHotkey_L](https://www.autohotkey.com/download) to run it
 settings are in `%appdata%\ahk_explorer_settings\settings.txt`\
 but you can click `settings` button (top-left) to edit them
 ![](https://i.imgur.com/L5uzx8Y.png)
-
-### sometimes it will FREEZE, but I don't think it's random
-
-I need help on this: https://github.com/FuPeiJiang/ahk_explorer/issues/5
-
-currently what I do:
-* **close the app:** 
-  - <kbd>Alt</kbd>+<kbd>F4</kbd>
-  - <kbd>Shift</kbd>+<kbd>Click</kbd> the `X` top right
-* **use a hotkey to restart the app** (I use <kbd>Win</kbd>+<kbd>E</kbd>)
-
-clicking on `X` without shift will `Gui, hide` the app but not terminate it.
-
-
-
