@@ -1,8 +1,14 @@
-d(arr) {
-    if (IsObject(arr)) {
-        clipboard:=array_ToNewLineString(arr)
-    } else {
-        clipboard:=arr
+d(params*) {
+    finalStr:=""
+    if (params.Length() > 0) {
+        finalStr.=array_d(params[1])
+
+        k:=2, lenPlusOne:=params.Length() + 1
+        while (k < lenPlusOne) {
+            finalStr.="`n" array_d(params[k])
+            k++
+        }
     }
-    p(arr)
+    Clipboard:=finalStr
+    p(params*)
 }

@@ -1,4 +1,39 @@
-﻿array_ToVerticleBarString(oArray)
+﻿Array_d(oArray) {
+    if IsObject(oArray) {
+        if (oarray.Length()==0) {
+            return "[]"
+        }
+        ;below has at least 1 element
+        if IsArray(oArray) {
+            if (IsObject(oarray[1])) {
+                return array_PrintArrayOfObjects(oArray)
+            }
+            else {
+                return "[" Array_Print(oArray) "]"
+            }
+        } 
+        else {
+            return "{" ObjectPrint(oArray) "}"
+        }
+    }
+    Else {
+        return oArray
+    }
+}
+
+Array_p(oArray) {
+    if IsObject(oArray)
+    {
+        if IsArray(oArray)
+            return "[" Array_Print(oArray) "]"
+        else
+            return "{" ObjectPrint(oArray) "}"
+    }
+    Else
+        return oArray
+}
+
+array_ToVerticleBarString(oArray)
 {
     finalStr=
     length:=oArray.Length()
@@ -12,28 +47,21 @@ obj_toString(obj) {
     finalStr=
     length:=obj.Count()
     for k, v in obj {
-        finalStr.=(A_Index=length) ? k ":" Array_String(v, true) : k ":" Array_String(v, true) "`r`n"
+        finalStr.=(A_Index=length) ? k ":" Array_String(v, true) : k ":" Array_String(v, true) "`n"
     }
     return finalStr
 }
 
-array_ToNewLineString(Byref oArray)
+array_PrintArrayOfObjects(Byref oArray) ;assume has length
 {
-    finalStr=
-    if IsArray(oArray) {
-        length:=oArray.Length()
-        if (IsObject(oArray[1])) { ;if array of objects 
-            for k, v in oArray {
-                finalStr.=(k=length) ? obj_toString(v) : obj_toString(v) "`r`n"
-            }
-        } else {
-            for k, v in oArray {
-                finalStr.=(k=length) ? v : v "`r`n"
-            }
-        }
-    } else {
-        finalStr:=obj_toString(oArray)
+    finalStr:=obj_toString(v)
+
+    k:=2, lenPlusOne:=params.Length() + 1
+    while (k < lenPlusOne) {
+        finalStr.="`n" obj_toString(oArray[k])
+        k++
     }
+
     return finalStr
 }
 
@@ -76,6 +104,12 @@ array_toCommaString(oArray) ;no space
         toReturn:=oArray
 
     return toReturn
+}
+
+array_toAHK(oArray, addBrackets:=true)
+{
+    ; return StrReplace(Array_String(oArray,addBrackets), "`n", "greg")
+    return StrReplace(Array_String(oArray,addBrackets), "`n", "``n")
 }
 
 array_tostring(oArray, addBrackets:=false)
@@ -186,6 +220,14 @@ PreText777(x) {
 
     Return A_LoopField
 
+}
+
+;has a space before
+Array_toQuotedSpaced(Array) {
+    for k, v in Array {
+        finalStr.=" """ v """"
+    }
+    return finalStr
 }
 
 ;https://autohotkey.com/board/topic/85201-array-deep-copy-treeview-viewer-and-more/ by GeekDude

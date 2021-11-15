@@ -1,21 +1,13 @@
-﻿p(oArray="", params*)
-{
-    params.Insert(1, oArray)
-    for k, v in params {
-        
-        if (k!=1)
-            space:=" "
-        
-        if IsObject(v)
-        {
-            if IsArray(v)
-                finalStr.=space "[" Array_Print(v) "]"
-            else
-                finalStr.=space "{" ObjectPrint(v) "}"
+﻿p(params*) {
+    finalStr:=""
+    if (params.Length() > 0) {
+        finalStr.=Array_p(params[1])
+
+        k:=2, lenPlusOne:=params.Length() + 1
+        while (k < lenPlusOne) {
+            finalStr.=" " Array_p(params[k])
+            k++
         }
-        Else
-            finalStr.=space v
     }
-    msgbox % finalStr
-    return
+    MsgBox % finalStr
 }
