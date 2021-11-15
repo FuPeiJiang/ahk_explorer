@@ -509,11 +509,6 @@ listViewEvents2:
         whichSide:=SubStr(A_GuiControl, 0)
         Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
 
-        If (ICELV%whichSide%["Changed"]) {
-            Msg := ""
-            p(ICELV%whichSide%.Changed["Txt"])
-            ICELV%whichSide%.Remove("Changed")
-        }
     }
     else if (A_GuiEvent=="e") {
         whichSide:=SubStr(A_GuiControl, 0)
@@ -750,7 +745,6 @@ listViewEvents2:
 
 return
 ;includes
-#include <Class_LV_InCellEdit>
 #include <cMsgbox>
 #include <WatchFolder2>
 ;Classes
@@ -1117,7 +1111,13 @@ Return DllCall("Comctl32.dll\DefSubclassProc", "Ptr", H, "UInt", M, "Ptr", W, "P
 ; ======================================================================================================================
 ;start of functions start
 
+listview_getPosOfRow(listviewHwnd, rowZeroIndexed, Byref row_x, Byref row_y) { ; just me -> https://www.autohotkey.com/board/topic/86490-click-listview-row/#entry550767
+    VarSetCapacity(RECT, 16)
+    SendMessage, 0x100E, % rowZeroIndexed, % &RECT,, % "ahk_id " listviewHwnd ; LVM_GETITEMRECT
 
+    row_x:=NumGet(RECT, 0, "Short")
+    row_y:=NumGet(RECT, 4, "Short")
+}
 
 URItoPath(vPathUrl)
 {
@@ -1900,11 +1900,6 @@ renderFunctionsToSort(ByRef objectToSort, reverse:=false)
         LV_Modify(1, "+Select +Focus")
     }
     toFocus:=false
-    if (!firstIce%whichSide%) {
-        firstIce%whichSide%:=true
-        ICELV%whichSide% := New LV_InCellEdit(ListviewHwnd%whichSide%, false, true)
-        ICELV%whichSide%.SetColumns(0)
-    }
     GuiControl, +Redraw, vlistView%whichSide% 
 }
 
@@ -3192,15 +3187,6 @@ if (!dontSearch) {
     fromButton:=false
     renameTextWidthLimit:=200
 
-    row:=LV_GetNext("")
-    LV_GetText(TextBeingRenamed, row, 2)
-    ICELV%whichSide%.EditCell(row, 2)
-    sleep, 25
-    WinGetPos, xpos, ypos,,, ahk_explorer ahk_class AutoHotkeyGUI
-
-    renameGuiOffsetWidth:=1
-    iconWidth:=30
-
     ; https://winaero.com/change-dpi-scaling-level-for-display-in-windows-10/
     ; it's everything x0.96
     ; it's A_ScreenDPI *25/24
@@ -3217,16 +3203,23 @@ if (!dontSearch) {
     ; adding favoritesListViewWidth is not the same width
     ;130 is actually 162
 
-    dpiMultiplier:=A_ScreenDPI*25/2400
-    realFavoritesListViewWidth:=favoritesListViewWidth*dpiMultiplier
-    realListViewWidth:=listViewWidth*dpiMultiplier
+    dpiMultiplier:=A_ScreenDPI/96
 
-    if (whichSide=1)
-        xpos+=renameGuiOffsetWidth+realFavoritesListViewWidth+iconWidth
-    else
-        xpos+=renameGuiOffsetWidth+realFavoritesListViewWidth+realListViewWidth+iconWidth
 
-    ypos+=A_CaretY - 5
+    row:=LV_GetNext("")
+
+    WinGetPos, gui_x, gui_y,,, ahk_explorer ahk_class AutoHotkeyGUI
+    ; Byref xpos, Byref ypos
+    listview_getPosOfRow(ListviewHwnd%whichSide%,row - 1, row_x, row_y)
+    ControlGetPos, listview_X, listview_Y,,,, % "ahk_id " ListviewHwnd%whichSide%
+    xOffset_IconWidth:=dpiMultiplier*23
+    yOffset_QualityOfLife:= -2
+    xpos:=row_x + gui_x + listview_X + xOffset_IconWidth
+    ypos:=row_y + gui_y + listview_Y + yOffset_QualityOfLife
+
+
+    LV_GetText(TextBeingRenamed, row, 2)
+
     Gui, renameSimple:Default
     Gui, Font, s10, Segoe UI
     Gui, Margin , 0,0,0,0
