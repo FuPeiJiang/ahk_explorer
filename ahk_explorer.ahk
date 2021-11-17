@@ -13,7 +13,7 @@ SetControlDelay, -1
 #MaxThreadsPerHotkey, 4
 SetTitleMatchMode, 2
 
-currentDirSearch=
+currentDirSearch:=""
 ;%appdata%\ahk_explorer_settings
 FileRead, favoriteFolders, %A_AppData%\ahk_explorer_settings\favoriteFolders.txt
 favoriteFolders:=StrSplit(favoriteFolders,"`n","`r")
@@ -53,15 +53,13 @@ for n, param in A_Args ; For each parameter:
     }
     break
 }
-;vars
-watching1:=["control"]
-watching2:=["control"]
+;global vars
 maxRows:=50
-lastInputSearchCurrentDir:=false
 dirHistory1:=[]
 dirHistory2:=[]
 undoHistory1:=[]
 undoHistory2:=[]
+dirWatched:={}
 global DROPEFFECT_NONE	:= 0
 global DROPEFFECT_COPY	:= 1
 global DROPEFFECT_MOVE	:= 2
@@ -2538,7 +2536,7 @@ return rowBak[index]+1
 renderCurrentDir()
 {
     global
-    local ansiPath, bothSameDir, dirToStopWatching,i,k,v,y,drive,freeSpace,lastChar,text,totalSpace,OutputVar
+    local ansiPath, bothSameDir,i,k,v,y,drive,freeSpace,lastChar,text,totalSpace,OutputVar
     ; global EcurrentDir1, EcurrentDir2, whichSide, currentDirSearch
     Gui, main:Default
 
@@ -2569,21 +2567,29 @@ renderCurrentDir()
     if (InStr(fileExist(EcurrentDir%whichSide%), "D"))
     {
         if (lastDir%whichSide%!=EcurrentDir%whichSide% ) {
-            bothSameDir:=bothSameDir(whichSide)
-            if (lastDir%whichSide%!="" and EcurrentDir%otherSide%!=lastDir%whichSide%) {
-                for k, v in watching%whichSide% {
-                    if (v=lastDir%whichSide%) {
-                        watching%whichSide%.Remove(k)
-                        dirToStopWatching:=v
-                        break
+
+            ; what if I had 3 panes ?
+            ; 1. we always want to add watch
+            ; 2. we do not add watch if already watched
+            ; use a map to figure out if already
+            ; watched
+            ; diretory -> whichSide
+            if (!dirWatched.HasKey(EcurrentDir%whichSide%)) {
+                dirWatched[EcurrentDir%whichSide%]:=whichSide
+                startWatchFolder(whichSide, EcurrentDir%whichSide%) 
+            }
+            
+            ; 1. we always want to remove watch
+            ; // 2. we do not remove watch if blank (this is taken care of by WatchFolder2.ahk)
+            ; 3. we remove watch, and if there's another same, we add the watch back to that. so loop though every side.
+            ; using the map, we only remove watch if watch is on self pane.
+            if (dirWatched[lastDir%whichSide%]==whichSide) {
+                stopWatchFolder(lastDir%whichSide%)
+                loop 2 { ;how many panes
+                    if (EcurrentDir%A_Index%==lastDir%whichSide%) {
+                        startWatchFolder(A_Index, lastDir%whichSide%) 
                     }
                 }
-                stopWatchFolder(dirToStopWatching) 
-            }
-
-            if (!bothSameDir) {
-                watching%whichSide%.Push(EcurrentDir%whichSide%)
-                startWatchFolder(whichSide,EcurrentDir%whichSide%)
             }
 
             if (lastDir%whichSide%!="" and !cannotDirHistory%whichSide%) {
@@ -3141,10 +3147,6 @@ $\::
     }
 
 return
-
-; $`::
-p(watching1,watching2)
-Return
 
 $^+r::
     namesToMultiRename:=getSelectedNames()

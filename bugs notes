@@ -1,0 +1,62 @@
+2021-11-17
+ahk_explorer even if other folder still appears
+, probably dual pane was being used and it was a download
+, YES, correct, downloads on the right
+, some othe on the left
+, probably using ctrl shift right
+, so the startWatch never stopped the left side
+, and it never started the right side
+
+so when I exit any, I'm gonna stop, and transfer it to the next one (if any)
+
+
+I need to rewrite that logic..
+
+case 1: 
+    0 0
+    X 0
+    add(1, X)
+case 2:
+    X 0
+    Y 0
+    remove(X)
+    add(1, Y)
+case 3:
+    X 0
+    X 0
+    do nothing
+case 4:
+    X 0
+    X X
+    do nothing
+case 5:
+    X 0
+    X Y
+    add(2, Y)
+case 6: (will never happen) (lastDir%whichSide%!=EcurrentDir%whichSide%)
+    X X
+    X Y
+    watch was on 1
+    add(2, Y)
+case 7:
+    X X
+    X Y
+    watch was on 2
+    remove(X)
+    add(1, X)
+    add(1, Y)
+notice here, there are 2 add()
+
+what if I had 3 panes ?
+1. we always want to add watch
+2. we do not add watch if already watched
+    use a map to figure out if already
+    watched
+    diretory -> whichSide
+
+1. we always want to remove watch
+; 2. we do not remove watch if blank (this is taken care of by WatchFolder2.ahk)
+3. we remove watch, and if there's another same, we add the watch back to that. so loop though every side.
+using the map, we only remove watch if watch is on self pane.
+
+bug name: when dual pane switch folder: watch folder watches wrong pane
