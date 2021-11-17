@@ -231,7 +231,6 @@ RemoveToolTip:
     ToolTip
 return
 TypingInRenameSimple:
-    ; EditOnInput("TypingInRenameSimple_TimerLabel")
     SetTimer, TypingInRenameSimple_TimerLabel, -0
 return
 TypingInRenameSimple_TimerLabel:
@@ -439,9 +438,7 @@ folderlistViewEvents2_2:
 return
 currentDirEdit1Changed:
 currentDirEdit2Changed:
-    ; SetTimer, currentDirEdit1ChangedTimer, -0
     if (focused="searchCurrentDirEdit") {
-        ; EditOnInput("pleaseDoNotBlock")
         SetTimer, setTimerPleaseDoNotBlock, -0
     }
 return
@@ -452,48 +449,6 @@ setTimerPleaseDoNotBlock:
     searchInCurrentDir()
 return
 
-EditOnInput(labelToGoTo) {
-    global EditSearchRunning, EditSearchSleep_tick
-    if (EditSearchRunning) {
-        EditSearchSleep_tick:=A_TickCount + 0
-    } else {
-        EditSearchRunning:=true
-        EditSearchSleep_tick:=A_TickCount + 0
-        GoSub % labelToGoTo
-        if (EditSearchRunning) {
-            SetTimer % labelToGoTo, 0
-        }
-    }
-
-}
-pleaseDoNotBlock:
-    if (A_TickCount < EditSearchSleep_tick) {
-        return
-    }
-    EditSearchRunning:=false
-    SetTimer, pleaseDoNotBlock, Off
-
-    ControlGetText, currentDirEditText,, % "ahk_id " Edithwnd%whichSide%
-    searchString%whichSide%:=currentDirEditText
-    searchInCurrentDir()
-return
-
-currentDirEdit1ChangedTimer:
-    Gui, main:Default
-    gui, submit, nohide
-    if (focused="searchCurrentDirEdit")
-    {
-        if (vcurrentDirEdit%whichSide%!=lastEditText)
-            lastEditText:=vcurrentDirEdit%whichSide%
-        if (!submittingGui) {
-            searchString%whichSide%:=vcurrentDirEdit%whichSide%
-            searchInCurrentDir()
-        } else {
-            p(6456) 
-            queueSubmitGui:=true
-        }
-    }
-return
 listViewEvents1:
 listViewEvents2:
     ; whichSide:=SubStr(A_GuiControl, 0)
@@ -3628,8 +3583,6 @@ $esc::
 
             gui, renameSimple:Default
             gui, destroy
-            EditSearchRunning:=false
-            SetTimer, pleaseDoNotBlock, Off
         }
         return
     }
