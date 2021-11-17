@@ -79,3 +79,33 @@ ___
 
 1. search is case insensitive
 2. I want more hotkeys (I can actually use Shift for hotkeys!)
+
+___
+when you click Name when 2nd pane has not been renderCurrentDir()
+---------------------------
+ahk_explorer.ahk
+---------------------------
+Critical Error:  Function recursion limit exceeded.
+
+	Line#
+	2207: Else
+	2207: if (focused="listViewInSearch")  
+	2207: {
+	2208: focused := "searchCurrentDirEdit"
+	2209: }
+	2210: }
+	2211: Else
+--->	2211: if (p_w=0x100000B)  
+	2211: {
+	2213: whichSide := 2
+	2214: Gui,Show,NA,EcurrentDir%whichSide% " - ahk_explorer"
+	2215: if (focused="flistView")  
+	2216: {
+	2217: focused := "changePath"
+	2218: }
+
+The program is now unstable and will exit.
+---------------------------
+OK   
+---------------------------
+

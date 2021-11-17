@@ -429,8 +429,10 @@ folderlistViewEvents2_2:
 
     if (A_GuiEvent="ColClick")
     {
-        EcurrentDir%whichSide%:=parent%whichParent%Dir%whichSide%
-        renderCurrentDir()
+        if (""!=parent%whichParent%Dir%whichSide%) {
+            EcurrentDir%whichSide%:=parent%whichParent%Dir%whichSide%
+            renderCurrentDir()
+        }
     } else if (A_GuiEvent = "DoubleClick") {
         EcurrentDir%whichSide%:=parent%whichParent%DirDirs%whichSide%[A_EventInfo]
         renderCurrentDir()
