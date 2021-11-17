@@ -3458,8 +3458,14 @@ $up::
     }
 return
 $+home::
+$+NumpadHome::
     if (focused="changePath" or focused="searchCurrentDirEdit") {
-        send, +{home}
+        ; if (A_ThisHotkey == "$+home") {
+            ; send, +{home}
+        ; } else {
+            ; send, +{NumpadHome}
+        ; }
+        send % SubStr(A_ThisHotkey, 2)
         return
     }
     Gui, main:Default
@@ -3471,8 +3477,10 @@ $+home::
 
 return
 $+end::
+$+NumpadEnd::
     if (focused="changePath" or focused="searchCurrentDirEdit") {
-        send, +{end}
+        ; send, +{end}
+        send % SubStr(A_ThisHotkey, 2)
         return
     }
     Gui, main:Default
@@ -3534,9 +3542,6 @@ $^down::
 return
 
 $down::
-    SetTimer, downLabel ,-0
-return
-downLabel:
     Gui, main:Default
     Gui, ListView, vlistView%whichSide%
 
