@@ -2,3 +2,9 @@ after .remove()
 if there is no .add()
 it will not work
 
+never use GuiControlGet again
+always use ControlGetText
+
+lol search is fixed using ControlGetText, how unexpected,
+pleaseDoNotBlock is now useless
+

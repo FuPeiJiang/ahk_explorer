@@ -136,7 +136,7 @@ return
 ;labels
 ;Ltrim new folder name since it's invalid
 gcreateFolder:
-    GuiControlGet, createFolderName,, % folderCreationHwnd
+    ControlGetText, createFolderName,, % "ahk_id " folderCreationHwnd
     newCreateFolderName:=LTrim(createFolderName)
     if !(newCreateFolderName==createFolderName) {
         GuiControl, Text, vcreateFolder, % newCreateFolderName
@@ -231,38 +231,43 @@ RemoveToolTip:
     ToolTip
 return
 TypingInRenameSimple:
-    Gui,Submit,NoHide
+    ; EditOnInput("TypingInRenameSimple_TimerLabel")
+    SetTimer, TypingInRenameSimple_TimerLabel, -0
+return
+TypingInRenameSimple_TimerLabel:
+    ; if (A_TickCount < EditSearchSleep_tick) {
+        ; return
+    ; }
+    ; EditSearchRunning:=false
+    ; SetTimer, TypingInRenameSimple_TimerLabel, Off
+
+    resizeRenameEdit()
+    ControlGet, Outvar ,CurrentCol,,, % "ahk_id " RenameHwnd
+    Outvar -=1
+    Postmessage,0xB1, 0, 0,, % "ahk_id " RenameHwnd ;move caret to front to pan
+    Postmessage,0xB1, % Outvar, % Outvar,, % "ahk_id " RenameHwnd ;move caret back to end
+return
+
+resizeRenameEdit() {
+    global textRenamingSimple, RenameHwnd
+    Gui, renameSimple:Default
+    ControlGetText, textRenamingSimple,, % "ahk_id " RenameHwnd
 
     Size:=10
-    Gui,Fake:Font,s%Size%,Segoe UI
-    Gui,Fake:Add,Text, -Wrap vDummy,% RenamingSimple
-    GuiControlGet,Pos,Fake:Pos,Dummy
-    Gui,Fake:Destroy
+    textWidth:=getTextWidth(textRenamingSimple, Size, "Segoe UI")
 
-    if (posw+ 2 * Size>renameTextWidthLimit) {
-        renameTextWidthLimit:=(posw+ 2 * Size) + (8 * Size)
-        width:=renameTextWidthLimit
-        GuiControl Move,RenamingSimple, W%width%
-        Guiwidth:=width+2
-        Gui, Show, W%Guiwidth%
-    }
-    if (!firstRename) {
-        firstRename:=true
-        SplitPath, TextBeingRenamed,, , , OutNameNoExt
-        SendMessage,0xB1, 0, 0, , ahk_id %RenameHwnd%
-        fileExist:=fileExist(EcurrentDir%whichSide% "\" TextBeingRenamed)
-        if (InStr(fileExist, "D"))
-            SendMessage, 0xB1,0,% StrLen(TextBeingRenamed),, ahk_id %RenameHwnd% ;select all
-        else
-            SendMessage, 0xB1,0,% StrLen(OutNameNoExt),, ahk_id %RenameHwnd%
-    } else {
-        ControlGet, Outvar ,CurrentCol,, Edit1
-        Outvar -=1
-        Postmessage,0xB1, 0, 0, Edit1 ;move caret to front to pan
-        Postmessage,0xB1,%Outvar%,%Outvar%, Edit1 ;move caret back to end
+    ; tooltip % textRenamingSimple
 
+    if ((textWidth + 2*Size) > renameTextWidthLimit) {
+        renameTextWidthLimit:=textWidth + 2*Size + 8*Size
+        ; resize the Edit
+        GuiControl Move,textRenamingSimple, W%renameTextWidthLimit%
+        GuiWidth:=renameTextWidthLimit + 2
+        ; resize the containing GUI
+        Gui, Show, W%GuiWidth%
     }
-return
+}
+
 ;renameLabel
 grenameFileLabel:
     fromButton:=true
@@ -273,17 +278,17 @@ renameFileLabel:
         gui, main:Default
         noRenameError:=true
 
-        if not(TextBeingRenamed==RenamingSimple) { ;Case Sensitive
-            if (stuffByName[RenamingSimple].Count()) {
+        if not(TextBeingRenamed==textRenamingSimple) { ;Case Sensitive
+            if (stuffByName[textRenamingSimple].Count()) {
                 noRenameError:=false
                 p("file with same name")
             } else {
                 SourcePath:=EcurrentDir%whichSide% "\" TextBeingRenamed
                 fileExist:=FileExist(SourcePath)
                 if (fileExist) {
-                    DestPath:=EcurrentDir%whichSide% "\" RenamingSimple
+                    DestPath:=EcurrentDir%whichSide% "\" textRenamingSimple
 
-                    if (TextBeingRenamed=RenamingSimple) { ;only different capitalization
+                    if (TextBeingRenamed=textRenamingSimple) { ;only different capitalization
                         randomPath:=generateRandomUniqueName(SourcePath,isDir)
 
                         if (isDir) {
@@ -436,20 +441,27 @@ currentDirEdit1Changed:
 currentDirEdit2Changed:
     ; SetTimer, currentDirEdit1ChangedTimer, -0
     if (focused="searchCurrentDirEdit") {
-        EditOnInput()
+        ; EditOnInput("pleaseDoNotBlock")
+        SetTimer, setTimerPleaseDoNotBlock, -0
     }
 return
 
-EditOnInput() {
+setTimerPleaseDoNotBlock:
+    ControlGetText, currentDirEditText,, % "ahk_id " Edithwnd%whichSide%
+    searchString%whichSide%:=currentDirEditText
+    searchInCurrentDir()
+return
+
+EditOnInput(labelToGoTo) {
     global EditSearchRunning, EditSearchSleep_tick
     if (EditSearchRunning) {
         EditSearchSleep_tick:=A_TickCount + 0
     } else {
         EditSearchRunning:=true
         EditSearchSleep_tick:=A_TickCount + 0
-        GoSub, pleaseDoNotBlock
+        GoSub % labelToGoTo
         if (EditSearchRunning) {
-            SetTimer, pleaseDoNotBlock, 0
+            SetTimer % labelToGoTo, 0
         }
     }
 
@@ -461,8 +473,7 @@ pleaseDoNotBlock:
     EditSearchRunning:=false
     SetTimer, pleaseDoNotBlock, Off
 
-    ; Retrieves the contents of the control.
-    GuiControlGet, currentDirEditText,, vcurrentDirEdit%whichSide%
+    ControlGetText, currentDirEditText,, % "ahk_id " Edithwnd%whichSide%
     searchString%whichSide%:=currentDirEditText
     searchInCurrentDir()
 return
@@ -1106,6 +1117,19 @@ Return DllCall("Comctl32.dll\DefSubclassProc", "Ptr", H, "UInt", M, "Ptr", W, "P
 }
 ; ======================================================================================================================
 ;start of functions start
+
+getTextWidth(text, fontSize, fontName)
+{
+    global vDummy_getTextWidth
+    bakDefaultGui:=A_DefaultGui
+    Gui,Fake:Default
+    Gui,Fake:Font, % "s" fontSize, % fontName
+    Gui,Fake:Add,Text, -Wrap vvDummy_getTextWidth,% text
+    GuiControlGet,Pos_OutputVar,Fake:Pos,vDummy_getTextWidth
+    Gui,Fake:Destroy
+    Gui % bakDefaultGui ":Default"
+    return Pos_OutputVarW
+}
 
 listview_getPosOfRow(listviewHwnd, rowZeroIndexed, Byref row_x, Byref row_y) { ; just me -> https://www.autohotkey.com/board/topic/86490-click-listview-row/#entry550767
     VarSetCapacity(RECT, 16)
@@ -1758,15 +1782,6 @@ getMultiRenameNames()
 return previewNames
 }
 
-getTextWidth(text)
-{
-    global Dummy
-    Gui,Fake:Font,s10,Segoe UI
-    Gui,Fake:Add,Text, -Wrap vDummy,% text
-    GuiControlGet,Pos,Fake:Pos,Dummy
-    Gui,Fake:Destroy
-return posw
-}
 calculateStuff(ByRef date:="", ByRef size:="", ByRef name:="", Byref k:="") {
     global
     if (calculateDates and date!="") {
@@ -3220,28 +3235,29 @@ if (!dontSearch) {
 
     LV_GetText(TextBeingRenamed, row, 2)
 
+    Gui, renameSimple:New, hwndrenamingHwnd
     Gui, renameSimple:Default
     Gui, Font, s10, Segoe UI
     Gui, Margin , 0,0,0,0
-    gui, add, edit,y2 r1 w%renameTextWidthLimit% -wrap gTypingInRenameSimple vRenamingSimple hwndRenameHwnd, %TextBeingRenamed%
+    gui, add, edit,y2 r1 w%renameTextWidthLimit% -wrap gTypingInRenameSimple vtextRenamingSimple hwndRenameHwnd, % TextBeingRenamed
     Gui, Add, Button, Hidden Default ggrenameFileLabel
 
     gui, show, X%xpos% Y%ypos% h0,renamingWinTitle
-    WinSet, Style, -0xC00000,a ; remove the titlebar and border(s) 
+    ; WinSet, Style, -0xC00000, A ; remove the titlebar and border(s) 
+    WinSet, Style, -0xC00000, % "ahk_id " renamingHwnd ; remove the titlebar and border(s) 
 
-    gosub, TypingInRenameSimple
 
-    return
-    sleep, 500
+    resizeRenameEdit()
+    SplitPath, TextBeingRenamed,, , , OutNameNoExt
+    SendMessage,0xB1, 0, 0,, % "ahk_id " RenameHwnd
+    attri:=stuffByName%whichSide%[TextBeingRenamed].attri
+    if (InStr(attri, "D"))
+        SendMessage, 0xB1,0,% StrLen(TextBeingRenamed),, % "ahk_id " RenameHwnd ;select all
+    else
+        SendMessage, 0xB1,0,% StrLen(OutNameNoExt),, % "ahk_id " RenameHwnd
 
-    LV_GetText(OutputVar,A_EventInfo,2)
-    SplitPath, OutputVar, , , OutExtension, OutNameNoExt
-    if (OutNameNoExt) {
-        Postmessage,0xB1, 0, % StrLen(OutNameNoExt), Edit2
-    } else {
-        Postmessage,0xB1, 1, % StrLen(OutExtension)+1, Edit2
-    }
-}            
+    ; Gosub, TypingInRenameSimple
+}    
 return
 
 $^n::
@@ -3612,6 +3628,8 @@ $esc::
 
             gui, renameSimple:Default
             gui, destroy
+            EditSearchRunning:=false
+            SetTimer, pleaseDoNotBlock, Off
         }
         return
     }

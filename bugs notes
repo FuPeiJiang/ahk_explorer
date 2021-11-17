@@ -60,3 +60,13 @@ what if I had 3 panes ?
 using the map, we only remove watch if watch is on self pane.
 
 bug name: when dual pane switch folder: watch folder watches wrong pane
+
+2021-11-17
+f2 rename if typing is too fast, the renaming gui doesn't resize
+maybe because it's being sent, and not because it's too fast..
+
+send "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+using ahk
+
+never use GuiControlGet again
+always use ControlGetText
