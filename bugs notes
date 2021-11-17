@@ -70,3 +70,12 @@ using ahk
 
 never use GuiControlGet again
 always use ControlGetText
+
+___
+
+; capital letters are not recognized
+; so PowerPoint, doesn't work
+; the first letter is 'o'
+
+1. search is case insensitive
+2. I want more hotkeys (I can actually use Shift for hotkeys!)

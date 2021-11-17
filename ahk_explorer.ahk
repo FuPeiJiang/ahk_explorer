@@ -637,13 +637,23 @@ listViewEvents2:
 
                         } 
                     }
-                    if (CtrlIsDown or ShiftIsDown)
+                    if (CtrlIsDown or ShiftIsDown) {
+                        ; "PowerPoint" actually triggers this ???
+                        ; d(key, CtrlIsDown, ShiftIsDown) ;p, 0, 1
                         return
+                    }
 
-                    focused=searchCurrentDirEdit
+                    focused:="searchCurrentDirEdit"
                     GuiControl, Focus, vcurrentDirEdit%whichSide%
-                    ; set text to key, append if there's already text
-                    GuiControl, Text, vcurrentDirEdit%whichSide%, % searchString%whichSide% key
+
+                    whatsAlreadyInTheEdit:=searchString%whichSide%
+                    actualAlreadySearchText:=SubStr(whatsAlreadyInTheEdit, 1, StrLen(whatsAlreadyInTheEdit) - StrLen(EcurrentDir%whichSide%))
+                    ; capital letters are not recognized
+                    ; so PowerPoint, doesn't work
+                    ; the first letter is 'o'
+
+                    ;key is actually the first letter entered, put it at the start
+                    GuiControl, Text, vcurrentDirEdit%whichSide%, % key actualAlreadySearchText
                     ; move caret to end
                     SendMessage, 0xB1, -2, -1,, % "ahk_id " Edithwnd%whichSide%
                 }
