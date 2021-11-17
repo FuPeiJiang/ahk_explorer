@@ -3442,6 +3442,8 @@ $up::
 return
 $+home::
 $+NumpadHome::
+$^+home::
+$^+NumpadHome::
     if (focused="changePath" or focused="searchCurrentDirEdit") {
         ; if (A_ThisHotkey == "$+home") {
             ; send, +{home}
@@ -3461,6 +3463,8 @@ $+NumpadHome::
 return
 $+end::
 $+NumpadEnd::
+$^+end::
+$^+NumpadEnd::
     if (focused="changePath" or focused="searchCurrentDirEdit") {
         ; send, +{end}
         send % SubStr(A_ThisHotkey, 2)
