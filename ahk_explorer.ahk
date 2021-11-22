@@ -589,12 +589,12 @@ listViewEvents2:
                         if (key="x") {
                             for k, v in getSelectedNames() ;extract using 7zip, 7-zip
                             {
-                                SplitPath, v,,,, OutNameNoExt
-                                runwait, % "lib\7z x """ EcurrentDir%whichSide% "\" v """ -o""" EcurrentDir%whichSide% "\" OutNameNoExt """ -spe",,Hide
-                                ; runwait, """" peazipPath """ -ext2folder """ EcurrentDir%whichSide% "\" v """"
+                                archive:=EcurrentDir%whichSide% "\" v
+                                SplitPath, archive,, OutDir,, OutNameNoExt
+                                SevenZip_extract(archive, OutDir "\" OutNameNoExt)
                             }
                             soundplay, *-1
-                            EcurrentDir%whichSide%:=EcurrentDir%whichSide% "\" OutNameNoExt
+                            EcurrentDir%whichSide%:=OutDir "\" OutNameNoExt
                             renderCurrentDir() 
                             return
                         } else if (key="z") {
@@ -1084,6 +1084,20 @@ Return DllCall("Comctl32.dll\DefSubclassProc", "Ptr", H, "UInt", M, "Ptr", W, "P
 }
 ; ======================================================================================================================
 ;start of functions start
+
+SevenZip_extract(archive, outputDirName:=false) {
+    if (outputDirName==false) {
+        outputDirName:=SevenZip_GetDefault_outputDirName(archive)
+    }
+    RunWait, % "lib\7-Zip-Zstandard\7z x """ archive """ -o""" outputDirName """ -spe",,Hide
+    ; RunWait, % "cmd /k "" lib\7-Zip-Zstandard\7z x """ archive """ -o""" outputDirName """ -spe """
+}
+
+SevenZip_GetDefault_outputDirName(archive) {
+    SplitPath, archive,, OutDir,, OutNameNoExt
+    outputDirName:=OutDir "\" OutNameNoExt
+    return outputDirName
+}
 
 getTextWidth(text, fontSize, fontName)
 {
