@@ -1089,6 +1089,10 @@ SevenZip_extract(archive, outputDirName:=false) {
     if (outputDirName==false) {
         outputDirName:=SevenZip_GetDefault_outputDirName(archive)
     }
+    if (FileExist(outputDirName)) {
+        return false
+    }
+
     RunWait, % "lib\7-Zip-Zstandard\7z x """ archive """ -o""" outputDirName """ -spe",,Hide
     ; RunWait, % "cmd /k "" lib\7-Zip-Zstandard\7z x """ archive """ -o""" outputDirName """ -spe """
 }
