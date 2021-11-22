@@ -3266,6 +3266,10 @@ return
     }
 return
 
+^+h::
+    hashFiles("sha512","SHA-512")
+return
+
 !h::
     hashFiles("sha256","SHA-256")
 return
