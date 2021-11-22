@@ -2530,7 +2530,6 @@ renderCurrentDir()
     EcurrentDir%whichSide%:=LTrim(EcurrentDir%whichSide%,"file:///")
     EcurrentDir%whichSide%:=StrReplace(EcurrentDir%whichSide%, "%20", " ")
     ; d(EcurrentDir%whichSide%)
-    lastChar:=SubStr(EcurrentDir%whichSide%, 0)
     
     EcurrentDir%whichSide%:=Rtrim(EcurrentDir%whichSide%," ")
     EcurrentDir%whichSide%:=StrReplace(EcurrentDir%whichSide%, "/" , "\")
@@ -2540,8 +2539,9 @@ renderCurrentDir()
         EcurrentDir%whichSide%:=replaced
     }
 
+    lastChar:=SubStr(EcurrentDir%whichSide%, 0)
     if (lastChar="\")
-        EcurrentDir%whichSide%:=SubStr(EcurrentDir%whichSide%, 1, StrLen(EcurrentDir%whichSide%)-1)
+        EcurrentDir%whichSide%:=SubStr(EcurrentDir%whichSide%, 1, -1) ;You can also specify a negative Length to omit that many characters from the end
 
     Gui, ListView, vlistView%whichSide%
 
