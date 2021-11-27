@@ -91,12 +91,12 @@ Gui, Add, ListView, r%favoritesLenght% w%favoritesListViewWidth% x0 y+0 nosort v
 Gui, Add, ListView, r10 w%folderListViewWidth% y0 x+0 vfolderListView1_1 gfolderlistViewEvents1_1 AltSubmit ,Name
 Gui, Add, ListView, r10 w%folderListViewWidth% x+0 y0 vfolderlistView2_1 gfolderlistViewEvents2_1 AltSubmit ,Name
 Gui, Add, Edit, hwndEdithwnd1 r1 w%listViewWidth% y+0 x+-500 vvcurrentDirEdit1 gcurrentDirEdit1Changed, %EcurrentDir1%
-Gui, Add, ListView, NoSort HwndListviewHwnd1 Count5000 r25 -WantF2 w%listViewWidth% vvlistView1 glistViewEvents1 AltSubmit ,type|Name|Date|sortableDate|Size|sortableSize
+Gui, Add, ListView, NoSort HwndhwndListview1 Count5000 r25 -WantF2 w%listViewWidth% vvlistView1 gglistViewEvents1 AltSubmit ,type|Name|Date|sortableDate|Size|sortableSize
 
 Gui, Add, ListView, r10 w%folderListViewWidth% y0 x+0 vfolderListView1_2 gfolderlistViewEvents1_2 AltSubmit ,Name
 Gui, Add, ListView, r10 w%folderListViewWidth% x+0 y0 vfolderlistView2_2 gfolderlistViewEvents2_2 AltSubmit ,Name
 Gui, Add, Edit, hwndEdithwnd2 r1 w%listViewWidth% y+0 x+-500 vvcurrentDirEdit2 gcurrentDirEdit2Changed, %EcurrentDir2%
-Gui, Add, ListView, NoSort HwndListviewHwnd2 Count5000 r25 -WantF2 w%listViewWidth% vvlistView2 glistViewEvents2 AltSubmit ,type|Name|Date|sortableDate|Size|sortableSize
+Gui, Add, ListView, NoSort HwndhwndListview2 Count5000 r25 -WantF2 w%listViewWidth% vvlistView2 gglistViewEvents2 AltSubmit ,type|Name|Date|sortableDate|Size|sortableSize
 
 OnMessage(0x4A, "WM_COPYDATA_READ")
 
@@ -326,7 +326,7 @@ renameFileLabel:
 
             gui, main:Default
             if (fromButton) {
-                ControlFocus,, % "ahk_id " ListviewHwnd%whichSide%
+                ControlFocus,, % "ahk_id " hwndListview%whichSide%
             }
         } else {
             gui, main:Default
@@ -451,8 +451,8 @@ setTimerPleaseDoNotBlock:
     searchInCurrentDir()
 return
 
-listViewEvents1:
-listViewEvents2:
+glistViewEvents1:
+glistViewEvents2:
     ; whichSide:=SubStr(A_GuiControl, 0)
     if (A_GuiEvent=="D") {
         selectedPaths:=getSelectedPaths()
@@ -515,7 +515,7 @@ listViewEvents2:
     {
         if (!dontSearch) {
             whichSide:=SubStr(A_GuiControl, 0)
-            ControlFocus,, % "ahk_id " ListviewHwnd%whichSide%
+            ControlFocus,, % "ahk_id " hwndListview%whichSide%
             Gui, ListView, vlistView%whichSide%
 
             key := GetKeyName(Format("vk{:x}", A_EventInfo))
@@ -670,50 +670,45 @@ listViewEvents2:
     else if (A_GuiEvent="ColClick")
     {
         whichSide:=SubStr(A_GuiControl, 0)
+        Gui, ListView, % hwndListview%whichSide%
 
-        columnsToSort:=[1,2,4,6]
-        if (A_EventInfo=1) {
-            if (!foldersFirst)
-            { 
-                foldersFirst:=true
-                sortColumn(1, "SortDesc")
-            } else {
-                foldersFirst:=false 
-                sortColumn(1, "Sort")
-            }
-        } else if (A_EventInfo=2) {
-            if (!A_ZSort%whichSide%)
-            { 
-                A_ZSort%whichSide%:=true
-                sortColumn(2, "Sort")
-            } else {
-                A_ZSort%whichSide%:=false 
-                sortColumn(2, "SortDesc")
-            }
-        } else if (A_EventInfo=3) {
-            if (!oldNew%whichSide%)
-            { 
-                whichsort%whichSide%:="oldNew"
-                oldNew%whichSide%:=true 
-                renderFunctionsToSort(sortedByDate%whichSide%, true)
-            } else {
-                whichsort%whichSide%:="newOld"
-                oldNew%whichSide%:=false 
-                renderFunctionsToSort(sortedByDate%whichSide%)
-            }
-        } else if (A_EventInfo=5) {
-            ; if (canSortBySize%whichSide%) {
-                if (!bigSmall%whichSide%)
-                { 
-                    whichsort%whichSide%:="bigSmall"
-                    bigSmall%whichSide%:=true 
-                    renderFunctionsToSort(sortedBySize%whichSide%)
+        switch (A_EventInfo) {
+            case 1:
+                if ("foldersFirst"==whichsort%whichSide%)
+                {
+                    whichsort%whichSide%:="foldersLast"
+                    ;NOT IMPLEMENTED, NEVER USED lol
                 } else {
-                    whichsort%whichSide%:="smallBig"
-                    bigSmall%whichSide%:=false 
-                    renderFunctionsToSort(sortedBySize%whichSide%, true)
+                    whichsort%whichSide%:="foldersFirst"
+                    ;NOT IMPLEMENTED, NEVER USED lol
                 }
-            ; }
+            case 2:
+                if ("A_Z"==whichsort%whichSide%)
+                {
+                    whichsort%whichSide%:="Z_A"
+                    sortColumn(2, "Sort")
+                } else {
+                    whichsort%whichSide%:="A_Z"
+                    sortColumn(2, "SortDesc")
+                }
+            case 3:
+                if ("newOld"==whichsort%whichSide%)
+                {
+                    whichsort%whichSide%:="oldNew"
+                    renderFunctionsToSort(sortedByDate%whichSide%, true)
+                } else {
+                    whichsort%whichSide%:="newOld"
+                    renderFunctionsToSort(sortedByDate%whichSide%)
+                }
+            case 5:
+                if ("bigSmall"==whichsort%whichSide%)
+                {
+                    whichsort%whichSide%:="smallBig"
+                    renderFunctionsToSort(sortedBySize%whichSide%, true)
+                } else {
+                    whichsort%whichSide%:="bigSmall"
+                    renderFunctionsToSort(sortedBySize%whichSide%)
+                }
         }
     }
 
@@ -1085,6 +1080,16 @@ Return DllCall("Comctl32.dll\DefSubclassProc", "Ptr", H, "UInt", M, "Ptr", W, "P
 ; ======================================================================================================================
 ;start of functions start
 
+keyboardFocusPane(whichSide) {
+    global BGColorOfSelectedPane
+
+    otherSide:=whichSide == 1 ? 2 : 1
+    Gui, ListView, % hwndListview%whichSide%
+    ControlFocus,, % "ahk_id " hwndListview%whichSide%
+    GuiControl, % "+Background" BGColorOfSelectedPane, % hwndListview%whichSide%
+    GuiControl, % "+BackgroundWhite", % hwndListview%otherSide%
+}
+
 SevenZip_extract(archive, outputDirName:=false) {
     if (outputDirName==false) {
         outputDirName:=SevenZip_GetDefault_outputDirName(archive)
@@ -1116,9 +1121,9 @@ getTextWidth(text, fontSize, fontName)
     return Pos_OutputVarW
 }
 
-listview_getPosOfRow(listviewHwnd, rowZeroIndexed, Byref row_x, Byref row_y) { ; just me -> https://www.autohotkey.com/board/topic/86490-click-listview-row/#entry550767
+listview_getPosOfRow(hwndListview, rowZeroIndexed, Byref row_x, Byref row_y) { ; just me -> https://www.autohotkey.com/board/topic/86490-click-listview-row/#entry550767
     VarSetCapacity(RECT, 16)
-    SendMessage, 0x100E, % rowZeroIndexed, % &RECT,, % "ahk_id " listviewHwnd ; LVM_GETITEMRECT
+    SendMessage, 0x100E, % rowZeroIndexed, % &RECT,, % "ahk_id " hwndListview ; LVM_GETITEMRECT
 
     row_x:=NumGet(RECT, 0, "Short")
     row_y:=NumGet(RECT, 4, "Short")
@@ -1596,7 +1601,7 @@ insertRow(byref whichSide, byref OutFileName,byref row,byref date,byref size)
     calculateStuff(date,size,OutFileName,row)
     GuiControl, -Redraw, vlistView%whichSide% 
     LV_Insert(row,"Icon" getIconNum(EcurrentDir%whichSide% "\" OutFileName),,OutFileName,var1,var2,formattedBytes,bytes)
-    LV_Colors.Cell(ListviewHwnd%whichSide%,row,3,color)
+    LV_Colors.Cell(hwndListview%whichSide%,row,3,color)
 
     GuiControl, +Redraw, vlistView%whichSide% 
 }
@@ -1833,7 +1838,7 @@ renderFunctionsToSort(ByRef objectToSort, reverse:=false)
     global
     Gui, main:Default
     Gui, ListView, vlistView%whichSide%
-    ControlFocus,, % "ahk_id " ListviewHwnd%whichSide%
+    ControlFocus,, % "ahk_id " hwndListview%whichSide%
 
     GuiControl,Text,vcurrentDirEdit%whichSide%, % EcurrentDir%whichSide%
     searchString%whichSide%:=""
@@ -1885,7 +1890,7 @@ renderFunctionsToSort(ByRef objectToSort, reverse:=false)
         }
         calculateStuff(v["date"],v["size"],name,A_Index)
         LV_Add("Icon" getIconNum(currentDirCache name),,name,var1,var2,formattedBytes,bytes)
-        LV_Colors.Cell(ListviewHwnd%whichSide%,A_Index,3,color)
+        LV_Colors.Cell(hwndListview%whichSide%,A_Index,3,color)
 
         k+=inc
     }
@@ -1921,7 +1926,7 @@ openInAhkExplorer(pathArgument)
     }
     winactivate, ahk_explorer ahk_class AutoHotkeyGUI
     renderCurrentDir()
-    ControlFocus,, % "ahk_id " ListviewHwnd%whichSide%
+    ControlFocus,, % "ahk_id " hwndListview%whichSide%
     SetTimer, label_toCurrentDesktop , -0 ;SetTimer IS NEEDED SOMEHOW, you can't just call a function
 
 }
@@ -2111,7 +2116,7 @@ return (sizeIndex = 0) ? size " B"
 
 sortColumn(column, sortMethod)
 {
-    global columnsToSort
+    static columnsToSort:=[1,2,4,6] ;I don't even know what this does, but these will be set to NoSort
 
     for k, v in columnsToSort {
         if (v!=column) {
@@ -2153,7 +2158,7 @@ doubleClickedNormal(ByRef index)
 {
     global
     gui, main:default
-    ControlFocus,, % "ahk_id " ListviewHwnd%whichSide%
+    ControlFocus,, % "ahk_id " hwndListview%whichSide%
     Gui, ListView, vlistView%whichSide%
 
     LV_GetText(filename,index,2)
@@ -2176,14 +2181,14 @@ doubleClickedFolderOrFile(ByRef path)
             Run, "%path%", % EcurrentDir%whichSide%
         }
     }
-    ControlFocus,, % "ahk_id " ListviewHwnd%whichSide%
+    ControlFocus,, % "ahk_id " hwndListview%whichSide%
 }
 
 stopSearching()
 {
     global
     Gui, main:Default
-    ControlFocus,, % "ahk_id " ListviewHwnd%whichSide%
+    ControlFocus,, % "ahk_id " hwndListview%whichSide%
     focused=flistView
     GuiControl,Text,currentDirEdit, % EcurrentDir%whichSide%
     searchString%whichSide%=
@@ -2300,7 +2305,7 @@ initIconStuff() {
     ImageListID2 := IL_Create(10, 10, true) ; A list of large icons to go with the small ones.
     loop 2 {
         Gui, ListView, vlistView%A_Index%
-        LV_Colors.Attach(ListviewHwnd%A_Index%, 1, 0)
+        LV_Colors.Attach(hwndListview%A_Index%, 1, 0)
 
         LV_ModifyCol(1,20)
         LV_ModifyCol(2,300)
@@ -2409,6 +2414,8 @@ searchInCurrentDir() {
     GuiControl, -Redraw, vlistView%whichSide%
     LV_Delete()
     if (SubStr(searchString%whichSide%, 1, 1)!=".") {
+        ;doesn't start with .
+
         counter:=0
         objectToSort:=[]
 
@@ -2437,11 +2444,12 @@ searchInCurrentDir() {
 
             LV_Add("Icon" getIconNum(currentDirCache name),,name,var1,var2,formattedBytes,bytes)
             ; LV_Add(,,name,var1,var2,formattedBytes,bytes)
-            LV_Colors.Cell(ListviewHwnd%whichSide%,k,3,color)
+            LV_Colors.Cell(hwndListview%whichSide%,k,3,color)
         }
     } else {
         searchFoldersOnly:=(searchString%whichSide%=".") ? true : false
         if (searchFoldersOnly) {
+            ; . only
             counter:=0
             for k,name in sortedByDate%whichSide% {
                 if (counter>maxRows)
@@ -2453,10 +2461,11 @@ searchInCurrentDir() {
                     calculateStuff(obj["date"],obj["size"],name,k)
 
                     LV_Add("Icon" getIconNum(currentDirCache name),,name,var1,var2,formattedBytes,bytes)
-                    LV_Colors.Cell(ListviewHwnd%whichSide%,k,3,color)
+                    LV_Colors.Cell(hwndListview%whichSide%,k,3,color)
                 }
             }
         } else {
+            ; .ext
             searchStringBak%whichSide%:=SubStr(searchString%whichSide%, 2)
             counter:=0
             objectToSort:=[]
@@ -2478,7 +2487,7 @@ searchInCurrentDir() {
                 calculateStuff(obj["date"],obj["size"],name,k)
 
                 LV_Add("Icon" getIconNum(currentDirCache name),,name,var1,var2,formattedBytes,bytes)
-                LV_Colors.Cell(ListviewHwnd%whichSide%,k,3,color)
+                LV_Colors.Cell(hwndListview%whichSide%,k,3,color)
             }
         }
 
@@ -3054,10 +3063,9 @@ $^+left::
     gui, main:default
     whichSide:=1
     Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
-    GuiControl, Focus, vlistView1 ;bad code
-    ControlFocus,, ahk_id %ListviewHwnd1%
-    GuiControl, +Background%BGColorOfSelectedPane%, vlistView1
-    GuiControl, +BackgroundWhite, vlistView2
+    
+    keyboardFocusPane(1)
+
     EcurrentDir1:=EcurrentDir2
     renderCurrentDir()
 return
@@ -3069,10 +3077,9 @@ $^+right::
     gui, main:default
     whichSide:=2
     Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
-    GuiControl, Focus, vlistView2 ;bad code
-    ControlFocus,, ahk_id %ListviewHwnd2%
-    GuiControl, +Background%BGColorOfSelectedPane%, vlistView2
-    GuiControl, +BackgroundWhite, vlistView1
+
+    keyboardFocusPane(2)
+
     EcurrentDir2:=EcurrentDir1
     renderCurrentDir()
 return
@@ -3088,10 +3095,8 @@ selectPanel1:
     gui, main:default
     whichSide:=1
     Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
-    GuiControl, Focus, vlistView1 ;bad code
-    ControlFocus,, ahk_id %ListviewHwnd1%
-    GuiControl, +Background%BGColorOfSelectedPane%, vlistView1
-    GuiControl, +BackgroundWhite, vlistView2
+    
+    keyboardFocusPane(1)
 return
 
 right:: ;always uses keyboard hook
@@ -3106,11 +3111,8 @@ selectPanel2:
     gui, main:default
     whichSide:=2
     Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
-    GuiControl, Focus, vlistView2 ;bad code
-    ControlFocus,, ahk_id %ListviewHwnd2%
-    GuiControl, +Background%BGColorOfSelectedPane%, vlistView2
-    GuiControl, +BackgroundWhite, vlistView1
 
+    keyboardFocusPane(2)
 return
 $RAlt::
     if (focused="searchCurrentDirEdit" or focused="flistView" or focused="listViewInSearch") {
@@ -3179,7 +3181,7 @@ return
 $f2::
 if (!dontSearch) {
     gui, main:default ;NEEDED
-    ControlFocus,, % "ahk_id " ListviewHwnd%whichSide%
+    ControlFocus,, % "ahk_id " hwndListview%whichSide%
     Gui, ListView, vlistView%whichSide%
 
 
@@ -3212,8 +3214,8 @@ if (!dontSearch) {
 
     WinGetPos, gui_x, gui_y,,, ahk_explorer ahk_class AutoHotkeyGUI
     ; Byref xpos, Byref ypos
-    listview_getPosOfRow(ListviewHwnd%whichSide%,row - 1, row_x, row_y)
-    ControlGetPos, listview_X, listview_Y,,,, % "ahk_id " ListviewHwnd%whichSide%
+    listview_getPosOfRow(hwndListview%whichSide%,row - 1, row_x, row_y)
+    ControlGetPos, listview_X, listview_Y,,,, % "ahk_id " hwndListview%whichSide%
     xOffset_IconWidth:=dpiMultiplier*23
     yOffset_QualityOfLife:= -2
     xpos:=row_x + gui_x + listview_X + xOffset_IconWidth
@@ -3595,9 +3597,9 @@ $enter::
             }
             ; row:=LV_GetNext("")
             ; doubleClickedNormal(row)
-            ControlFocus,, % "ahk_id " ListviewHwnd%whichSide%
+            ControlFocus,, % "ahk_id " hwndListview%whichSide%
         } else if (focused="changePath" or focused="renaming") {
-            ControlFocus,, % "ahk_id " ListviewHwnd%whichSide%
+            ControlFocus,, % "ahk_id " hwndListview%whichSide%
         }
     } else {
         send, {enter}
@@ -3619,7 +3621,7 @@ $esc::
             ; gui, renameSimple:Default
             ; gui, submit
             gui, main:Default
-            ControlFocus,, % "ahk_id " ListviewHwnd%whichSide%
+            ControlFocus,, % "ahk_id " hwndListview%whichSide%
 
             gui, renameSimple:Default
             gui, destroy
