@@ -2584,10 +2584,12 @@ renderCurrentDir()
             ; 3. we remove watch, and if there's another same, we add the watch back to that. so loop though every side.
             ; using the map, we only remove watch if watch is on self pane.
             if (dirWatched[lastDir%whichSide%]==whichSide) {
+                dirWatched.Delete(lastDir%whichSide%)
                 stopWatchFolder(lastDir%whichSide%)
                 loop 2 { ;how many panes
                     if (EcurrentDir%A_Index%==lastDir%whichSide%) {
                         startWatchFolder(A_Index, lastDir%whichSide%) 
+                        break
                     }
                 }
             }
