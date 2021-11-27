@@ -1146,13 +1146,13 @@ decodeStrAs(source,encoding)
 return StrGet(&target, encoding)
 }
 
-sortArrByKey(ar, byref key,byref reverse:=false) {
+sortArrByKey(arr, key, reverse:=false) {
     str=
-    for k,v in ar {
+    for k,v in arr {
         str.=v[key] "+" k "|"
     }
-    length:=ar.Length()
-    firstValue:=ar[1][key]
+    length:=arr.Length()
+    firstValue:=arr[1][key]
     if firstValue is number
     {
         sortType := "N"
@@ -1167,7 +1167,7 @@ sortArrByKey(ar, byref key,byref reverse:=false) {
         barPos:=InStr(str, "|",, plusPos)
 
         num:=SubStr(str, plusPos + 1, barPos - plusPos - 1)
-        finalAr.Insert(1,ar[num])
+        finalAr.Insert(1,arr[num])
     }
     ;} else {
     ; loop %length% {
@@ -1175,7 +1175,7 @@ sortArrByKey(ar, byref key,byref reverse:=false) {
     ; barPos:=InStr(str, "|",, plusPos)
     ; 
     ; num:=SubStr(str, plusPos + 1, barPos - plusPos - 1)
-    ; finalAr.Push(ar[num])
+    ; finalAr.Push(arr[num])
     ; }
     ; }
 
@@ -1515,9 +1515,9 @@ whereToAddFile(byref whichSide, byref OutFileName,byref date,byref size) {
                         objectToSort.Push({name:v,pos:pos})
                     }
                 }
-                objectToSort:=ObjectSort(objectToSort,"pos")
+                sortedObj:=sortArrByKey(objectToSort,"pos",true)
 
-                for k,v in objectToSort {
+                for k,v in sortedObj {
                     name:=v["name"]
                     if (name=OutFileName) {
                         insertNum:=k
@@ -1551,8 +1551,8 @@ whereToAddFile(byref whichSide, byref OutFileName,byref date,byref size) {
                             objectToSort.Push({name:v,pos:pos})
                         }
                     }
-                    objectToSort:=ObjectSort(objectToSort,"pos")
-                    for k,v in objectToSort {
+                    sortedObj:=sortArrByKey(objectToSort,"pos",true)
+                    for k,v in sortedObj {
                         name:=v["name"]
                         if (name=OutFileName) {
                             insertNum:=k
@@ -2400,7 +2400,9 @@ _getIconFromFullPath(fullPath) {
 
 searchInCurrentDir() {
     global
-    if (searchString%whichSide%=="") {
+
+    theSearchString:=searchString%whichSide%
+    if (theSearchString=="") {
         return
     }
     searching:=true
@@ -2413,41 +2415,69 @@ searchInCurrentDir() {
     currentDirCache:=EcurrentDir%whichSide% "\"
     GuiControl, -Redraw, vlistView%whichSide%
     LV_Delete()
-    if (SubStr(searchString%whichSide%, 1, 1)!=".") {
+    if (SubStr(theSearchString, 1, 1)!=".") {
         ;doesn't start with .
 
-        counter:=0
-        objectToSort:=[]
+        if (StrLen(theSearchString) < 3) {
+            ;stringSimilarity() doesn't work well with strLen<3
+            ; when < 3, we sort by found position of Needle
+            counter:=0
+            objectToSort:=[]
 
-        for k,v in sortedByDate%whichSide% {
-            if (counter>maxRows)
-                break
-            attri:=stuffByName%whichSide%[v]["attri"]
-            if InStr(attri, "D") {
-                pos:=InStr(v, searchString%whichSide%)
-            } else {
-                SplitPath, v,,,, OutNameNoExt
-                pos:=InStr(OutNameNoExt, searchString%whichSide%)
-            }
+            for k,v in sortedByDate%whichSide% {
+                if (counter>maxRows)
+                    break
+                attri:=stuffByName%whichSide%[v]["attri"]
+                if InStr(attri, "D") {
+                    pos:=InStr(v, theSearchString)
+                } else {
+                    SplitPath, v,,,, OutNameNoExt
+                    pos:=InStr(OutNameNoExt, theSearchString)
+                }
 
-            if (pos) {
-                counter++
-                objectToSort.Push({name:v,pos:pos})
+                if (pos) {
+                    counter++
+                    objectToSort.Push({name:v,pos:pos})
+                }
             }
+            sortedObj:=sortArrByKey(objectToSort,"pos",true)
+
+        } else {
+            counter:=0
+            objectToSort:=[]
+
+            for k,v in sortedByDate%whichSide% {
+                if (counter>maxRows)
+                    break
+                attri:=stuffByName%whichSide%[v]["attri"]
+                if InStr(attri, "D") {
+                    similarity_value:=stringSimilarity(v, theSearchString)
+                } else {
+                    SplitPath, v,,,, OutNameNoExt
+                    similarity_value:=stringSimilarity(OutNameNoExt, theSearchString)
+                }
+
+                if (similarity_value) {
+                    counter++
+                    objectToSort.Push({name:v,similarity_value:similarity_value})
+                }
+            }
+            sortedObj:=sortArrByKey(objectToSort,"similarity_value")
+
         }
-        objectToSort:=ObjectSort(objectToSort,"pos")
 
-        for k,v in objectToSort {
+        for k,v in sortedObj {
             name:=v["name"]
             obj:=stuffByName%whichSide%[name]
             calculateStuff(obj["date"],obj["size"],name,k)
 
             LV_Add("Icon" getIconNum(currentDirCache name),,name,var1,var2,formattedBytes,bytes)
-            ; LV_Add(,,name,var1,var2,formattedBytes,bytes)
             LV_Colors.Cell(hwndListview%whichSide%,k,3,color)
         }
+
+        
     } else {
-        searchFoldersOnly:=(searchString%whichSide%=".") ? true : false
+        searchFoldersOnly:=(theSearchString=".") ? true : false
         if (searchFoldersOnly) {
             ; . only
             counter:=0
@@ -2466,7 +2496,7 @@ searchInCurrentDir() {
             }
         } else {
             ; .ext
-            searchStringBak%whichSide%:=SubStr(searchString%whichSide%, 2)
+            searchStringBak%whichSide%:=SubStr(theSearchString, 2)
             counter:=0
             objectToSort:=[]
             for k,v in sortedByDate%whichSide% {
@@ -2479,8 +2509,8 @@ searchInCurrentDir() {
                     objectToSort.Push({name:v,pos:pos})
                 }
             }
-            objectToSort:=ObjectSort(objectToSort,"pos")
-            for k,v in objectToSort {
+            sortedObj:=sortArrByKey(objectToSort,"pos",true)
+            for k,v in sortedObj {
                 name:=v["name"]
                 obj:=stuffByName%whichSide%[name]
 
@@ -2966,33 +2996,6 @@ renderCurrentDir()
     DllCall("SetClipboardData","uint",cfFormat,"UPtr",mem)
     DllCall("CloseClipboard")
     return
-}
-
-sortArrayByArray(toSort, sortWith, reverse=false, key=false)
-{
-    global
-    array:=[]
-    finalAr:=[]
-    if (key) {
-        count:=0
-        for k, v in sortWith {
-            count++
-            array.Push({1:v[key], 2:count})
-        }
-        array:=ObjectSort(array, 1,, reverse)
-        for k in array {
-            finalAr.Push(toSort[array[k][2]])
-        }
-    } else {
-        for k in toSort {
-            array.Push([toSort[k],sortWith[k]])
-        }
-        array:=ObjectSort(array, 2,,reverse)
-        for k, v in array {
-            finalAr.Push(v[1])
-        }
-    }
-    return finalAr
 }
 
 ;end of functions
