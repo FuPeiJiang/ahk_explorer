@@ -2457,16 +2457,18 @@ searchInCurrentDir() {
                     similarity_value:=stringSimilarity(OutNameNoExt, theSearchString)
                 }
 
-                if (similarity_value) {
+                if (similarity_value > 0.25) {
                     counter++
                     objectToSort.Push({name:v,similarity_value:similarity_value})
                 }
             }
             sortedObj:=sortArrByKey(objectToSort,"similarity_value")
+            ; d(sortedObj)
 
         }
 
-        for k,v in sortedObj {
+        ; loop % Min(maxRows, sortedObj.Count()) {
+        for k, v in sortedObj {
             name:=v["name"]
             obj:=stuffByName%whichSide%[name]
             calculateStuff(obj["date"],obj["size"],name,k)
