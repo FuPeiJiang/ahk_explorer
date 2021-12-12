@@ -43,23 +43,136 @@ wordLetterPairs(str) {
 ; to find the size of the intersection. Note that whenever a match is found, that character pair is removed from the second array list to
 ; prevent us from matching against the same character pair multiple times. (Otherwise, 'GGGGG' would score a perfect match against 'GG'.)
 ; @return lexical similarity value in the range [0,1]
-; public static double compareStrings(String str1, String str2) {
-stringSimilarity(str1, str2) {
-    StringUpper, str1, str1
-    StringUpper, str2, str2
+; public static double compareStrings(String hayStack, String searchString) {
+howMuchOf_searchString_isFound(hayStack, searchString) {
+    StringUpper, hayStack, hayStack
+    StringUpper, searchString, searchString
 
-    pairs1 := wordLetterPairs(str1)
-    pairs2 := wordLetterPairs(str2)
+    hayStack_pairs := wordLetterPairs(hayStack)
+    searchString_pairs := wordLetterPairs(searchString)
     intersection := 0
-    union := pairs1.Length() + pairs2.Length()
-    for k, pair1 in pairs1 {
-        for i, pair2 in pairs2 {
+    union := searchString_pairs.Length()
+    for k, pair1 in hayStack_pairs {
+        for i, pair2 in searchString_pairs {
             if (pair1 == pair2) {
                 intersection++
-                pairs2.removeAt(i)
+                searchString_pairs.removeAt(i)
                 break
             }
         }
     }
-    return (2.0*intersection)/union
+    return intersection/union
+}
+
+
+orderMatters(hayStack, searchString) {
+    StringUpper, hayStack, hayStack
+    StringUpper, searchString, searchString
+
+    hayStack_pairs := wordLetterPairs(hayStack)
+    searchString_pairs := wordLetterPairs(searchString)
+    intersection := 0
+    union := searchString_pairs.Length()
+
+    startingI := 1
+    searchString_pairs_Len := searchString_pairs.Length() + 1
+    for k, pair1 in hayStack_pairs {
+        i:=startingI
+        while (i < searchString_pairs_Len) {
+            if (pair1 == searchString_pairs[i]) {
+                intersection++
+                startingI:=i + 1
+                break
+            }
+            i++
+        }
+    }
+    return intersection/union
+}
+
+orderAndProximity_Matter(hayStack, searchString) {
+    StringUpper, hayStack, hayStack
+    StringUpper, searchString, searchString
+
+    hayStack_pairs := wordLetterPairs(hayStack)
+    searchString_pairs := wordLetterPairs(searchString)
+    intersection := 0
+    union := searchString_pairs.Length()
+
+    startingI := 1
+    searchString_pairs_Len := searchString_pairs.Length() + 1
+    for k, pair1 in hayStack_pairs {
+        i:=startingI
+        while (i < searchString_pairs_Len) {
+            if (pair1 == searchString_pairs[i]) {
+
+                if (lastFound_hayStack_pairsIdx) {
+                    intersection+=1/(k - lastFound_hayStack_pairsIdx)
+                } else {
+                    intersection++
+                }
+
+                startingI:=i + 1
+                lastFound_hayStack_pairsIdx := k
+                break
+            }
+            i++
+        }
+    }
+    return intersection/union
+}
+
+orderAndProximity_Matter_WithReversed(hayStack, searchString) {
+    StringUpper, hayStack, hayStack
+    StringUpper, searchString, searchString
+
+    hayStack_pairs := wordLetterPairs(hayStack)
+    searchString_pairs := wordLetterPairs(searchString)
+    intersection := 0
+    union := searchString_pairs.Length()
+
+    startingI := 1
+    searchString_pairs_Len := searchString_pairs.Length() + 1
+    for k, pair1 in hayStack_pairs {
+        i:=startingI
+        while (i < searchString_pairs_Len) {
+            if (pair1 == searchString_pairs[i]) {
+
+                if (lastFound_hayStack_pairsIdx) {
+                    intersection+=1/(k - lastFound_hayStack_pairsIdx)
+                } else {
+                    intersection++
+                }
+
+                startingI:=i + 1
+                lastFound_hayStack_pairsIdx := k
+                break
+            } else if (pair1 == FlipStr(searchString_pairs[i])) {
+
+                if (lastFound_hayStack_pairsIdx) {
+                    intersection+=0.5/(k - lastFound_hayStack_pairsIdx)
+                } else {
+                    intersection++
+                }
+
+                startingI:=i + 1
+                lastFound_hayStack_pairsIdx := k
+
+                break
+            }
+            i++
+        }
+    }
+    return intersection/union
+}
+
+FlipStr(Str) { ;https://www.autohotkey.com/board/topic/42396-fastest-way-to-reverse-a-string/#post_id_264725
+    ; static _strrev_Proc := DllCall("GetProcAddress", "Ptr", DllCall("GetModuleHandle", "Str", "msvcrt", "Ptr"), "AStr", "_strrev", "Ptr")
+    static _wcsrev_Proc := DllCall("GetProcAddress", "Ptr", DllCall("GetModuleHandle", "Str", "msvcrt", "Ptr"), "AStr", "_wcsrev", "Ptr")
+    ; DllCall("msvcrt\_strrev", "UInt",&Str, "CDecl")
+    ; DllCall("msvcrt\_wcsrev", "UInt",&Str, "CDecl")
+    DllCall(_wcsrev_Proc, "UInt",&Str, "CDecl")
+    ; https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/strrev-wcsrev-mbsrev-mbsrev-l?view=msvc-170#:~:text=_wcsrev%20and%20_mbsrev%20are%20wide%2Dcharacter
+    ; we need wide char
+    return Str
 }
