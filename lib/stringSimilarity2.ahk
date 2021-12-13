@@ -45,6 +45,7 @@ orderAndProximity_Matter_WithReversed(hayStack, searchString) {
 
     startingI := 1
     searchString_pairs_Len := searchString_pairs.Length() + 1
+    lastFound_hayStack_pairsIdx:=false
     for k, pair1 in hayStack_pairs {
         i:=startingI
         while (i < searchString_pairs_Len) {

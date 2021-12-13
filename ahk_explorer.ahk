@@ -1149,7 +1149,7 @@ return StrGet(&target, encoding)
 }
 
 sortArrByKey(arr, key, reverse:=false) {
-    str=
+    str:=""
     for k,v in arr {
         str.=v[key] "+" k "|"
     }
@@ -1159,28 +1159,18 @@ sortArrByKey(arr, key, reverse:=false) {
     {
         sortType := "N"
     }
-    Sort, str, % "D|" sortType (reverse ? "R" : "")
+    Sort, str, % "D|" sortType (reverse ? "" : "R")
     finalAr:=[]
     finalAr.SetCapacity(length)
     barPos:=1
-    ; if (reverse) {
+
     loop %length% {
         plusPos:=InStr(str, "+",, barPos)
         barPos:=InStr(str, "|",, plusPos)
 
         num:=SubStr(str, plusPos + 1, barPos - plusPos - 1)
-        finalAr.Insert(1,arr[num])
+        finalAr.Push(arr[num])
     }
-    ;} else {
-    ; loop %length% {
-    ; plusPos:=InStr(str, "+",, barPos)
-    ; barPos:=InStr(str, "|",, plusPos)
-    ;
-    ; num:=SubStr(str, plusPos + 1, barPos - plusPos - 1)
-    ; finalAr.Push(arr[num])
-    ; }
-    ; }
-
 return finalAr
 }
 
@@ -2448,18 +2438,57 @@ searchInCurrentDir() {
             counter:=0
             objectToSort:=[]
 
+            this_SortedByDate_Pairs:=sortedByDate_Pairs%whichSide%
+
+            StringUpper, theSearchString, theSearchString
+            searchString_pairs := wordLetterPairs(theSearchString), reverse_searchString_pairs:=reverse_wordLetterPairs(theSearchString)
+            searchString_pairs_Len := searchString_pairs.Length() + 1
+            union := searchString_pairs.Length()
             for k,v in sortedByDate%whichSide% {
                 if (counter>maxRows)
                     break
-                attri:=stuffByName%whichSide%[v]["attri"]
-                if InStr(attri, "D") {
-                    similarity_value:=orderAndProximity_Matter_WithReversed(v, theSearchString)
-                } else {
-                    SplitPath, v,,,, OutNameNoExt
-                    similarity_value:=orderAndProximity_Matter_WithReversed(OutNameNoExt, theSearchString)
-                }
 
-                if (similarity_value > 0.25) {
+                hayStack_pairs := this_SortedByDate_Pairs[k]
+
+                similarity_value := 0
+
+                startingI := 1
+                lastFound_hayStack_pairsIdx:=false
+                outer:
+                for k2, pair1 in hayStack_pairs {
+                    i:=startingI
+                    while (i < searchString_pairs_Len) {
+                        if (pair1 == searchString_pairs[i]) {
+
+                            howManyPoints:=1
+
+                        } else if (pair1 == reverse_searchString_pairs[i]) {
+
+                            howManyPoints:=0.5
+
+                        } else {
+                            i++
+                            continue
+                        }
+
+                        if (lastFound_hayStack_pairsIdx) {
+                            similarity_value+=howManyPoints/(k2 - lastFound_hayStack_pairsIdx)
+                        } else {
+                            similarity_value++
+                        }
+
+                        startingI:=i + 1
+                        if (startingI==searchString_pairs_Len) {
+                            break outer
+                        }
+
+                        lastFound_hayStack_pairsIdx := k2
+                        break
+                    }
+                }
+                similarity_value/=union
+;function end
+                if (similarity_value > 0.35) {
                     counter++
                     objectToSort.Push({name:v,similarity_value:similarity_value})
                 }
@@ -2787,6 +2816,25 @@ renderCurrentDir()
 
         }
         Gui, ListView, vlistView%whichSide%
+
+        ;precomputing
+        sortedByDate_Pairs%whichSide%:=[]
+        sortedByDate_Arr%whichSide%:=[]
+
+        this_SortedByDate_Pairs:=sortedByDate_Pairs%whichSide%
+        this_stuffByName:=stuffByName%whichSide%
+
+        for k,v in sortedByDate%whichSide% {
+            attri:=this_stuffByName[v]["attri"]
+            if InStr(attri, "D") {
+                nameNoExt:=v
+            } else {
+                SplitPath, v,,,, nameNoExt
+            }
+            StringUpper, nameNoExt, nameNoExt
+
+            this_SortedByDate_Pairs.push(wordLetterPairs(nameNoExt))
+        }
     }
 
     findNextDirNameNumberIteration(pathWithAsterisk)
