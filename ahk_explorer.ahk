@@ -2448,6 +2448,7 @@ searchInCurrentDir() {
                 if (counter>maxRows)
                     break
 
+;function start
                 hayStack_pairs := this_SortedByDate_Pairs[k]
 
                 similarity_value := 0
@@ -2493,6 +2494,7 @@ searchInCurrentDir() {
                     objectToSort.Push({name:v,similarity_value:similarity_value})
                 }
             }
+            ; d(objectToSort)
             sortedObj:=sortArrByKey(objectToSort,"similarity_value")
             ; d(sortedObj)
 

@@ -120,7 +120,7 @@ class WatchFolder {
             }
          }
       }
-      
+
       ; ===============================================================================================================================
       If (this.EventToFolderinfo_Count > 0) {
          timerFunc:=this.timerFunc
@@ -178,15 +178,18 @@ class WatchFolder {
    _SanitizeUserInput(Folder) {
       If (Folder == "")
          Return False
-      Folder := RTrim(Folder, "\")
       return this._getLongPath(Folder)
    }
    _getLongPath(Folder) {
-      Loop, Files, % Folder, D
-      {
-         return A_LoopFileLongPath
-      }
-      return false
+      Static MAX_DIR_PATH := 260 - 12 + 1
+      Static SizeOfLongPath := MAX_DIR_PATH << !!A_IsUnicode
+
+      Folder := RTrim(Folder, "\")
+      VarSetCapacity(LongPath, SizeOfLongPath, 0)
+      If !DllCall("GetLongPathName", "Str", Folder, "Ptr", &LongPath, "UInt", MAX_DIR_PATH)
+         return False
+      VarSetCapacity(LongPath, -1)
+      return LongPath
    }
 
    RemoveAll(Folder) {
