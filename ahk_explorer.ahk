@@ -1082,6 +1082,39 @@ Return DllCall("Comctl32.dll\DefSubclassProc", "Ptr", H, "UInt", M, "Ptr", W, "P
 ; ======================================================================================================================
 ;start of functions start
 
+bringToCurrentDesktop() {
+    global windowHidden
+
+    if (true) {
+        windowHidden:=false
+        gui, main:Default
+        ; gui, hide
+        gui, show
+    } else {
+        ; SetTimer, revealAhk_Explorer, -0
+        ; Gosub, revealAhk_Explorer
+        ; revealAhk_Explorer()
+        ; WinHide % thisUniqueWintitle
+        ; WinShow % thisUniqueWintitle
+        ; WinRestore % thisUniqueWintitle
+        ; VD_sendToCurrentDesktop(thisUniqueWintitle, true)
+        ; VD_sendToCurrentDesktop("ahk_explorer", true)
+        SetTimer, label_toCurrentDesktop , -0 ;SetTimer IS NEEDED SOMEHOW, you can't just call a function
+    }
+}
+
+minimizeCortana()
+{
+    If (WinActive("ahk_exe SearchApp.exe") || WinActive("ahk_exe SearchHost.exe")) ;wintitle = "Search" ;SearchApp:Win10, SearchHost:Win11
+    {
+        ; esc only works when you're IN search.
+        ; ctrl down + esc will minimize when in # but not search
+        ; alt down instead of ctrl down will minimize it even when Win is down
+        send, {alt down}{esc}{alt up}
+        return true
+    }
+}
+
 keyboardFocusPane(whichSide) {
     global BGColorOfSelectedPane
 
@@ -1956,35 +1989,20 @@ WM_COPYDATA_READ(wp, lp) {
     data := StrGet(NumGet(lp + A_PtrSize*2), "UTF-16")
     RegExMatch(data, "s)(.*)\|(\d+)", match)
 
-    if (match2=1) {
+    if (match2==1) {
         openInAhkExplorer(match1)
-    } else if (match2=2) {
+    } else if (match2==2) {
         ; p(match1)
         receivedFolderSize(match1)
-    } else if (match2=3) {
+    } else if (match2==3) {
         sortSizes()
         canSortBySize%whichSide%:=true
-    } else if (match2=4) {
+    } else if (match2==4) {
         gosub, selectPanel%match1%
-    } else if (match2=5) {
+    } else if (match2==5) {
         gosub, copySelectedPaths
-    } else if (match2=6) {
-        if (windowHidden) {
-            windowHidden:=false
-            gui, main:Default
-            ; gui, hide
-            gui, show
-        } else {
-            ; SetTimer, revealAhk_Explorer, -0
-            ; Gosub, revealAhk_Explorer
-            ; revealAhk_Explorer()
-            ; WinHide % thisUniqueWintitle
-            ; WinShow % thisUniqueWintitle
-            ; WinRestore % thisUniqueWintitle
-            ; VD_sendToCurrentDesktop(thisUniqueWintitle, true)
-            ; VD_sendToCurrentDesktop("ahk_explorer", true)
-            SetTimer, label_toCurrentDesktop , -0 ;SetTimer IS NEEDED SOMEHOW, you can't just call a function
-        }
+    } else if (match2==6) {
+        bringToCurrentDesktop()
     } else {
         p("something went wrong")
     }
@@ -3054,15 +3072,45 @@ renderCurrentDir()
 
 ;end of functions
 ;hotkeys
-#if winactive(thisUniqueWintitle)
-    ^e::
-    ; revealFileInExplorer(EcurrentDir%whichSide%, getSelectedNames())
-    path:=getSelectedPaths()[1]
-    if (path) {
-        Run, % "explorer.exe /select,""" path """"
-    } else {
-        Run, % "explorer.exe """ EcurrentDir%whichSide% """"
+
+#if ;global hotkeys
+
+#e::
+    minimizeCortana()
+
+    if WinActive(thisUniqueWintitle)
+    {
+        winactivate, ahk_exe code.exe
     }
+    else if WinExist(thisUniqueWintitle)
+    {
+        WinActivate
+    }
+    else
+    {
+        DetectHiddenWindows, On
+        if WinExist(thisUniqueWintitle) {
+            DetectHiddenWindows, off
+
+            bringToCurrentDesktop()
+
+        } else {
+            DetectHiddenWindows, off
+
+        }
+    }
+return
+
+#if WinActive(thisUniqueWintitle)
+
+^e::
+; revealFileInExplorer(EcurrentDir%whichSide%, getSelectedNames())
+path:=getSelectedPaths()[1]
+if (path) {
+    Run, % "explorer.exe /select,""" path """"
+} else {
+    Run, % "explorer.exe """ EcurrentDir%whichSide% """"
+}
 return
 ; rotate JPEG images in a lossless way
 +r::
