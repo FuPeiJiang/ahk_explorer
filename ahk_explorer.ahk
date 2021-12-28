@@ -1082,6 +1082,41 @@ Return DllCall("Comctl32.dll\DefSubclassProc", "Ptr", H, "UInt", M, "Ptr", W, "P
 ; ======================================================================================================================
 ;start of functions start
 
+hiddenMatch2Exist(fileName) {
+    DetectHiddenWindows, On
+    SetTitleMatchMode, 2
+    hiddenExist:=false
+    if WinExist(wintitle) {
+        hiddenExist:=true
+    }
+    SetTitleMatchMode, 1
+    DetectHiddenWindows, Off
+    return hiddenExist
+}
+VSCodeRunner(path) {
+    wintitle:="vscode_runner.ahk ahk_exe AutoHotkey.exe"
+    if hiddenMatch2Exist(wintitle) {
+        send_stringData_Wintitle(wintitle, 1, path)
+    } else {
+        toRun:= """" A_AhkPath "\..\AutoHotkey.exe"" /CP65001 ""lib\vscode_runner.ahk"" """ path """"
+        Run % toRun
+    }
+}
+send_stringData_Wintitle(wintitle, num, stringToSend:="")
+{
+    stringToSend .= "|" num
+    VarSetCapacity(message, size := StrPut(stringToSend, "UTF-16")*2, 0)
+    StrPut(stringToSend, &message, "UTF-16")
+    VarSetCapacity(COPYDATASTRUCT, A_PtrSize*3)
+    NumPut(size, COPYDATASTRUCT, A_PtrSize, "UInt")
+    NumPut(&message, COPYDATASTRUCT, A_PtrSize*2)
+    DetectHiddenWindows, On
+    SetTitleMatchMode, 2
+    SendMessage, WM_COPYDATA := 0x4A,, &COPYDATASTRUCT,, % wintitle
+    SetTitleMatchMode, 1
+    DetectHiddenWindows, Off
+}
+
 bringToCurrentDesktop() {
     global windowHidden
 
@@ -3245,10 +3280,7 @@ $\::
         selectedPaths:=getSelectedPaths()
         if (selectedPaths.Length()) {
             for k,v in selectedPaths {
-                ; toRun:= """" vscodePath """ """ v """"
-                toRun:= """" A_AhkPath """ /CP65001 ""lib\vscode_runner.ahk"" """ v """"
-                ;  d(toRun)
-                run, %toRun%
+                VSCodeRunner(v)
             }
         }
     } else {
