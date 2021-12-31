@@ -1082,7 +1082,7 @@ Return DllCall("Comctl32.dll\DefSubclassProc", "Ptr", H, "UInt", M, "Ptr", W, "P
 ; ======================================================================================================================
 ;start of functions start
 
-hiddenMatch2Exist(fileName) {
+hiddenMatch2Exist(wintitle) {
     DetectHiddenWindows, On
     SetTitleMatchMode, 2
     hiddenExist:=false

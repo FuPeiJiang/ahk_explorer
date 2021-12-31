@@ -8,9 +8,13 @@ ListLines Off
 SetWinDelay, -1
 SetControlDelay, -1
 
-FileRead settingsTxt, % A_AppData "\ahk_explorer_settings\settings.txt"
-settingsArr:=StrSplit(settingsTxt, "`n", "`r")
-vscodePath:=settingsArr[2]
+
+vscodePath:=getVscodePath()
+getVscodePath() {
+    FileRead settingsTxt, % A_AppData "\ahk_explorer_settings\settings.txt"
+    settingsArr:=StrSplit(settingsTxt, "`n", "`r")
+    return settingsArr[2]
+}
 
 
 if (A_Args.Length() > 1) {
