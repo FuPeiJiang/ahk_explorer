@@ -2507,7 +2507,8 @@ searchInCurrentDir() {
                 similarity_value := 0
 
                 startingI := 1
-                lastFound_hayStack_pairsIdx:=false
+                lastFound_hayStack_pairsIdx:=0
+                ; lastFound_hayStack_pairsIdx:=false
                 outer:
                 for k2, pair1 in hayStack_pairs {
                     i:=startingI
@@ -2525,11 +2526,11 @@ searchInCurrentDir() {
                             continue
                         }
 
-                        if (lastFound_hayStack_pairsIdx) {
+                        ; if (lastFound_hayStack_pairsIdx) {
                             similarity_value+=howManyPoints/(k2 - lastFound_hayStack_pairsIdx)
-                        } else {
-                            similarity_value++
-                        }
+                        ; } else {
+                            ; similarity_value++
+                        ; }
 
                         startingI:=i + 1
                         if (startingI==searchString_pairs_Len) {
