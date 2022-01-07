@@ -114,17 +114,7 @@ for k, v in favoriteFolders {
 
 renderCurrentDir()
 
-IServiceProvider := ComObjCreate("{C2F03A33-21F5-47FA-B4BB-156362A2F239}", "{6D5140C1-7436-11CE-8034-00AA006009FA}")
-IVirtualDesktopManagerInternal := ComObjQuery(IServiceProvider, "{C5E0CDCA-7B6E-41B2-9FC4-D93975CC467B}", "{F31574D6-B682-4CDC-BD56-1827860ABEC6}")
-MoveViewToDesktop := vtable(IVirtualDesktopManagerInternal, 4) ; void MoveViewToDesktop(object pView, IVirtualDesktop desktop);
-GetCurrentDesktop := vtable(IVirtualDesktopManagerInternal, 6) ; IVirtualDesktop GetCurrentDesktop();
-ImmersiveShell := ComObjCreate("{C2F03A33-21F5-47FA-B4BB-156362A2F239}", "{00000000-0000-0000-C000-000000000046}")
-
-if !(IApplicationViewCollection := ComObjQuery(ImmersiveShell,"{1841C6D7-4F9D-42C0-AF41-8747538F10E5}","{1841C6D7-4F9D-42C0-AF41-8747538F10E5}" ) ) ; 1607-1809
-{
-    MsgBox IApplicationViewCollection interface not supported.
-}
-GetViewForHwnd							:= vtable(IApplicationViewCollection, 6) ; (IntPtr hwnd, out IApplicationView view);
+VD.init() ; "for optimization?"
 
 return
 
@@ -716,6 +706,7 @@ return
 ;includes
 #include <cMsgbox>
 #include <WatchFolder2>
+#include <VD>
 ; #Include <stringSimilarity>
 #Include <stringSimilarity2>
 ;Classes
@@ -1082,6 +1073,34 @@ Return DllCall("Comctl32.dll\DefSubclassProc", "Ptr", H, "UInt", M, "Ptr", W, "P
 ; ======================================================================================================================
 ;start of functions start
 
+Activate_Ahk_Explorer() {
+    global thisUniqueWintitle
+
+    minimizeCortana()
+
+    if WinActive(thisUniqueWintitle)
+    {
+        winactivate, ahk_exe code.exe
+    }
+    else if WinExist(thisUniqueWintitle)
+    {
+        WinActivate
+    }
+    else
+    {
+        DetectHiddenWindows, On
+        if WinExist(thisUniqueWintitle) {
+            DetectHiddenWindows, off
+
+            VD.MoveWindowToCurrentDesktop(thisUniqueWintitle, true)
+
+        } else {
+            DetectHiddenWindows, off
+
+        }
+    }
+}
+
 hiddenMatch2Exist(wintitle) {
     DetectHiddenWindows, On
     SetTitleMatchMode, 2
@@ -1115,27 +1134,6 @@ send_stringData_Wintitle(wintitle, num, stringToSend:="")
     SendMessage, WM_COPYDATA := 0x4A,, &COPYDATASTRUCT,, % wintitle
     SetTitleMatchMode, 1
     DetectHiddenWindows, Off
-}
-
-bringToCurrentDesktop() {
-    global windowHidden
-
-    if (true) {
-        windowHidden:=false
-        gui, main:Default
-        ; gui, hide
-        gui, show
-    } else {
-        ; SetTimer, revealAhk_Explorer, -0
-        ; Gosub, revealAhk_Explorer
-        ; revealAhk_Explorer()
-        ; WinHide % thisUniqueWintitle
-        ; WinShow % thisUniqueWintitle
-        ; WinRestore % thisUniqueWintitle
-        ; VD_sendToCurrentDesktop(thisUniqueWintitle, true)
-        ; VD_sendToCurrentDesktop("ahk_explorer", true)
-        SetTimer, label_toCurrentDesktop , -0 ;SetTimer IS NEEDED SOMEHOW, you can't just call a function
-    }
 }
 
 minimizeCortana()
@@ -1987,7 +1985,7 @@ openInAhkExplorer(pathArgument)
     winactivate, ahk_explorer ahk_class AutoHotkeyGUI
     renderCurrentDir()
     ControlFocus,, % "ahk_id " hwndListview%whichSide%
-    SetTimer, label_toCurrentDesktop , -0 ;SetTimer IS NEEDED SOMEHOW, you can't just call a function
+    SetTimer, Activate_Ahk_Explorer, -0 ;SetTimer IS NEEDED SOMEHOW, you can't just call a function
 
 }
 
@@ -2007,17 +2005,6 @@ receivedFolderSize(string) {
     }
     stuffByName%whichSide%[ar[1]]["size"]:=ar[3]
 }
-;virtual desktop
-label_toCurrentDesktop:
-    CurrentIVirtualDesktop := 0
-    GetCurrentDesktop_return_value := DllCall(GetCurrentDesktop, "UPtr", IVirtualDesktopManagerInternal, "UPtrP", CurrentIVirtualDesktop, "UInt")
-
-    pView := 0
-    DllCall(GetViewForHwnd, "UPtr", IApplicationViewCollection, "Ptr", thisHwnd, "Ptr*", pView, "UInt")
-
-    DllCall(MoveViewToDesktop, "ptr", IVirtualDesktopManagerInternal, "Ptr", pView, "UPtr", CurrentIVirtualDesktop, "UInt")
-    winactivate, ahk_id %thisHwnd%
-return
 
 WM_COPYDATA_READ(wp, lp) {
     global
@@ -2037,7 +2024,7 @@ WM_COPYDATA_READ(wp, lp) {
     } else if (match2==5) {
         gosub, copySelectedPaths
     } else if (match2==6) {
-        bringToCurrentDesktop()
+        SetTimer, Activate_Ahk_Explorer, -0 ;SetTimer IS NEEDED SOMEHOW, you can't just call a function
     } else {
         p("something went wrong")
     }
@@ -3111,31 +3098,7 @@ renderCurrentDir()
 
 #if ;global hotkeys
 
-#e::
-    minimizeCortana()
-
-    if WinActive(thisUniqueWintitle)
-    {
-        winactivate, ahk_exe code.exe
-    }
-    else if WinExist(thisUniqueWintitle)
-    {
-        WinActivate
-    }
-    else
-    {
-        DetectHiddenWindows, On
-        if WinExist(thisUniqueWintitle) {
-            DetectHiddenWindows, off
-
-            bringToCurrentDesktop()
-
-        } else {
-            DetectHiddenWindows, off
-
-        }
-    }
-return
+#e::Activate_Ahk_Explorer()
 
 #if WinActive(thisUniqueWintitle)
 
