@@ -1073,7 +1073,34 @@ Return DllCall("Comctl32.dll\DefSubclassProc", "Ptr", H, "UInt", M, "Ptr", W, "P
 ; ======================================================================================================================
 ;start of functions start
 
-Activate_Ahk_Explorer() {
+Activate_Ahk_Explorer_() {
+    global thisUniqueWintitle
+
+    minimizeCortana()
+
+    if WinExist(thisUniqueWintitle)
+    {
+        WinActivate
+        ControlFocus,, % "ahk_id " hwndListview%whichSide%
+    }
+    else
+    {
+        DetectHiddenWindows, On
+        if WinExist(thisUniqueWintitle) {
+            DetectHiddenWindows, off
+
+            VD.MoveWindowToCurrentDesktop(thisUniqueWintitle, true)
+            ControlFocus,, % "ahk_id " hwndListview%whichSide%
+
+        } else {
+            DetectHiddenWindows, off
+
+        }
+    }
+
+}
+
+Activate_Ahk_ExplorerToggleBetweenVSCode() {
     global thisUniqueWintitle
 
     minimizeCortana()
@@ -1085,6 +1112,7 @@ Activate_Ahk_Explorer() {
     else if WinExist(thisUniqueWintitle)
     {
         WinActivate
+        ControlFocus,, % "ahk_id " hwndListview%whichSide%
     }
     else
     {
@@ -1093,6 +1121,7 @@ Activate_Ahk_Explorer() {
             DetectHiddenWindows, off
 
             VD.MoveWindowToCurrentDesktop(thisUniqueWintitle, true)
+            ControlFocus,, % "ahk_id " hwndListview%whichSide%
 
         } else {
             DetectHiddenWindows, off
@@ -1982,10 +2011,10 @@ openInAhkExplorer(pathArgument)
         cmdFileExist:=fileExist(pathArgument)
         p(cmdFileExist " pathArgument was copied to clip" )
     }
-    winactivate, ahk_explorer ahk_class AutoHotkeyGUI
     renderCurrentDir()
-    ControlFocus,, % "ahk_id " hwndListview%whichSide%
-    SetTimer, Activate_Ahk_Explorer, -0 ;SetTimer IS NEEDED SOMEHOW, you can't just call a function
+
+    ; timerFunc:=ObjBindMethod(VD, "MoveWindowToCurrentDesktop", thisUniqueWintitle, true)
+    SetTimer Activate_Ahk_Explorer_, -0 ;SetTimer IS NEEDED SOMEHOW, you can't just call a function
 
 }
 
@@ -2024,7 +2053,7 @@ WM_COPYDATA_READ(wp, lp) {
     } else if (match2==5) {
         gosub, copySelectedPaths
     } else if (match2==6) {
-        SetTimer, Activate_Ahk_Explorer, -0 ;SetTimer IS NEEDED SOMEHOW, you can't just call a function
+        SetTimer, Activate_Ahk_ExplorerToggleBetweenVSCode, -0 ;SetTimer IS NEEDED SOMEHOW, you can't just call a function
     } else {
         p("something went wrong")
     }
@@ -3098,7 +3127,7 @@ renderCurrentDir()
 
 #if ;global hotkeys
 
-#e::Activate_Ahk_Explorer()
+#e::Activate_Ahk_ExplorerToggleBetweenVSCode()
 
 #if WinActive(thisUniqueWintitle)
 
