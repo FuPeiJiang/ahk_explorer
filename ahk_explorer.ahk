@@ -114,7 +114,7 @@ for k, v in favoriteFolders {
 
 renderCurrentDir()
 
-VD.init() ; "for optimization?"
+VD.init() ;init later to startup faster
 
 return
 
