@@ -2683,6 +2683,7 @@ renderCurrentDir()
     local ansiPath, bothSameDir,i,k,v,y,drive,freeSpace,lastChar,text,totalSpace,OutputVar
     ; global EcurrentDir1, EcurrentDir2, whichSide, currentDirSearch
     Gui, main:Default
+    ControlFocus,, % "ahk_id " hwndListview%whichSide%
 
     if (SubStr(EcurrentDir%whichSide%,1,5)="file:") {
         ansiPath:=URItoPath(EcurrentDir%whichSide%)
