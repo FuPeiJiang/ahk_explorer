@@ -2680,7 +2680,7 @@ return rowBak[index]+1
 renderCurrentDir()
 {
     global
-    local ansiPath, bothSameDir,i,k,v,y,drive,freeSpace,lastChar,text,totalSpace,OutputVar
+    local ansiPath, bothSameDir,i,k,v,y,drive,freeSpace,text,totalSpace,OutputVar
     ; global EcurrentDir1, EcurrentDir2, whichSide, currentDirSearch
     Gui, main:Default
     ControlFocus,, % "ahk_id " hwndListview%whichSide%
@@ -2694,7 +2694,7 @@ renderCurrentDir()
     EcurrentDir%whichSide%:=StrReplace(EcurrentDir%whichSide%, "%20", " ")
     ; d(EcurrentDir%whichSide%)
 
-    EcurrentDir%whichSide%:=Rtrim(EcurrentDir%whichSide%," ")
+    EcurrentDir%whichSide%:=RTrim(EcurrentDir%whichSide%," ")
     EcurrentDir%whichSide%:=StrReplace(EcurrentDir%whichSide%, "/" , "\")
 
     ; path "\\" -> "\" and "\\\\\" -> "\"
@@ -2702,9 +2702,7 @@ renderCurrentDir()
         EcurrentDir%whichSide%:=replaced
     }
 
-    lastChar:=SubStr(EcurrentDir%whichSide%, 0)
-    if (lastChar="\")
-        EcurrentDir%whichSide%:=SubStr(EcurrentDir%whichSide%, 1, -1) ;You can also specify a negative Length to omit that many characters from the end
+    EcurrentDir%whichSide%:=RTrim(EcurrentDir%whichSide%,"\")
 
     Gui, ListView, vlistView%whichSide%
 
