@@ -3311,6 +3311,13 @@ selectPanel2:
 
     keyboardFocusPane(2)
 return
+
+$RWin::
+    if (focused="searchCurrentDirEdit" or focused="flistView" or focused="listViewInSearch") {
+        Run,"C:\Program Files\Git\git-bash.exe", % EcurrentDir%whichSide%
+    }
+return
+
 $RAlt::
     if (focused="searchCurrentDirEdit" or focused="flistView" or focused="listViewInSearch") {
         Run,"C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe", % EcurrentDir%whichSide%
