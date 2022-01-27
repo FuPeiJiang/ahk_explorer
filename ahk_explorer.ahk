@@ -1073,6 +1073,66 @@ Return DllCall("Comctl32.dll\DefSubclassProc", "Ptr", H, "UInt", M, "Ptr", W, "P
 ; ======================================================================================================================
 ;start of functions start
 
+imgFileToBase64DataURL(fullPath) {
+    FileAttrib:=FileExist(fullPath)
+    if (!FileAttrib)
+        return false
+    if (InStr(FileAttrib, "D"))
+        return false
+
+    ;from here on out, the file must exist
+    hFile:=DllCall("CreateFileW"
+    , "Str", fullPath
+    , "Uint", 0x80000000 ;GENERIC_READ
+    , "Uint", 0x7 ;FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE : 0x00000001 | 0x00000002 | 0x00000004
+    , "Ptr", 0
+    , "Uint", 3 ;OPEN_EXISTING : Opens a file or device, only if it exists.
+    , "Uint", 128 ;FILE_ATTRIBUTE_NORMAL
+    , "Ptr", 0
+    , "Ptr")
+
+    DllCall("GetFileSizeEx"
+    , "Ptr", hFile
+    , "Int64*", _FileSize)
+
+    VarSetCapacity(fileBuffer, _FileSize)
+
+    success:=DllCall("ReadFile"
+    , "Ptr", hFile
+    , "Ptr", &fileBuffer
+    , "Uint", _FileSize ;ok, Int64 _FileSize was probably overkill
+    , "Ptr", 0
+    , "Ptr", 0)
+
+    ;since it's base64, use ANSI:
+    ; get size
+    DllCall("Crypt32.dll\CryptBinaryToStringA"
+    , "Ptr", &fileBuffer
+    , "Uint", _FileSize ;ok, Int64 _FileSize was probably overkill
+    , "Uint", 0x40000001 ; 0x40000000 | 0x00000001 : CRYPT_STRING_NOCRLF | CRYPT_STRING_BASE64
+    , "Ptr", 0
+    , "Uint*", pcchString)
+    VarSetCapacity(base64Buffer, pcchString)
+    DllCall("Crypt32.dll\CryptBinaryToStringA"
+    , "Ptr", &fileBuffer
+    , "Uint", _FileSize ;ok, Int64 _FileSize was probably overkill
+    , "Uint", 0x40000001 ; 0x40000000 | 0x00000001 : CRYPT_STRING_NOCRLF | CRYPT_STRING_BASE64
+    , "Ptr", &base64Buffer
+    , "Uint*", pcchString)
+
+    base64Str:=StrGet(&base64Buffer, "CP0") ;CP0: ANSI
+
+    SplitPath, fullPath,,, OutExtension
+    switch (OutExtension) {
+        case "svg":
+            OutExtension:="svg+xml"
+        case "jpg":
+            OutExtension:="jpeg"
+    }
+    return "data:image/" OutExtension ";base64," base64Str
+
+}
+
 Activate_Ahk_Explorer_() {
     global thisUniqueWintitle
 
@@ -3129,6 +3189,11 @@ renderCurrentDir()
 #e::Activate_Ahk_ExplorerToggleBetweenVSCode()
 
 #if WinActive(thisUniqueWintitle)
+
+!d::
+fullPath:=getSelectedPaths()[1]
+Clipboard:=imgFileToBase64DataURL(fullPath)
+return
 
 ^e::
 ; revealFileInExplorer(EcurrentDir%whichSide%, getSelectedNames())
