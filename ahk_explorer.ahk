@@ -3501,6 +3501,10 @@ return
     hashFiles("md5","MD5")
 return
 
++h::
+    hashFiles("sha1","SHA-1")
+return
+
 ^+e::
     selectedNames:=getSelectedNames()
     for notUsed, name in selectedNames {
