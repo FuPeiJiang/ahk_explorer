@@ -87,7 +87,7 @@ class WatchFolder {
    ; --- Static Methods ---
    Add(Folder, UserFunc, SubTree := False, Watch := 0x03) {
       ; ===============================================================================================================================
-      Folder := this._SanitizeUserInput(Folder)
+      Folder := this._Normalize_Path(Folder)
       if (Folder==False) {
          return
       }
@@ -137,7 +137,7 @@ class WatchFolder {
    }
 
    Remove(Folder) {
-      Folder := this._SanitizeUserInput(Folder)
+      Folder := this._Normalize_Path(Folder)
       if (Folder==False) {
          return
       }
@@ -175,21 +175,45 @@ class WatchFolder {
          Offset := NumPut(Event, Offset + 0, 0, "Ptr")
    }
 
-   _SanitizeUserInput(Folder) {
-      If (Folder == "")
-         Return False
-      return this._getLongPath(Folder)
+   _Normalize_Path(dPath) {
+      if (dPath=="") {
+         return false
+      }
+      dPath:=StrReplace(dPath, "/" , "\")
+      fullPath:=this._getFullPathName(dPath)
+      if (fullPath==false) {
+         return false
+      }
+      return this._fixCasingOfPath(fullPath)
    }
-   _getLongPath(Folder) {
-      Static MAX_DIR_PATH := 260 - 12 + 1
-      Static SizeOfLongPath := MAX_DIR_PATH << !!A_IsUnicode
+   _getFullPathName(dPath) { ;https://www.autohotkey.com/boards/viewtopic.php?t=67050#p289536
+      dPath:=RTrim(dPath,"\") "\"
+      cc := DllCall("GetFullPathNameW", "str", dPath, "uint", 0, "ptr", 0, "ptr", 0, "uint")
+      if (cc==0) {
+         return false
+      }
+      VarSetCapacity(buf, cc*2)
+      DllCall("GetFullPathNameW", "str", dPath, "uint", cc, "ptr", &buf, "ptr", 0, "uint")
 
-      Folder := RTrim(Folder, "\")
-      VarSetCapacity(LongPath, SizeOfLongPath, 0)
-      If !DllCall("GetLongPathName", "Str", Folder, "Ptr", &LongPath, "UInt", MAX_DIR_PATH)
-         return False
-      VarSetCapacity(LongPath, -1)
-      return LongPath
+      return StrGet(&buf)
+   }
+   _fixCasingOfPath(fullPath) {
+      HRESULT:=DllCall("shell32\SHParseDisplayName", "Ptr", &fullPath, "Uint", 0, "Ptr*", pIDL, "Uint", 0, "Uint", 0)
+      if (HRESULT) {
+         return false
+      }
+      ; if (HRESULT==-2147024809) { ; input":"
+         ; return false
+      ; } else if (HRESULT!=0) {
+         ; MsgBox % "_fixCasingOfPath HRESULT!=0 what error is this ?"
+         ; MsgBox % Clipboard:=HRESULT
+         ; -2147024894 ; input"joifjwoiejgweg"
+         ; -2147024894 ; input"C:\doesnotexist"
+      ; }
+      VarSetCapacity(pszPath, 600) ;600 was a random number
+      DllCall("shell32\SHGetPathFromIDListW", "Ptr", pIDL, "Ptr", &pszPath)
+      DllCall("ole32\CoTaskMemFree", "Ptr", pIDL) ;free memory
+      return StrGet(&pszPath+0)
    }
 
    RemoveAll(Folder) {
