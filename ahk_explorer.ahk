@@ -112,6 +112,7 @@ for k, v in favoriteFolders {
     LV_Add(, OutFileName)
 }
 
+WatchFolder.init() ;init later to startup faster
 renderCurrentDir()
 
 VD.init() ;init later to startup faster

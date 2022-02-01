@@ -61,28 +61,33 @@
 ;     FILE_FLAG_OVERLAPPED           = 0x40000000
 ; ==================================================================================================================================
 class WatchFolder {
-   Static MAXIMUM_WAIT_OBJECTS := 64
-   Static MAX_DIR_PATH := 260 - 12 + 1
 
-   Static SizeOfLongPath := this.MAX_DIR_PATH << !!A_IsUnicode
-   Static SizeOfFNI := 0xFFFF ; size of the FILE_NOTIFY_INFORMATION structure buffer (64 KB)
-   Static SizeOfOVL := 32 ; size of the OVERLAPPED structure (64-bit)
+   ; COMMENT THIS OUT IF YOU DON'T WANT TO INIT AT START OF SCRIPT
+   ; static dummyStatic1 := WatchFolder.init()
 
-   Static timerFunc := ObjBindMethod(WatchFolder, "_Tick") ;https://www.autohotkey.com/docs/commands/SetTimer.htm#ExampleClass
+   init() {
+      ; Static MAXIMUM_WAIT_OBJECTS := 64
+      ; Static MAX_DIR_PATH := 260 - 12 + 1
+      ; Static SizeOfLongPath := this.MAX_DIR_PATH << !!A_IsUnicode
+      ; Static SizeOfFNI := 0xFFFF ; size of the FILE_NOTIFY_INFORMATION structure buffer (64 KB)
+      ; Static SizeOfOVL := 32 ; size of the OVERLAPPED structure (64-bit)
 
-   Static FolderToEvent := {}
-   ; {
-   ; ["C:\Users\Public\AHK\notes\tests"]:596,
-   ; [Folder]:EventHandle,
-   ; }
-   Static EventToFolderinfo := {}
-   ; {
-   ; 596:{"FNIAddr":48942944, "FNIBuff":"", "Func":[], "Handle":608, "Name":"C:\Users\Public\AHK\notes\tests", "OVLAddr":50479504, "OVLBuff":"ă", "SubTree":0, "Watch":3}
-   ; [EventHandle]: {Handle:from CreateFile, ...},
-   ; }
-   Static EventToFolderinfo_Count := 0
-   Static WaitObjectsPtr := 0
-   Static Paused := False
+      this.timerFunc := ObjBindMethod(WatchFolder, "_Tick") ;https://www.autohotkey.com/docs/commands/SetTimer.htm#ExampleClass
+
+      this.FolderToEvent := {}
+      ; {
+      ; ["C:\Users\Public\AHK\notes\tests"]:596,
+      ; [Folder]:EventHandle,
+      ; }
+      this.EventToFolderinfo := {}
+      ; {
+      ; 596:{"FNIAddr":48942944, "FNIBuff":"", "Func":[], "Handle":608, "Name":"C:\Users\Public\AHK\notes\tests", "OVLAddr":50479504, "OVLBuff":"ă", "SubTree":0, "Watch":3}
+      ; [EventHandle]: {Handle:from CreateFile, ...},
+      ; }
+      this.EventToFolderinfo_Count := 0
+      this.WaitObjectsPtr := 0
+      this.Paused := False
+   }
 
    ; --- Static Methods ---
    Add(Folder, UserFunc, SubTree := False, Watch := 0x03) {
@@ -95,23 +100,23 @@ class WatchFolder {
       ; if it's already watching, remove it first
       this._Remove(Folder)
 
-      If (this.EventToFolderinfo_Count < this.MAXIMUM_WAIT_OBJECTS) { ; add
+      If (this.EventToFolderinfo_Count < 64) { ; add ;MAXIMUM_WAIT_OBJECTS := 64
          If (IsFunc(UserFunc) && (UserFunc := Func(UserFunc)) && (UserFunc.MinParams >= 2)) && (Watch &= 0x017F) {
             Handle := DllCall("CreateFile", "Str", Folder . "\", "UInt", 0x01, "UInt", 0x07, "Ptr",0, "UInt", 0x03
             , "UInt", 0x42000000, "Ptr", 0, "UPtr")
             If (Handle > 0) {
                Event := DllCall("CreateEvent", "Ptr", 0, "Int", 1, "Int", 0, "Ptr", 0)
                FolderObj := {Name: Folder, Func: UserFunc, Handle: Handle, SubTree: !!SubTree, Watch: Watch}
-               FolderObj.SetCapacity("FNIBuff", this.SizeOfFNI)
+               FolderObj.SetCapacity("FNIBuff", 0xFFFF) ;SizeOfFNI := 0xFFFF ; size of the FILE_NOTIFY_INFORMATION structure buffer (64 KB)
                FNIAddr := FolderObj.GetAddress("FNIBuff")
-               DllCall("RtlZeroMemory", "Ptr", FNIAddr, "Ptr", this.SizeOfFNI)
+               DllCall("RtlZeroMemory", "Ptr", FNIAddr, "Ptr", 0xFFFF) ;SizeOfFNI := 0xFFFF
                FolderObj["FNIAddr"] := FNIAddr
-               FolderObj.SetCapacity("OVLBuff", this.SizeOfOVL)
+               FolderObj.SetCapacity("OVLBuff", 32) ;SizeOfOVL := 32 ; size of the OVERLAPPED structure (64-bit)
                OVLAddr := FolderObj.GetAddress("OVLBuff")
-               DllCall("RtlZeroMemory", "Ptr", OVLAddr, "Ptr", this.SizeOfOVL)
+               DllCall("RtlZeroMemory", "Ptr", OVLAddr, "Ptr", 32) ;SizeOfOVL := 32
                NumPut(Event, OVLAddr + 8, A_PtrSize * 2, "Ptr")
                FolderObj["OVLAddr"] := OVLAddr
-               DllCall("ReadDirectoryChangesW", "Ptr", Handle, "Ptr", FNIAddr, "UInt", this.SizeOfFNI, "Int", SubTree
+               DllCall("ReadDirectoryChangesW", "Ptr", Handle, "Ptr", FNIAddr, "UInt", 0xFFFF, "Int", SubTree ;SizeOfFNI := 0xFFFF
                , "UInt", Watch, "UInt", 0, "Ptr", OVLAddr, "Ptr", 0)
                this.EventToFolderinfo[Event] := FolderObj
                this.EventToFolderinfo_Count++
@@ -163,7 +168,7 @@ class WatchFolder {
       ; GMEM_ZEROINIT
       ; 0x0040
       ; Initializes memory contents to zero.
-      this.WaitObjectsPtr := DllCall( "GlobalAlloc", "UInt",0x40, "UInt",this.MAXIMUM_WAIT_OBJECTS * A_PtrSize, "Ptr")
+      this.WaitObjectsPtr := DllCall( "GlobalAlloc", "UInt",0x40, "UInt", 64*A_PtrSize, "Ptr") ;MAXIMUM_WAIT_OBJECTS := 64
       ; The movable-memory flags GHND and GMEM_MOVABLE add unnecessary overhead and require locking to be used safely. They should be avoided unless documentation specifically states that they should be used.
       ; https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-globalalloc#remarks
       ; GHND
@@ -273,7 +278,7 @@ class WatchFolder {
                   If (Changes.Length() > 0)
                      Folder.Func.Call(Folder.Name, Changes)
                   DllCall("ResetEvent", "Ptr", Event)
-                  DllCall("ReadDirectoryChangesW", "Ptr", Folder.Handle, "Ptr", Folder.FNIAddr, "UInt", this.SizeOfFNI
+                  DllCall("ReadDirectoryChangesW", "Ptr", Folder.Handle, "Ptr", Folder.FNIAddr, "UInt", 0xFFFF ;SizeOfFNI := 0xFFFF
                   , "Int", Folder.SubTree, "UInt", Folder.Watch, "UInt", 0
                   , "Ptr", Folder.OVLAddr, "Ptr", 0)
                }
