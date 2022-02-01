@@ -13,7 +13,6 @@ SetControlDelay, -1
 #MaxThreadsPerHotkey, 4
 SetTitleMatchMode, 2
 
-currentDirSearch:=""
 ;%appdata%\ahk_explorer_settings
 FileRead, favoriteFolders, %A_AppData%\ahk_explorer_settings\favoriteFolders.txt
 favoriteFolders:=StrSplit(favoriteFolders,"`n","`r")
@@ -2742,7 +2741,7 @@ renderCurrentDir()
 {
     global
     local ansiPath, bothSameDir,i,k,v,y,drive,freeSpace,text,totalSpace,OutputVar
-    ; global EcurrentDir1, EcurrentDir2, whichSide, currentDirSearch
+    ; global EcurrentDir1, EcurrentDir2, whichSide
     Gui, main:Default
     ControlFocus,, % "ahk_id " hwndListview%whichSide%
 
@@ -2767,7 +2766,6 @@ renderCurrentDir()
 
     Gui, ListView, vlistView%whichSide%
 
-    currentDirSearch:=""
     if (InStr(fileExist(EcurrentDir%whichSide%), "D"))
     {
         if (lastDir%whichSide%!=EcurrentDir%whichSide% ) {
