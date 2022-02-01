@@ -1073,6 +1073,76 @@ Return DllCall("Comctl32.dll\DefSubclassProc", "Ptr", H, "UInt", M, "Ptr", W, "P
 ; ======================================================================================================================
 ;start of functions start
 
+normalize_Any_Path(dPath, parentDir:=false) { ;parentDir to convert relative to absolute
+    if (dPath=="") { ;this is needed because _getFullPathName will transform "" into "C:\"
+        return false
+    }
+    dPath:=RTrim(dPath," `t")
+
+    if (SubStr(dPath,1,5)="file:") {
+        dPath:=URItoPath(dPath)
+    }
+
+    dPath:=StrReplace(dPath, "/" , "\")
+    ; path "\\" -> "\" and "\\\\\" -> "\"
+    dPath:=RegExReplace(dPath, "\\{2,}" , "\")
+
+    fullPath:=_getFullPathName(dPath, parentDir)
+    if (fullPath==false) {
+        return false
+    }
+
+    return _fixCasingOfPath(fullPath)
+}
+URItoPath(theUrl)
+{
+    MAX_PATH:=260
+    ; 259 visible characters because NUL is a character
+    ; chrome only recognizes 259 visible characters
+    VarSetCapacity(vPath, (MAX_PATH - 1)*2) ;VarSetCapacity takes visible characters
+    DllCall("shlwapi\PathCreateFromUrlW", "Str",theUrl, "Str",vPath, "UInt*",MAX_PATH, "UInt",0)
+    return vPath
+}
+_getFullPathName(dPath, parentDir:=false) { ;https://www.autohotkey.com/boards/viewtopic.php?t=67050#p289536
+    if (SubStr(dPath,2,1)==":") {
+        ;already a full path
+        return dPath
+    } else {
+        if (parentDir) {
+            return parentDir "\" dPath
+        } else {
+            return A_WorkingDir "\" dPath
+        }
+    }
+    ; dPath:=RTrim(dPath,"\") "\"
+    ; cc := DllCall("GetFullPathNameW", "str", dPath, "uint", 0, "ptr", 0, "ptr", 0, "uint")
+    ; if (cc==0) {
+        ; return false
+    ; }
+    ; VarSetCapacity(buf, cc*2)
+    ; DllCall("GetFullPathNameW", "str", dPath, "uint", cc, "ptr", &buf, "ptr", 0, "uint")
+    ; return StrGet(&buf)
+}
+_fixCasingOfPath(fullPath) {
+    HRESULT:=DllCall("shell32\SHParseDisplayName", "Ptr", &fullPath, "Uint", 0, "Ptr*", pIDL, "Uint", 0, "Uint", 0)
+    if (HRESULT) {
+        return false
+    }
+    ; if (HRESULT==-2147024809) { ; input":"
+        ; return false
+    ; } else if (HRESULT!=0) {
+        ; MsgBox % "_fixCasingOfPath HRESULT!=0 what error is this ?"
+        ; MsgBox % Clipboard:=HRESULT
+        ; -2147024894 ; input"joifjwoiejgweg"
+        ; -2147024894 ; input"C:\doesnotexist"
+    ; }
+    VarSetCapacity(pszPath, 600) ;600 was a random number
+    DllCall("shell32\SHGetPathFromIDListW", "Ptr", pIDL, "Ptr", &pszPath)
+    DllCall("ole32\CoTaskMemFree", "Ptr", pIDL) ;free memory
+    return StrGet(&pszPath+0)
+}
+
+
 imgFileToBase64DataURL(fullPath) {
     FileAttrib:=FileExist(fullPath)
     if (!FileAttrib)
@@ -1284,23 +1354,6 @@ listview_getPosOfRow(hwndListview, rowZeroIndexed, Byref row_x, Byref row_y) { ;
 
     row_x:=NumGet(RECT, 0, "Short")
     row_y:=NumGet(RECT, 4, "Short")
-}
-
-URItoPath(vPathUrl)
-{
-    vChars := 300 ;300 is an arbitrary number
-    VarSetCapacity(vPath, vChars*2)
-    DllCall("shlwapi\PathCreateFromUrl" (A_IsUnicode?"W":"A"), "Str",vPathUrl, "Str",vPath, "UInt*",vChars, "UInt",0)
-return vPath
-}
-
-decodeStrAs(source,encoding)
-{
-    ;example: "Ã©" -> "é"
-    sourceSize := VarSetCapacity(target,StrLen(source),0)
-    Loop % sourceSize
-        NumPut(NumGet(&source, A_Index*2-1-1, "UChar"), &target, A_Index-1, "UChar")
-return StrGet(&target, encoding)
 }
 
 sortArrByKey(arr, key, reverse:=false) {
@@ -2745,24 +2798,7 @@ renderCurrentDir()
     Gui, main:Default
     ControlFocus,, % "ahk_id " hwndListview%whichSide%
 
-    if (SubStr(EcurrentDir%whichSide%,1,5)="file:") {
-        ansiPath:=URItoPath(EcurrentDir%whichSide%)
-        EcurrentDir%whichSide%:=decodeStrAs(ansiPath, "UTF-8")
-    }
-
-    EcurrentDir%whichSide%:=LTrim(EcurrentDir%whichSide%,"file:///")
-    EcurrentDir%whichSide%:=StrReplace(EcurrentDir%whichSide%, "%20", " ")
-    ; d(EcurrentDir%whichSide%)
-
-    EcurrentDir%whichSide%:=RTrim(EcurrentDir%whichSide%," ")
-    EcurrentDir%whichSide%:=StrReplace(EcurrentDir%whichSide%, "/" , "\")
-
-    ; path "\\" -> "\" and "\\\\\" -> "\"
-    while ((replaced:=StrReplace(EcurrentDir%whichSide%, "\\" , "\"))!=EcurrentDir%whichSide%) {
-        EcurrentDir%whichSide%:=replaced
-    }
-
-    EcurrentDir%whichSide%:=RTrim(EcurrentDir%whichSide%,"\")
+    EcurrentDir%whichSide%:=normalize_Any_Path(EcurrentDir%whichSide%, lastDir%whichSide%)
 
     Gui, ListView, vlistView%whichSide%
 
