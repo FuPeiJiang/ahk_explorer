@@ -350,11 +350,9 @@ couldNotCreateFolder()
     global
     Gui, createFolder:Default
     creatingNewFolder:=true
-    dontSearch:=true
     ControlSetText,, %vcreateFolder%, ahk_id %folderCreationHwnd%
     SendMessage, 0xB1, 0, -1,, % "ahk_id " folderCreationHwnd
     gui, createFolder: show,, create_folder
-    dontSearch:=false
 }
 ;new folder
 ;create folder
@@ -506,154 +504,152 @@ glistViewEvents2:
     }
     else if (A_GuiEvent=="K") ;key pressed
     {
-        if (!dontSearch) {
-            whichSide:=SubStr(A_GuiControl, 0)
-            ControlFocus,, % "ahk_id " hwndListview%whichSide%
-            Gui, ListView, vlistView%whichSide%
+        whichSide:=SubStr(A_GuiControl, 0)
+        ControlFocus,, % "ahk_id " hwndListview%whichSide%
+        Gui, ListView, vlistView%whichSide%
 
-            key := GetKeyName(Format("vk{:x}", A_EventInfo))
-            switch (key) {
+        key := GetKeyName(Format("vk{:x}", A_EventInfo))
+        switch (key) {
 
-            case "Backspace":
-            case "Lwin":
-            case "NumpadRight":
-            case "NumpadLeft":
-            case "NumpadUp":
-            case "NumpadDown":
-            case "Alt":
-            case "Control":
-            case "Shift":
-            case "F1":
-                send, {f1}
-            case "F3":
-                send, {f3}
-            case "F4":
-                ; send, {f4}
-            case "\":
-            case "NumpadEnd":
-            case "Numpad0":
-            case "NumpadHome":
-            case "NumpadPgDn":
-            case "NumpadPgUp":
-            case "]":
-            case "NumpadDel":
-                selectedNames:=getSelectedNames()
+        case "Backspace":
+        case "Lwin":
+        case "NumpadRight":
+        case "NumpadLeft":
+        case "NumpadUp":
+        case "NumpadDown":
+        case "Alt":
+        case "Control":
+        case "Shift":
+        case "F1":
+            send, {f1}
+        case "F3":
+            send, {f3}
+        case "F4":
+            ; send, {f4}
+        case "\":
+        case "NumpadEnd":
+        case "Numpad0":
+        case "NumpadHome":
+        case "NumpadPgDn":
+        case "NumpadPgUp":
+        case "]":
+        case "NumpadDel":
+            selectedNames:=getSelectedNames()
 
-                for k, v in getSelectedNames() {
-                    finalStr:="""" A_AhkPath """ ""lib\fileRecycle_one.ahk"" """ EcurrentDir%whichSide% "\" v """"
-                    run, %finalStr%
-                }
-                return
-            Default:
-                if (focused!="searchCurrentDirEdit")
-                {
-                    ShiftIsDown := GetKeyState("Shift")
-                    CtrlIsDown := GetKeyState("Ctrl")
+            for k, v in getSelectedNames() {
+                finalStr:="""" A_AhkPath """ ""lib\fileRecycle_one.ahk"" """ EcurrentDir%whichSide% "\" v """"
+                run, %finalStr%
+            }
+            return
+        Default:
+            if (focused!="searchCurrentDirEdit")
+            {
+                ShiftIsDown := GetKeyState("Shift")
+                CtrlIsDown := GetKeyState("Ctrl")
 
-                    if (CtrlIsDown and !ShiftIsDown) {
-                        if (key="c") {
-                            selectedPaths:=getSelectedPaths()
-                            FileToClipboard(selectedPaths)
-                            SoundPlay, *-1
-                        }
-                        else if (key="x") {
-                            selectedPaths:=getSelectedPaths()
-                            FileToClipboard(selectedPaths, "cut")
-                            SoundPlay, *-1
-                        } else if (key="v")
+                if (CtrlIsDown and !ShiftIsDown) {
+                    if (key="c") {
+                        selectedPaths:=getSelectedPaths()
+                        FileToClipboard(selectedPaths)
+                        SoundPlay, *-1
+                    }
+                    else if (key="x") {
+                        selectedPaths:=getSelectedPaths()
+                        FileToClipboard(selectedPaths, "cut")
+                        SoundPlay, *-1
+                    } else if (key="v")
+                    {
+                        pasteFile()
+
+                    } else if (key="a") {
+                        loop % LV_GetCount()
                         {
-                            pasteFile()
-
-                        } else if (key="a") {
-                            loop % LV_GetCount()
-                            {
-                                LV_Modify(A_Index, "+Select") ; select
-                            }
-                        } else if (key="h") {
-
+                            LV_Modify(A_Index, "+Select") ; select
                         }
+                    } else if (key="h") {
+
+                    }
+                    return
+                } else if (ShiftIsDown and !CtrlIsDown) {
+                    if (key="F10") {
+                        selectedNames:=getSelectedNames()
+                        ShellContextMenu(EcurrentDir%whichSide%,selectedNames)
+                    }
+                } else if (CtrlIsDown and ShiftIsDown) {
+                    if (key="x") {
+                        for k, v in getSelectedNames() ;extract using 7zip, 7-zip
+                        {
+                            archive:=EcurrentDir%whichSide% "\" v
+                            SplitPath, archive,, OutDir,, OutNameNoExt
+                            SevenZip_extract(archive, OutDir "\" OutNameNoExt)
+                        }
+                        soundplay, *-1
+                        EcurrentDir%whichSide%:=OutDir "\" OutNameNoExt
+                        renderCurrentDir()
                         return
-                    } else if (ShiftIsDown and !CtrlIsDown) {
-                        if (key="F10") {
-                            selectedNames:=getSelectedNames()
-                            ShellContextMenu(EcurrentDir%whichSide%,selectedNames)
-                        }
-                    } else if (CtrlIsDown and ShiftIsDown) {
-                        if (key="x") {
-                            for k, v in getSelectedNames() ;extract using 7zip, 7-zip
-                            {
-                                archive:=EcurrentDir%whichSide% "\" v
-                                SplitPath, archive,, OutDir,, OutNameNoExt
-                                SevenZip_extract(archive, OutDir "\" OutNameNoExt)
-                            }
-                            soundplay, *-1
-                            EcurrentDir%whichSide%:=OutDir "\" OutNameNoExt
-                            renderCurrentDir()
-                            return
-                        } else if (key="z") {
-                        } else if (key="d") {
-                            files:=array_ToSpacedString(getSelectedPaths())
-                            runwait, "%peazipPath%" -add2archive %files%
-                            soundplay, *-1
-                            renderCurrentDir() ;refresh
-                            return
-                        } else if (key="v") {
-                            if (DllCall("IsClipboardFormatAvailable", "UInt", CF_HDROP := 15)) { ; file being copied
-                                if (DllCall("IsClipboardFormatAvailable", "UInt", dropEffectFormat)) {
-                                    if (DllCall("OpenClipboard", "Ptr", A_ScriptHwnd)) {
-                                        if (data := DllCall("GetClipboardData", "UInt", dropEffectFormat, "Ptr")) {
-                                            if (effect := DllCall("GlobalLock", "Ptr", data, "UInt*")) {
-                                                if (effect & DROPEFFECT_COPY) {
-                                                    files:=StrSplit(clipboard, "`n","`r")
-                                                    for k, v in files {
-                                                        fileExist:=FileExist(v)
-                                                        if (fileExist) {
-                                                            SplitPath, v , OutFileName
-                                                            dest:=EcurrentDir%whichSide%
-                                                            Run, TeraCopy.exe Copy "%v%" "%dest%"
-                                                        }
+                    } else if (key="z") {
+                    } else if (key="d") {
+                        files:=array_ToSpacedString(getSelectedPaths())
+                        runwait, "%peazipPath%" -add2archive %files%
+                        soundplay, *-1
+                        renderCurrentDir() ;refresh
+                        return
+                    } else if (key="v") {
+                        if (DllCall("IsClipboardFormatAvailable", "UInt", CF_HDROP := 15)) { ; file being copied
+                            if (DllCall("IsClipboardFormatAvailable", "UInt", dropEffectFormat)) {
+                                if (DllCall("OpenClipboard", "Ptr", A_ScriptHwnd)) {
+                                    if (data := DllCall("GetClipboardData", "UInt", dropEffectFormat, "Ptr")) {
+                                        if (effect := DllCall("GlobalLock", "Ptr", data, "UInt*")) {
+                                            if (effect & DROPEFFECT_COPY) {
+                                                files:=StrSplit(clipboard, "`n","`r")
+                                                for k, v in files {
+                                                    fileExist:=FileExist(v)
+                                                    if (fileExist) {
+                                                        SplitPath, v , OutFileName
+                                                        dest:=EcurrentDir%whichSide%
+                                                        Run, TeraCopy.exe Copy "%v%" "%dest%"
                                                     }
-                                                    ; renderCurrentDir()
-                                                    SoundPlay, *-1
                                                 }
-                                                ; action:="copy"
-                                                else if (effect & DROPEFFECT_MOVE) {
-                                                    p("no move")
-                                                }
-                                                ; action:="move"
-                                                DllCall("GlobalUnlock", "Ptr", data)
+                                                ; renderCurrentDir()
+                                                SoundPlay, *-1
                                             }
+                                            ; action:="copy"
+                                            else if (effect & DROPEFFECT_MOVE) {
+                                                p("no move")
+                                            }
+                                            ; action:="move"
+                                            DllCall("GlobalUnlock", "Ptr", data)
                                         }
-                                        DllCall("CloseClipboard")
                                     }
+                                    DllCall("CloseClipboard")
                                 }
                             }
-                            return
-
                         }
-                    }
-                    if (CtrlIsDown or ShiftIsDown) {
-                        ; "PowerPoint" actually triggers this ???
-                        ; d(key, CtrlIsDown, ShiftIsDown) ;p, 0, 1
                         return
+
                     }
-
-                    focused:="searchCurrentDirEdit"
-                    GuiControl, Focus, vcurrentDirEdit%whichSide%
-
-                    whatsAlreadyInTheEdit:=searchString%whichSide%
-                    actualAlreadySearchText:=SubStr(whatsAlreadyInTheEdit, 1, StrLen(whatsAlreadyInTheEdit) - StrLen(EcurrentDir%whichSide%))
-                    ; capital letters are not recognized
-                    ; so PowerPoint, doesn't work
-                    ; the first letter is 'o'
-
-                    ;key is actually the first letter entered, put it at the start
-                    GuiControl, Text, vcurrentDirEdit%whichSide%, % key actualAlreadySearchText
-                    ; move caret to end
-                    SendMessage, 0xB1, -2, -1,, % "ahk_id " Edithwnd%whichSide%
+                }
+                if (CtrlIsDown or ShiftIsDown) {
+                    ; "PowerPoint" actually triggers this ???
+                    ; d(key, CtrlIsDown, ShiftIsDown) ;p, 0, 1
+                    return
                 }
 
+                focused:="searchCurrentDirEdit"
+                GuiControl, Focus, vcurrentDirEdit%whichSide%
+
+                whatsAlreadyInTheEdit:=searchString%whichSide%
+                actualAlreadySearchText:=SubStr(whatsAlreadyInTheEdit, 1, StrLen(whatsAlreadyInTheEdit) - StrLen(EcurrentDir%whichSide%))
+                ; capital letters are not recognized
+                ; so PowerPoint, doesn't work
+                ; the first letter is 'o'
+
+                ;key is actually the first letter entered, put it at the start
+                GuiControl, Text, vcurrentDirEdit%whichSide%, % key actualAlreadySearchText
+                ; move caret to end
+                SendMessage, 0xB1, -2, -1,, % "ahk_id " Edithwnd%whichSide%
             }
+
         }
     }
     else if (A_GuiEvent="RightClick") {
@@ -3445,7 +3441,6 @@ $esc::
 return
 
 $f2::
-if (!dontSearch) {
     gui, main:default ;NEEDED
     ControlFocus,, % "ahk_id " hwndListview%whichSide%
     Gui, ListView, vlistView%whichSide%
@@ -3512,7 +3507,6 @@ if (!dontSearch) {
         SendMessage, 0xB1,0,% StrLen(OutNameNoExt),, % "ahk_id " RenameHwnd
 
     ; Gosub, TypingInRenameSimple
-}
 return
 
 $^n::
@@ -3522,7 +3516,6 @@ $^+n::
     Gui, createFolder:Default
 
     creatingNewFolder:=true
-    dontSearch:=true
     newFolderPath:=findNextDirNameNumberIteration(EcurrentDir%whichSide% "\New Folder *")
     SplitPath, newFolderPath, newFolderName
     strLen:=StrLen(newFolderName)
@@ -3544,7 +3537,6 @@ $^+n::
         SendMessage, 0xB1, 0, -1,, % "ahk_id " folderCreationHwnd
     }
     gui, createFolder: show,, create_folder
-    dontSearch:=false
 
 return
 ^s::
@@ -3581,7 +3573,6 @@ return
 !c::
 copySelectedNames:
     Gui, main:Default
-    dontSearch:=true
     selectedNames:=getSelectedNames()
     finalStr=
     length:=selectedNames.Length()
@@ -3594,7 +3585,6 @@ copySelectedNames:
         }
     }
     clipboard:=finalStr
-    dontSearch:=false
 
     #Persistent
     ToolTip, % length
@@ -3604,7 +3594,6 @@ return
 copySelectedPaths:
 ^+c::
     Gui, main:Default
-    dontSearch:=true
     finalStr:=""
     selected_Paths:=getSelectedPaths()
     for k, v in selected_Paths {
@@ -3616,7 +3605,6 @@ copySelectedPaths:
         }
     }
     clipboard:=finalStr
-    dontSearch:=false
 
     #Persistent
     ToolTip, % selected_Paths.Length()
