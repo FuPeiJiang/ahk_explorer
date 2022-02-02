@@ -2354,12 +2354,13 @@ return selectedNames
 
 getSelectedPaths()
 {
-    global
+    global whichSIde, EcurrentDir1, EcurrentDir2
+    dCurrentDir:=RTrim(EcurrentDir%whichSide%, "\") "\"
     selectedPaths:=[]
     for k, v in getSelectedNames() {
-        selectedPaths.Push(EcurrentDir%whichSide% "\" v)
+        selectedPaths.Push(dCurrentDir v)
     }
-return selectedPaths
+    return selectedPaths
 }
 
 doubleClickedNormal(ByRef index)
@@ -3604,22 +3605,21 @@ copySelectedPaths:
 ^+c::
     Gui, main:Default
     dontSearch:=true
-    selectedNames:=getSelectedNames()
-    finalStr=
-    length:=selectedNames.Length()
-    for k, v in selectedNames {
-        if (k=length) {
-            finalStr.=EcurrentDir%whichSide% "\" v
+    finalStr:=""
+    selected_Paths:=getSelectedPaths()
+    for k, v in selected_Paths {
+        if (k==1) {
+            finalStr.=v
         }
         else {
-            finalStr.=EcurrentDir%whichSide% "\" v "`n"
+            finalStr.="`n" v
         }
     }
     clipboard:=finalStr
     dontSearch:=false
 
     #Persistent
-    ToolTip, % length
+    ToolTip, % selected_Paths.Length()
     SetTimer, RemoveToolTip,-1000
 return
 
