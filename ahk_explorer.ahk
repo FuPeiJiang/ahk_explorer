@@ -3368,6 +3368,7 @@ selectPanel2:
     keyboardFocusPane(2)
 return
 
+$NumpadEnter::
 $RWin::
     if (focused="searchCurrentDirEdit" or focused="flistView" or focused="listViewInSearch") {
         Run,"C:\Program Files\Git\git-bash.exe", % EcurrentDir%whichSide%
