@@ -3368,6 +3368,13 @@ selectPanel2:
     keyboardFocusPane(2)
 return
 
+$NumpadAdd::
+    pathOfSelectedImg:=getSelectedPaths()[1]
+    if (focused="searchCurrentDirEdit" or focused="flistView" or focused="listViewInSearch") {
+        Run,"C:\Program Files\XnViewMP\xnviewmp.exe" "%pathOfSelectedImg%", % EcurrentDir%whichSide%
+    }
+return
+
 $NumpadEnter::
 $RWin::
     if (focused="searchCurrentDirEdit" or focused="flistView" or focused="listViewInSearch") {
