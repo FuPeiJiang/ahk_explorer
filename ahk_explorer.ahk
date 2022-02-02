@@ -54,10 +54,8 @@ for n, param in A_Args ; For each parameter:
 }
 ;global vars
 maxRows:=50
-dirHistory1:=[]
-dirHistory2:=[]
-undoHistory1:=[]
-undoHistory2:=[]
+dirHistoryArr:=[[],[]]
+undoHistoryArr:=[[],[]]
 dirWatched:={}
 global DROPEFFECT_NONE	:= 0
 global DROPEFFECT_COPY	:= 1
@@ -111,8 +109,13 @@ for k, v in favoriteFolders {
     LV_Add(, OutFileName)
 }
 
+success:=_render_Current_Dir()
 WatchFolder.init() ;init later to startup faster
-renderCurrentDir()
+if (success) {
+    updateDirsToWatch()
+    dirHistoryArr[whichSide].Push(lastDir%whichSide%)
+}
+lastDir%whichSide%:=EcurrentDir%whichSide%
 
 VD.init() ;init later to startup faster
 
@@ -1072,6 +1075,37 @@ Return DllCall("Comctl32.dll\DefSubclassProc", "Ptr", H, "UInt", M, "Ptr", W, "P
 }
 ; ======================================================================================================================
 ;start of functions start
+
+updateDirsToWatch() {
+    global dirWatched, whichSide, EcurrentDir1, EcurrentDir2, lastDir1, lastDir2
+
+    ; what if I had 3 panes ?
+    ; 1. we always want to add watch
+    ; 2. we do not add watch if already watched
+    ; use a map to figure out if already
+    ; watched
+    ; diretory -> whichSide
+    if (!dirWatched.HasKey(EcurrentDir%whichSide%)) {
+        dirWatched[EcurrentDir%whichSide%]:=whichSide
+        startWatchFolder(whichSide, EcurrentDir%whichSide%)
+    }
+
+    ; 1. we always want to remove watch
+    ; // 2. we do not remove watch if blank (this is taken care of by WatchFolder2.ahk)
+    ; 3. we remove watch, and if there's another same, we add the watch back to that. so loop though every side.
+    ; using the map, we only remove watch if watch is on self pane.
+    if (dirWatched[lastDir%whichSide%]==whichSide) {
+        dirWatched.Delete(lastDir%whichSide%)
+        stopWatchFolder(lastDir%whichSide%)
+        loop 2 { ;how many panes
+            if (EcurrentDir%A_Index%==lastDir%whichSide%) {
+                startWatchFolder(A_Index, lastDir%whichSide%)
+                break
+            }
+        }
+    }
+
+}
 
 normalize_Any_Path(dPath, parentDir:=false) { ;parentDir to convert relative to absolute
     if (dPath=="") { ;this is needed because _getFullPathName will transform "" into "C:\"
@@ -2790,56 +2824,39 @@ return rowBak[index]+1
 
 }
 
-renderCurrentDir()
+renderCurrentDir() {
+    global dirHistoryArr, whichSide, EcurrentDir1, EcurrentDir2, lastDir1, lastDir2
+    if (_render_Current_Dir()) {
+        if (lastDir%whichSide%!=EcurrentDir%whichSide% ) {
+            updateDirsToWatch()
+            dirHistoryArr[whichSide].Push(lastDir%whichSide%)
+        }
+        lastDir%whichSide%:=EcurrentDir%whichSide%
+    }
+}
+_render_Current_Dir()
 {
     global
     local ansiPath, bothSameDir,i,k,v,y,drive,freeSpace,text,totalSpace,OutputVar
     ; global EcurrentDir1, EcurrentDir2, whichSide
-    Gui, main:Default
-    ControlFocus,, % "ahk_id " hwndListview%whichSide%
 
-    EcurrentDir%whichSide%:=normalize_Any_Path(EcurrentDir%whichSide%, lastDir%whichSide%)
+    breakIfNotValid:
+    loop 1 {
 
-    Gui, ListView, vlistView%whichSide%
-
-    if (InStr(fileExist(EcurrentDir%whichSide%), "D"))
-    {
-        if (lastDir%whichSide%!=EcurrentDir%whichSide% ) {
-
-            ; what if I had 3 panes ?
-            ; 1. we always want to add watch
-            ; 2. we do not add watch if already watched
-            ; use a map to figure out if already
-            ; watched
-            ; diretory -> whichSide
-            if (!dirWatched.HasKey(EcurrentDir%whichSide%)) {
-                dirWatched[EcurrentDir%whichSide%]:=whichSide
-                startWatchFolder(whichSide, EcurrentDir%whichSide%)
-            }
-
-            ; 1. we always want to remove watch
-            ; // 2. we do not remove watch if blank (this is taken care of by WatchFolder2.ahk)
-            ; 3. we remove watch, and if there's another same, we add the watch back to that. so loop though every side.
-            ; using the map, we only remove watch if watch is on self pane.
-            if (dirWatched[lastDir%whichSide%]==whichSide) {
-                dirWatched.Delete(lastDir%whichSide%)
-                stopWatchFolder(lastDir%whichSide%)
-                loop 2 { ;how many panes
-                    if (EcurrentDir%A_Index%==lastDir%whichSide%) {
-                        startWatchFolder(A_Index, lastDir%whichSide%)
-                        break
-                    }
-                }
-            }
-
-            if (lastDir%whichSide%!="" and !cannotDirHistory%whichSide%) {
-                dirHistory%whichSide%.Push(lastDir%whichSide%)
-            }
+        dPath:=EcurrentDir%whichSide%
+        dPath:=normalize_Any_Path(dPath, lastDir%whichSide%)
+        if (dPath==false) {
+            break breakIfNotValid
         }
-        if cannotDirHistory%whichSide% {
-            cannotDirHistory%whichSide%:=false
+        if (!InStr(fileExist(dPath),"D")) {
+            break breakIfNotValid
         }
-        lastDir%whichSide%:=EcurrentDir%whichSide%
+        EcurrentDir%whichSide%:=dPath
+
+        Gui, main:Default
+        ControlFocus,, % "ahk_id " hwndListview%whichSide%
+        Gui, ListView, vlistView%whichSide%
+
         focused=flistView
 
         filePaths:=[]
@@ -2943,45 +2960,24 @@ renderCurrentDir()
             DriveGet, totalSpace, Capacity, %drive%:
             DriveSpaceFree, freeSpace, %drive%:
 
-                text:=drive ":\ " Round(100-100*freeSpace/totalSpace, 2) "%`n" autoMegaByteFormat(freeSpace) "/" autoMegaByteFormat(totalSpace)
-                if (i>numberOfDrives) {
-                    gui, add, button,h40 y%y% w%favoritesListViewWidth% vDrive%i% x0 Left ggChangeDrive, % text
-                }
-                else {
-                    GuiControl, Show, Drive%i%
-                    GuiControl, Text, Drive%i%, % text
-                }
+            text:=drive ":\ " Round(100-100*freeSpace/totalSpace, 2) "%`n" autoMegaByteFormat(freeSpace) "/" autoMegaByteFormat(totalSpace)
+            if (i>numberOfDrives) {
+                gui, add, button,h40 y%y% w%favoritesListViewWidth% vDrive%i% x0 Left ggChangeDrive, % text
             }
-
-            loop % numberOfDrives {
-                if (A_Index>length) {
-                    GuiControl, Hide, Drive%A_Index%
-                }
+            else {
+                GuiControl, Show, Drive%i%
+                GuiControl, Text, Drive%i%, % text
             }
-
-            if (length>numberOfDrives)
-                numberOfDrives:=length
-        } else {
-            SplitPath, EcurrentDir%whichSide%, OutFileName%whichSide%, OutDir%whichSide%
-            if (InStr(fileExist(OutDir%whichSide%), "D")) {
-                toFocus:=OutFileName%whichSide%
-                EcurrentDir%whichSide%:=OutDir%whichSide%
-
-                renderCurrentDir()
-
-            } else {
-                ; p(fileExist(currentDir))
-                EcurrentDir%whichSide%:=lastDir%whichSide%
-                GuiControl, Text,vcurrentDirEdit%whichSide%, % EcurrentDir%whichSide%
-
-                if (focused!="changePath") {
-                    renderCurrentDir()
-                }
-                ; lastDir:=currentDir
-            }
-
         }
-        Gui, ListView, vlistView%whichSide%
+
+        loop % numberOfDrives {
+            if (A_Index>length) {
+                GuiControl, Hide, Drive%A_Index%
+            }
+        }
+
+        if (length>numberOfDrives)
+            numberOfDrives:=length
 
         ;precomputing
         sortedByDate_Pairs%whichSide%:=[]
@@ -3001,10 +2997,35 @@ renderCurrentDir()
 
             this_SortedByDate_Pairs.push(wordLetterPairs(nameNoExt))
         }
+        return true ;did not break breakIfNotValid
     }
 
-    findNextDirNameNumberIteration(pathWithAsterisk)
-    {
+    ;so here is after broke breakIfNotValid
+
+    ;try parent dir of requested path
+    SplitPath, EcurrentDir%whichSide%, OutFileName, OutDir
+    if (InStr(fileExist(OutDir), "D")) {
+        toFocus:=OutFileName
+        EcurrentDir%whichSide%:=OutDir
+
+        renderCurrentDir()
+
+    }
+    ;just use last path, as if no dir change was requested
+    else {
+        EcurrentDir%whichSide%:=lastDir%whichSide%
+        GuiControl, Text,vcurrentDirEdit%whichSide%, % EcurrentDir%whichSide%
+
+        if (focused!="changePath") {
+            renderCurrentDir()
+        }
+    }
+
+    return false ;false because broke breakIfNotValid
+}
+
+findNextDirNameNumberIteration(pathWithAsterisk)
+{
     SplitPath, pathWithAsterisk,, OutDir,,OutNameNoExt
     asteriskPos:=InStr(OutNameNoExt, "*")
     left:=SubStr(OutNameNoExt, 1, asteriskPos-1)
@@ -3017,7 +3038,7 @@ renderCurrentDir()
         incrementNumber++
     }
     return pathToCheck
-    }
+}
 
     ShellContextMenu(folderPath, files, win_hwnd = 0 )
     {
@@ -3612,17 +3633,20 @@ return
 
 $!right::
     Gui, main:Default
-    undoHistory%whichSide%.Push(EcurrentDir%whichSide%)
-    EcurrentDir%whichSide%:=dirHistory%whichSide%[dirHistory%whichSide%.Length()]
-    dirHistory%whichSide%.RemoveAt(dirHistory%whichSide%.Length())
-    cannotDirHistory%whichSide%:=true
-    renderCurrentDir()
+    undoHistoryArr[whichSide].Push(EcurrentDir%whichSide%)
+    EcurrentDir%whichSide%:=dirHistoryArr[whichSide].Pop()
+
+    if (_render_Current_Dir()) {
+        if (lastDir%whichSide%!=EcurrentDir%whichSide% ) {
+            updateDirsToWatch()
+        }
+        lastDir%whichSide%:=EcurrentDir%whichSide%
+    }
 return
 
 $!up::
     Gui, main:Default
-    EcurrentDir%whichSide%:=undoHistory%whichSide%[undoHistory%whichSide%.Length()]
-    undoHistory%whichSide%.RemoveAt(undoHistory%whichSide%.Length())
+    EcurrentDir%whichSide%:=undoHistoryArr[whichSide].Pop()
     renderCurrentDir()
 return
 
