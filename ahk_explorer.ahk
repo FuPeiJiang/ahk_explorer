@@ -106,10 +106,12 @@ favoriteFolders:=StrSplit(favoriteFolders,"`n","`r")
 Gui, Add, Button, % "w" favoritesListViewWidth " ggsettings x0 y212 h30", settings
 Gui, Add, ListView, % "r" favoriteFolders.Length() " w" favoritesListViewWidth " x0 y242 nosort vfavoritesListView ggfavoritesListView AltSubmit ", Favorites
 Gui, ListView, favoritesListView
+GuiControl, -Redraw, favoritesListView
 for k, v in favoriteFolders {
     SplitPath, v, OutFileName
     LV_Add(, OutFileName)
 }
+GuiControl, +Redraw, favoritesListView
 
 loadSettings()
 ;gsettings
@@ -2895,6 +2897,7 @@ _render_Current_Dir()
         renderFunctionsToSort(sortedByDate%whichSide%)
 
         Gui, ListView, folderlistView2_%whichSide%
+        GuiControl, -Redraw, folderlistView2_%whichSide%
         LV_Delete()
         parent1DirDirs%whichSide%:=[]
         SplitPath, EcurrentDir%whichSide%, , parent1Dir%whichSide%
@@ -2921,7 +2924,10 @@ _render_Current_Dir()
         {
             LV_ModifyCol(1,"NoSort", "")
         }
+        GuiControl, +Redraw, folderlistView2_%whichSide%
+
         Gui, ListView, folderlistView1_%whichSide%
+        GuiControl, -Redraw, folderlistView1_%whichSide%
         LV_Delete()
         parent2DirDirs%whichSide%:=[]
         if (parent2Dir%whichSide%!=parent1Dir%whichSide%) {
@@ -2944,6 +2950,7 @@ _render_Current_Dir()
         {
             LV_ModifyCol(1,"NoSort", "")
         }
+        GuiControl, +Redraw, folderlistView1_%whichSide%
 
         DriveGet, OutputVar, List
         drives:=StrSplit(OutputVar,"")
