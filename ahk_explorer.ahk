@@ -106,10 +106,8 @@ favoriteFolders:=StrSplit(favoriteFolders,"`n","`r")
 Gui, Add, Button, % "w" favoritesListViewWidth " ggsettings x0 y212 h30", settings
 Gui, Add, ListView, % "r" favoriteFolders.Length() " w" favoritesListViewWidth " x0 y242 nosort vfavoritesListView ggfavoritesListView AltSubmit ", Favorites
 Gui, ListView, favoritesListView
-favoriteFoldersNames:=[]
 for k, v in favoriteFolders {
     SplitPath, v, OutFileName
-    favoriteFoldersNames.Push(OutFileName)
     LV_Add(, OutFileName)
 }
 
