@@ -3385,7 +3385,9 @@ return
 $RShift::
     if (focused="searchCurrentDirEdit" or focused="flistView" or focused="listViewInSearch") {
         toRun:= """" vscodePath """ """ EcurrentDir%whichSide% "\."""
-        run, %toRun%
+        Run % toRun
+        WinWait % "ahk_exe Code.exe"
+        WinMaximize % "ahk_exe Code.exe"
     } else {
         send, +\
     }

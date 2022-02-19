@@ -43,6 +43,7 @@ vscodeRun(filePath) {
             if !WinExist("ahk_exe Code.exe") {
                 Run % """" vscodePath """"
                 WinWait % "ahk_exe Code.exe"
+                WinMaximize % "ahk_exe Code.exe"
             }
         }
     }
