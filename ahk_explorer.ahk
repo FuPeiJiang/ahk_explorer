@@ -1538,30 +1538,6 @@ bothSameDir(whichSide)
 return false
 }
 
-revealFileInExplorer(folderPath, files)
-{
-    COM_CoUninitialize()
-    COM_CoInitialize()
-    DllCall("shell32\SHParseDisplayName", "Wstr", folderPath, "Uint", 0, "Ptr*", pidl, "Uint", 0, "Uint", 0)
-    DllCall("shell32\SHBindToObject","Ptr",0,"Ptr",pidl,"Ptr",0,"Ptr",GUID4String(IID_IShellFolder,"{000214E6-0000-0000-C000-000000000046}"),"Ptr*",pIShellFolder)
-    length:=files.Length()
-    VarSetCapacity(apidl, length * A_PtrSize, 0)
-    for k, v in files {
-        ;IShellFolder:ParseDisplayName
-        DllCall(VTable(pIShellFolder,3),"Ptr", pIShellFolder,"Ptr",win_hwnd,"Ptr",0,"Wstr",v,"Uint*",0,"Ptr*",tmpPIDL,"Uint*",0)
-        NumPut(tmpPIDL, apidl, (k - 1)*A_PtrSize, "Ptr")
-    }
-    DllCall("shell32\SHOpenFolderAndSelectItems", "Ptr", pidl, "UINT", length, "Ptr", &apidl, "Uint", 0)
-    COM_CoUninitialize()
-}
-COM_CoInitialize()
-{
-Return	DllCall("ole32\CoInitialize", "Uint", 0)
-}
-COM_CoUninitialize()
-{
-    DllCall("ole32\CoUninitialize")
-}
 startWatchFolder(whichSide, AcurrentDir)
 {
     WatchFolder.Add(AcurrentDir, "Watch" whichSide, 0, 3) ;files and folders
