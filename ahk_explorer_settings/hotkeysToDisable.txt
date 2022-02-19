@@ -1,0 +1,4 @@
+#if
+#e
+#if WinActive(thisUniqueWintitle)
+$RCtrl

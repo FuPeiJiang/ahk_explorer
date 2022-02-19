@@ -114,6 +114,18 @@ for k, v in favoriteFolders {
 GuiControl, +Redraw, favoritesListView
 
 loadSettings()
+
+FileRead, hotkeysToDisable, %A_AppData%\ahk_explorer_settings\hotkeysToDisable.txt
+Loop, Parse, hotkeysToDisable, `n, `r
+{
+    if (InStr(A_LoopField, "#if") == 1) {
+        expression:=SubStr(A_LoopField, 5)
+        Hotkey If, % expression
+    } else {
+        Hotkey % A_LoopField,, Off
+    }
+}
+
 ;gsettings
 
 VD.init() ;init later to startup faster
