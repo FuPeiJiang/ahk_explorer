@@ -13,12 +13,6 @@ SetControlDelay, -1
 #MaxThreadsPerHotkey, 4
 SetTitleMatchMode, 2
 
-;%appdata%\ahk_explorer_settings
-FileRead, favoriteFolders, %A_AppData%\ahk_explorer_settings\favoriteFolders.txt
-favoriteFolders:=StrSplit(favoriteFolders,"`n","`r")
-loadSettings()
-;gsettings
-
 FOLDERID_Downloads := "{374DE290-123F-4565-9164-39C4925E467B}"
 RegRead, v, HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders, % FOLDERID_Downloads
 VarSetCapacity(downloads, (261 + !A_IsUnicode) << !!A_IsUnicode)
@@ -80,12 +74,8 @@ folderListViewWidth:=250
 favoritesListViewWidth:=140
 
 listViewWidth:=500
-favoritesLenght:=favoriteFolders.Length()
 
-Gui, Add, Button, w%favoritesListViewWidth% ggsettings y212,settings
-Gui, Add, ListView, r%favoritesLenght% w%favoritesListViewWidth% x0 y+0 nosort vfavoritesListView ggfavoritesListView AltSubmit ,Favorites
-
-Gui, Add, ListView, r10 w%folderListViewWidth% y0 x+0 vfolderListView1_1 gfolderlistViewEvents1_1 AltSubmit ,Name
+Gui, Add, ListView, r10 w%folderListViewWidth% y0 x%favoritesListViewWidth% vfolderListView1_1 gfolderlistViewEvents1_1 AltSubmit ,Name
 Gui, Add, ListView, r10 w%folderListViewWidth% x+0 y0 vfolderlistView2_1 gfolderlistViewEvents2_1 AltSubmit ,Name
 Gui, Add, Edit, hwndEdithwnd1 r1 w%listViewWidth% y+0 x+-500 vvcurrentDirEdit1 gcurrentDirEdit1Changed, %EcurrentDir1%
 Gui, Add, ListView, NoSort HwndhwndListview1 Count5000 r25 -WantF2 w%listViewWidth% vvlistView1 gglistViewEvents1 AltSubmit ,type|Name|Date|sortableDate|Size|sortableSize
@@ -100,7 +90,21 @@ OnMessage(0x4A, "WM_COPYDATA_READ")
 OnMessage(0x111, "HandleMessage" )
 initIconStuff()
 
+
+success:=_render_Current_Dir()
+WatchFolder.init() ;init later to startup faster
+if (success) {
+    updateDirsToWatch()
+    dirHistoryArr[whichSide].Push(lastDir%whichSide%)
+}
 Gui, Show,,ahk_explorer
+lastDir%whichSide%:=EcurrentDir%whichSide%
+
+;%appdata%\ahk_explorer_settings
+FileRead, favoriteFolders, %A_AppData%\ahk_explorer_settings\favoriteFolders.txt
+favoriteFolders:=StrSplit(favoriteFolders,"`n","`r")
+Gui, Add, Button, % "w" favoritesListViewWidth " ggsettings x0 y212 h30", settings
+Gui, Add, ListView, % "r" favoriteFolders.Length() " w" favoritesListViewWidth " x0 y242 nosort vfavoritesListView ggfavoritesListView AltSubmit ", Favorites
 Gui, ListView, favoritesListView
 favoriteFoldersNames:=[]
 for k, v in favoriteFolders {
@@ -109,13 +113,8 @@ for k, v in favoriteFolders {
     LV_Add(, OutFileName)
 }
 
-success:=_render_Current_Dir()
-WatchFolder.init() ;init later to startup faster
-if (success) {
-    updateDirsToWatch()
-    dirHistoryArr[whichSide].Push(lastDir%whichSide%)
-}
-lastDir%whichSide%:=EcurrentDir%whichSide%
+loadSettings()
+;gsettings
 
 VD.init() ;init later to startup faster
 
