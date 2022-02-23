@@ -195,10 +195,23 @@ class VD {
         }
         theHwnd:=found[1]
 
-        IVirtualDesktop_ofWindow:=this._IVirtualDesktop_from_Hwnd(theHwnd)
+        desktopNum_ofWindow:=this._desktopNum_from_Hwnd(theHwnd)
+        return desktopNum_ofWindow
+    }
 
-        desktopNum:=this._desktopNum_from_IVirtualDesktop(IVirtualDesktop_ofWindow)
-        return desktopNum
+    goToDesktopOfWindow(wintitle, activateYourWindow:=true) {
+        found:=this._getFirstValidWindow(wintitle)
+        if (!found) {
+            return -1 ;for false
+        }
+        theHwnd:=found[1]
+
+        desktopNum_ofWindow:=this._desktopNum_from_Hwnd(theHwnd)
+        this.goToDesktopNum(desktopNum_ofWindow)
+
+        if (activateYourWindow) {
+            WinActivate, ahk_id %theHwnd%
+        }
     }
 
     MoveWindowToDesktopNum(wintitle,desktopNum)
@@ -231,15 +244,6 @@ class VD {
 
         if (activateYourWindow) {
             WinActivate % "ahk_id " theHwnd
-        }
-    }
-
-    goToDesktopOfWindow(wintitle, activateYourWindow:=true) {
-        desktopNum:=this.getDesktopNumOfWindow(wintitle)
-        this.goToDesktopNum(desktopNum)
-
-        if (activateYourWindow) {
-            WinActivate, ahk_id %theHwnd%
         }
     }
 
@@ -354,6 +358,7 @@ class VD {
     ;internal methods start
     _MoveView_to_IVirtualDesktop(thePView, IVirtualDesktop) {
         DllCall(this.MoveViewToDesktop, "ptr", this.IVirtualDesktopManagerInternal, "Ptr", thePView, "Ptr", IVirtualDesktop)
+        DllCall(this.MoveViewToDesktop, "ptr", this.IVirtualDesktopManagerInternal, "Ptr", thePView, "Ptr", IVirtualDesktop)
         this._activateWindowUnder()
     }
     _SwitchIVirtualDesktop(IVirtualDesktop) {
@@ -361,6 +366,7 @@ class VD {
         WinActivate, ahk_class Shell_TrayWnd
         WinWaitActive, ahk_class Shell_TrayWnd
 
+        this._dll_SwitchDesktop(IVirtualDesktop)
         this._dll_SwitchDesktop(IVirtualDesktop)
         this._activateWindowUnder()
     }
@@ -385,7 +391,7 @@ class VD {
 
         WinGet, OutputVar_MinMax, MinMax, % "ahk_id " theHwnd
         if (!(OutputVar_MinMax==-1)) {
-            WinActivate % "ahk_id " theHwnd
+            WinActivate, ahk_id %theHwnd%
         }
     }
 
@@ -444,24 +450,6 @@ class VD {
         return pView
     }
 
-    _desktopGUID_from_Hwnd(theHwnd) {
-        VarSetCapacity(GUID_Desktop, 16)
-        HRESULT := DllCall(this.GetWindowDesktopId, "UPtr", this.IVirtualDesktopManager, "Ptr", theHwnd, "UPtr", &GUID_Desktop)
-        if (!(HRESULT==0)) {
-            return false
-        }
-
-        desktopGUID:=this._string_from_GUID(GUID_Desktop)
-        if (!desktopGUID) {
-            return false
-        }
-        if (desktopGUID=="{00000000-0000-0000-0000-000000000000}") {
-            return false
-        }
-
-        return desktopGUID
-    }
-
     _IVirtualDesktop_from_Hwnd(theHwnd) {
         VarSetCapacity(GUID_Desktop, 16)
         HRESULT := DllCall(this.GetWindowDesktopId, "UPtr", this.IVirtualDesktopManager, "Ptr", theHwnd, "Ptr", &GUID_Desktop)
@@ -486,6 +474,12 @@ class VD {
             }
         }
         return -1 ;for false
+    }
+
+    _desktopNum_from_Hwnd(theHwnd) {
+        IVirtualDesktop:=this._IVirtualDesktop_from_Hwnd(theHwnd)
+        desktopNum:=this._desktopNum_from_IVirtualDesktop(IVirtualDesktop)
+        return desktopNum
     }
 
     _GetDesktops_Obj() {
