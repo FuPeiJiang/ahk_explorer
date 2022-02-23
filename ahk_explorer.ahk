@@ -552,6 +552,10 @@ glistViewEvents2:
             }
             return
         Default:
+            if (StrLen(key) > 1) { ;I hope this catches something like Numlock
+                return
+            }
+
             if (focused!="searchCurrentDirEdit")
             {
                 ShiftIsDown := GetKeyState("Shift")
