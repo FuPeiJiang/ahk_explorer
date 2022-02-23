@@ -350,9 +350,8 @@ mainGuiClose:
         Exitapp
     } else {
         Process, Close, %PID_getFolderSizes%
-        windowHidden:=true
         Gui, main:Default
-        Gui, hide
+        Gui, Hide
     }
 return
 
@@ -1282,22 +1281,17 @@ Activate_Ahk_ExplorerToggleBetweenVSCode() {
     }
     else if WinExist(thisUniqueWintitle)
     {
+        Gui, main:Default
+        Gui, Show
         WinActivate
         ControlFocus,, % "ahk_id " hwndListview%whichSide%
     }
-    else
+    else if (hiddenMatch2Exist(thisUniqueWintitle))
     {
-        DetectHiddenWindows, On
-        if WinExist(thisUniqueWintitle) {
-            DetectHiddenWindows, off
-
-            VD.MoveWindowToCurrentDesktop(thisUniqueWintitle, true)
-            ControlFocus,, % "ahk_id " hwndListview%whichSide%
-
-        } else {
-            DetectHiddenWindows, off
-
-        }
+        Gui, main:Default
+        Gui, Show
+        VD.MoveWindowToCurrentDesktop(thisUniqueWintitle, true)
+        ControlFocus,, % "ahk_id " hwndListview%whichSide%
     }
 }
 
