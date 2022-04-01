@@ -97,7 +97,7 @@ if (success) {
     updateDirsToWatch()
     dirHistoryArr[whichSide].Push(lastDir%whichSide%)
 }
-Gui, Show,,ahk_explorer
+Gui, Show, , % EcurrentDir%whichSide% " - ahk_explorer"
 lastDir%whichSide%:=EcurrentDir%whichSide%
 
 ;%appdata%\ahk_explorer_settings
