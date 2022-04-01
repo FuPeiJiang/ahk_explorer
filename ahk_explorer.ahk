@@ -3248,7 +3248,7 @@ if (path) {
 }
 return
 ; rotate JPEG images in a lossless way
-+r::
+!r::
 ; https://www.etcwiki.org/wiki/IrfanView_Command_Line_Options
 ; i_view64.exe "c:\test.jpg" /jpg_rotate=(
 ;   Rotate 270:5,
