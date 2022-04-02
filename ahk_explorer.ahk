@@ -2831,7 +2831,13 @@ _render_Current_Dir()
             break breakIfNotValid
         }
         if (!InStr(fileExist(dPath),"D")) {
-            break breakIfNotValid
+            ;it's a valid file, not a directory
+            ;do parent dir of that file
+            SplitPath % dPath, OutFileName, OutDir
+            toFocus:=OutFileName
+            EcurrentDir%whichSide%:=OutDir
+            renderCurrentDir()
+            return false
         }
         EcurrentDir%whichSide%:=dPath
 
@@ -2989,25 +2995,13 @@ _render_Current_Dir()
 
     ;so here is after broke breakIfNotValid
 
-    ;try parent dir of requested path
-    SplitPath, EcurrentDir%whichSide%, OutFileName, OutDir
-    if (InStr(fileExist(OutDir), "D")) {
-        toFocus:=OutFileName
-        EcurrentDir%whichSide%:=OutDir
+    ;revert your path edit
+    EcurrentDir%whichSide%:=lastDir%whichSide%
+    GuiControl, Text, vcurrentDirEdit%whichSide%, % EcurrentDir%whichSide%
 
-        renderCurrentDir()
-
+    if (focused!="changePath") {
+        return renderCurrentDir()
     }
-    ;just use last path, as if no dir change was requested
-    else {
-        EcurrentDir%whichSide%:=lastDir%whichSide%
-        GuiControl, Text,vcurrentDirEdit%whichSide%, % EcurrentDir%whichSide%
-
-        if (focused!="changePath") {
-            renderCurrentDir()
-        }
-    }
-
     return false ;false because broke breakIfNotValid
 }
 
