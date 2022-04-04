@@ -719,7 +719,7 @@ return
 ;includes
 #include <cMsgbox>
 #include <WatchFolder2>
-#include <VD>
+#include %A_LineFile%\..\VD.ahk\_VD.ahk
 ; #Include <stringSimilarity>
 #Include <stringSimilarity2>
 ;Classes
