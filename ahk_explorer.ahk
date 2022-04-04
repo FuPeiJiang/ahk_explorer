@@ -2459,14 +2459,8 @@ HandleMessage( p_w, p_l, p_m, p_hw )
                         focused=listViewInSearch
                     }
                     else if (focused="changePath") {
-
-                        MouseGetPos,,, OutputVarWin
-                        GuiControl, Focus, vlistView%whichSide%
-                        winactivate, ahk_id %OutputVarWin%
-                        ; static EM_SETSEL   := 0x00B1
-                        ; static EN_SETFOCUS := 0x0100
+                        ;// 'path edit' lost focus
                         submitAndRenderDir()
-                        focused:="flistView"
                     }
                     else
                     {
@@ -3634,10 +3628,11 @@ return
 
 ^l::
 /::
-    ; p(434)
     focused:="changePath"
     ControlFocus,, % "ahk_id " Edithwnd%whichSide%
     SendMessage, 177, 0, -1,, % "ahk_id " Edithwnd%whichSide%
+    ;// where does this go ?
+    ;// goes to submitAndRenderDir()
 return
 
 $backspace::
