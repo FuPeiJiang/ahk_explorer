@@ -2170,6 +2170,7 @@ WM_COPYDATA_READ(wp, lp) {
 
     if (match2==1) {
         openInAhkExplorer(match1)
+        WinActivate % thisUniqueWintitle
     } else if (match2==2) {
         ; p(match1)
         receivedFolderSize(match1)
@@ -2836,7 +2837,6 @@ _render_Current_Dir()
         EcurrentDir%whichSide%:=dPath
 
         Gui, main:Default
-        ControlFocus,, % "ahk_id " hwndListview%whichSide%
         Gui, ListView, vlistView%whichSide%
 
         focused=flistView
@@ -2890,6 +2890,7 @@ _render_Current_Dir()
         SplitPath, parent1Dir%whichSide%, Out2DirName%whichSide% , parent2Dir%whichSide%,,,OutDrive2%whichSide%
         SplitPath, parent2Dir%whichSide%, Out3DirName%whichSide%, parent3Dir%whichSide%,,,OutDrive3%whichSide%
         Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
+        ControlFocus,, % "ahk_id " hwndListview%whichSide%
 
         if (parent1Dir%whichSide%!=EcurrentDir%whichSide%) {
             if (!Out2DirName%whichSide%)
@@ -3589,8 +3590,6 @@ copySelectedPaths:
     #Persistent
     ToolTip, % selected_Paths.Length()
     SetTimer, RemoveToolTip,-1000
-return
-
 return
 
 $!left::
