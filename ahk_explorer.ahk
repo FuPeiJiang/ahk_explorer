@@ -1254,6 +1254,7 @@ Activate_Ahk_Explorer_() {
 
     if WinExist(thisUniqueWintitle)
     {
+        Gui, main:Default
         WinActivate
         ControlFocus,, % "ahk_id " hwndListview%whichSide%
     }
@@ -1263,6 +1264,7 @@ Activate_Ahk_Explorer_() {
         if WinExist(thisUniqueWintitle) {
             DetectHiddenWindows, off
 
+            Gui, main:Default
             VD.MoveWindowToCurrentDesktop(thisUniqueWintitle, true)
             ControlFocus,, % "ahk_id " hwndListview%whichSide%
 
@@ -1286,14 +1288,12 @@ Activate_Ahk_ExplorerToggleBetweenVSCode() {
     else if WinExist(thisUniqueWintitle)
     {
         Gui, main:Default
-        Gui, Show
         WinActivate
         ControlFocus,, % "ahk_id " hwndListview%whichSide%
     }
     else if (hiddenMatch2Exist(thisUniqueWintitle))
     {
         Gui, main:Default
-        Gui, Show
         VD.MoveWindowToCurrentDesktop(thisUniqueWintitle, true)
         ControlFocus,, % "ahk_id " hwndListview%whichSide%
     }
