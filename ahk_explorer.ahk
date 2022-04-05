@@ -97,7 +97,6 @@ if (success) {
     updateDirsToWatch()
     dirHistoryArr[whichSide].Push(lastDir%whichSide%)
 }
-Gui, Show, , % EcurrentDir%whichSide% " - ahk_explorer"
 lastDir%whichSide%:=EcurrentDir%whichSide%
 
 ;%appdata%\ahk_explorer_settings
@@ -112,6 +111,7 @@ for k, v in favoriteFolders {
     LV_Add(, OutFileName)
 }
 GuiControl, +Redraw, favoritesListView
+Gui, Show
 
 loadSettings()
 
@@ -426,7 +426,7 @@ folderlistViewEvents2_2:
     whichSide:=SubStr(A_GuiControl, 0)
     num:=SubStr(A_GuiControl, 15, 1)
     whichParent:=(num=1) ? 2 : 1
-    Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
+    updateWinTitle()
 
     if (A_GuiEvent="ColClick")
     {
@@ -472,7 +472,7 @@ glistViewEvents2:
     }
     else if (A_GuiEvent=="F") {
         whichSide:=SubStr(A_GuiControl, 0)
-        Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
+        updateWinTitle()
 
     }
     else if (A_GuiEvent=="e") {
@@ -1086,6 +1086,16 @@ Return DllCall("Comctl32.dll\DefSubclassProc", "Ptr", H, "UInt", M, "Ptr", W, "P
 ; ======================================================================================================================
 ;start of functions start
 
+updateWinTitle() {
+    global
+    ; sets WinTitle to current dir
+    WinSetTitle, % thisUniqueWintitle, , % EcurrentDir%whichSide% " - ahk_explorer"
+}
+; focusListview() {
+    ; global
+    ; ControlFocus,, % "ahk_id " hwndListview%whichSide%
+; }
+
 updateDirsToWatch() {
     global dirWatched, whichSide, EcurrentDir1, EcurrentDir2, lastDir1, lastDir2
 
@@ -1248,15 +1258,30 @@ imgFileToBase64DataURL(fullPath) {
 }
 
 Activate_Ahk_Explorer_() {
-    global thisUniqueWintitle
+    global
 
     minimizeCortana()
 
     if WinExist(thisUniqueWintitle)
     {
         Gui, main:Default
-        WinActivate
+        WinActivate % "ahk_class Shell_TrayWnd"
+        WinWaitActive % "ahk_class Shell_TrayWnd"
+        WinActivate % thisUniqueWintitle
         ControlFocus,, % "ahk_id " hwndListview%whichSide%
+
+        ; WinGet, id, List,,, Program Manager
+        ; finalStr:=""
+        ; Loop % id
+        ; {
+            ; this_id := id%A_Index%
+            ; WinGetClass, this_class, ahk_id %this_id%
+            ; WinGetTitle, this_title, ahk_id %this_id%
+            ;
+            ; finalStr.=this_id "`n" this_title "`n" this_class "`n`n"
+        ; }
+        ; Clipboard:=finalStr
+
     }
     else
     {
@@ -2053,7 +2078,6 @@ renderFunctionsToSort(ByRef objectToSort, reverse:=false)
     global
     Gui, main:Default
     Gui, ListView, vlistView%whichSide%
-    ControlFocus,, % "ahk_id " hwndListview%whichSide%
 
     GuiControl,Text,vcurrentDirEdit%whichSide%, % EcurrentDir%whichSide%
     searchString%whichSide%:=""
@@ -2122,7 +2146,7 @@ renderFunctionsToSort(ByRef objectToSort, reverse:=false)
 openInAhkExplorer(pathArgument)
 {
     global
-    Gui, main:Default
+
     cmdFileExist:=fileExist(pathArgument)
     if (cmdFileExist) {
         if (InStr(cmdFileExist, "D")) {
@@ -2170,7 +2194,6 @@ WM_COPYDATA_READ(wp, lp) {
 
     if (match2==1) {
         openInAhkExplorer(match1)
-        WinActivate % thisUniqueWintitle
     } else if (match2==2) {
         ; p(match1)
         receivedFolderSize(match1)
@@ -2416,7 +2439,7 @@ HandleMessage( p_w, p_l, p_m, p_hw )
             ; p(p_l)
 
             whichSide:=1
-            Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
+            updateWinTitle()
             if (focused="flistView") ; if listView for instance
             {
                 focused:="changePath"
@@ -2427,7 +2450,7 @@ HandleMessage( p_w, p_l, p_m, p_hw )
         else if (p_w=0x100000B) {
 
             whichSide:=2
-            Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
+            updateWinTitle()
             if (focused="flistView") ; if listView for instance
             {
                 focused:="changePath"
@@ -2442,12 +2465,12 @@ HandleMessage( p_w, p_l, p_m, p_hw )
             if (p_w=0x2000007) {
 
                 whichSide:=1
-                Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
+                updateWinTitle()
             }
             else if (p_w=0x200000B) {
 
                 whichSide:=2
-                Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
+                updateWinTitle()
             }
 
             if (((p_w >> 16) & 0x200) and not ((p_w >> 16) & 0x100))
@@ -2889,8 +2912,7 @@ _render_Current_Dir()
         SplitPath, EcurrentDir%whichSide%, , parent1Dir%whichSide%
         SplitPath, parent1Dir%whichSide%, Out2DirName%whichSide% , parent2Dir%whichSide%,,,OutDrive2%whichSide%
         SplitPath, parent2Dir%whichSide%, Out3DirName%whichSide%, parent3Dir%whichSide%,,,OutDrive3%whichSide%
-        Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
-        ControlFocus,, % "ahk_id " hwndListview%whichSide%
+        updateWinTitle()
 
         if (parent1Dir%whichSide%!=EcurrentDir%whichSide%) {
             if (!Out2DirName%whichSide%)
@@ -3291,7 +3313,7 @@ $^+left::
     }
     gui, main:default
     whichSide:=1
-    Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
+    updateWinTitle()
 
     keyboardFocusPane(1)
 
@@ -3305,7 +3327,7 @@ $^+right::
     }
     gui, main:default
     whichSide:=2
-    Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
+    updateWinTitle()
 
     keyboardFocusPane(2)
 
@@ -3323,7 +3345,7 @@ left:: ;always uses keyboard hook
 selectPanel1:
     gui, main:default
     whichSide:=1
-    Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
+    updateWinTitle()
 
     keyboardFocusPane(1)
 return
@@ -3339,7 +3361,7 @@ right:: ;always uses keyboard hook
 selectPanel2:
     gui, main:default
     whichSide:=2
-    Gui, Show,NA,% EcurrentDir%whichSide% " - ahk_explorer"
+    updateWinTitle()
 
     keyboardFocusPane(2)
 return
