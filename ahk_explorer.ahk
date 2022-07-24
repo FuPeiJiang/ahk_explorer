@@ -3419,6 +3419,46 @@ return
 
 $^+r::
     namesToMultiRename:=getSelectedNames()
+    dCurrentDir:=RTrim(EcurrentDir%whichSide%, "\") "\"
+    finalStr:=""
+    for k, fileName in namesToMultiRename {
+        if (k > 1) {
+            finalStr.="`n"
+        }
+        finalStr.=dCurrentDir fileName
+    }
+    tempPath:=A_LineFile "\..\ahk_explorer multi-rename names"
+    tempPath:=ComObjCreate("Scripting.FileSystemObject").GetAbsolutePathName(tempPath)
+    FileDelete % tempPath
+    FileAppend % finalStr, % "*" tempPath
+
+    ; Shell := ComObjCreate("WScript.Shell")
+    ; toRun:="cmd /k code.cmd --wait """ tempPath """"
+    ; Clipboard:=toRun
+    ; Exec := Shell.Exec(toRun)
+    ; Exec.StdIn.Write("")
+    ; Exec.StdIn.Close()
+    ; Exec.StdOut.ReadAll() ;just wait for it to finish because RunWait doesn't work
+    ; output:=Exec.StdOut.ReadAll()
+    ; outputPath:=SubStr(output, 25, -1)
+    ; RunWait % toRun
+
+    ; MsgBox % IsFunc("RunCMD")
+    RunCMD("code.cmd --wait """ tempPath """")
+
+    FileRead, OutputVar, % tempPath
+    newFileNamesArr:=StrSplit(OutputVar, "`n")
+
+    for k, newFileName in newFileNamesArr {
+        if (InStr(stuffByName%whichSide%[namesToMultiRename[k]].attri, "D")) {
+            FileMoveDir % dCurrentDir namesToMultiRename[k], % newFileName
+        } else {
+            FileMove % dCurrentDir namesToMultiRename[k], % newFileName
+        }
+    }
+
+/*
+    namesToMultiRename:=getSelectedNames()
     multiRenameDir:=EcurrentDir%whichSide%
     multiRenamelength:=namesToMultiRename.Length()
     Gui, multiRenameGui:Default
@@ -3436,6 +3476,7 @@ $^+r::
     Gui, Add, ListBox, r%multiRenamelength% w%width% x+5 vvmultiRenamePreview,
     Gui, Add, Text, % "x+-" 2*width " y+10" ,|namenoext`n|name`n|ext`n*`n?
     Gui, show,,multiRenameGui
+*/
 return
 
 $^r::
