@@ -414,7 +414,7 @@ gfavoritesListView:
         doubleClickedFolderOrFile(favoriteFolders[A_EventInfo])
     } else if (A_GuiEvent="ColClick") {
         path=%A_AppData%\ahk_explorer_settings\favoriteFolders.txt
-        toRun:= """" vscodePath """ """ path """"
+        VSCodeRunner(path)
         run, %toRun%
     }
 return
@@ -3393,8 +3393,10 @@ $RCtrl::
 return
 $RShift::
     if (focused="searchCurrentDirEdit" or focused="flistView" or focused="listViewInSearch") {
-        toRun:= """" vscodePath """ """ EcurrentDir%whichSide% "\."""
-        Run % toRun
+        ; `"C:\Program Files\Microsoft VS Code\Code.exe" "C:"` fails
+        ; `"C:\Program Files\Microsoft VS Code\Code.exe" "C:\"` fails
+        ; `"C:\Program Files\Microsoft VS Code\Code.exe" "C:\."` works
+        VSCodeRunner(EcurrentDir%whichSide% "\.")
         WinWait % "ahk_exe Code.exe"
         WinMaximize % "ahk_exe Code.exe"
     } else {

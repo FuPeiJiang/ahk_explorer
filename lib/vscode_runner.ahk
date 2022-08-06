@@ -8,18 +8,18 @@ ListLines Off
 SetWinDelay, -1
 SetControlDelay, -1
 
+if (A_Args.Length() > 1) {
+    Msgbox % "more than 1 argument passed, please tell me your use case here"
+    ExitApp
+}
 
+; https://gist.github.com/Longhanks/8a317f92f9bfa4f3c8c8020c4678f1cf
+flags:="--enable-accelerated-video-decode --enable-accelerated-mjpeg-decode --enable-features=VaapiVideoDecoder,CanvasOopRasterization --enable-gpu-compositing --enable-gpu-rasterization --enable-native-gpu-memory-buffers --enable-oop-rasterization --canvas-oop-rasterization --enable-raw-draw --use-vulkan --enable-zero-copy --ignore-gpu-blocklist"
 vscodePath:=getVscodePath()
 getVscodePath() {
     FileRead settingsTxt, % A_AppData "\ahk_explorer_settings\settings.txt"
     settingsArr:=StrSplit(settingsTxt, "`n", "`r")
     return settingsArr[2]
-}
-
-
-if (A_Args.Length() > 1) {
-    Msgbox % "more than 1 argument passed, please tell me your use case here"
-    ExitApp
 }
 
 if (A_Args.Length() == 1) {
@@ -31,23 +31,23 @@ OnMessage(0x4A, "WM_COPYDATA_READ")
 return
 
 vscodeRun(filePath) {
-    global vscodePath
+    global vscodePath, flags
 
-    fileExist:=FileExist(filePath)
-    if (!fileExist)
-        ExitApp
+    ; fileExist:=FileExist(filePath)
+    ; if (!fileExist)
+        ; ExitApp
     ;if file and not Dir
-    if !InStr(fileExist, "D") {
-        SplitPath, % filePath, , , OutExtension
-        if (OutExtension!="code-workspace") {
-            if !WinExist("ahk_exe Code.exe") {
-                Run % """" vscodePath """"
-                WinWait % "ahk_exe Code.exe"
-                WinMaximize % "ahk_exe Code.exe"
-            }
-        }
-    }
-    Run % """" vscodePath """ """ filePath """"
+    ; if !InStr(fileExist, "D") {
+        ; SplitPath, % filePath, , , OutExtension
+        ; if (OutExtension!="code-workspace") { ;.code-workspace will actually open a folder
+            ; if !WinExist("ahk_exe Code.exe") {
+                ; Run % """" vscodePath """ " flags
+                ; WinWait % "ahk_exe Code.exe"
+                ; WinMaximize % "ahk_exe Code.exe"
+            ; }
+        ; }
+    ; }
+    Run % """" vscodePath """ """ filePath """ " flags
     WinActivate % "ahk_exe Code.exe"
 }
 
