@@ -3300,13 +3300,29 @@ return
 ^+j::
 for unused, fullPath in getSelectedPaths() {
 
-    SplitPath, fullPath, OutFileName, OutDir
+    SplitPath % fullPath, OutFileName, OutDir
     convertTo:=OutDir "\irfanViewConverted\" OutFileName
 
     toRun:="""lib\irfanview\i_view64.exe"" """ fullPath """ /contrast=-30 /gamma=0.30 /convert=""" convertTo """"
     ; MsgBox % Clipboard:=toRun
     RunWait % toRun
 }
+return
+; $ img2pdf img1.png img2.jpg -o out.pdf
+; $ pip install img2pdf
+^+!j::
+toRun:="""img2pdf"""
+selectedPaths:=getSelectedPaths()
+for unused, fullPath in selectedPaths {
+    toRun .= " """ fullPath """"
+}
+SplitPath % selectedPaths[1], ,OutDir , ,OutNameNoExt
+if (SubStr(OutNameNoExt, -4) == "-0000") {
+    OutNameNoExt:=SubStr(OutNameNoExt, 1, -5)
+}
+toRun.=" -o """ OutDir "\" OutNameNoExt ".pdf"""
+; MsgBox % Clipboard:=toRun
+RunWait % toRun
 return
 
 #d::
