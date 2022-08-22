@@ -3296,6 +3296,19 @@ if (path) {
     }
 }
 return
+; darkenWithIrfanView
+^+j::
+for unused, fullPath in getSelectedPaths() {
+
+    SplitPath, fullPath, OutFileName, OutDir
+    convertTo:=OutDir "\irfanViewConverted\" OutFileName
+
+    toRun:="""lib\irfanview\i_view64.exe"" """ fullPath """ /contrast=-30 /gamma=0.30 /convert=""" convertTo """"
+    ; MsgBox % Clipboard:=toRun
+    RunWait % toRun
+}
+return
+
 #d::
     if (focused="changePath") {
         focused:="flistView"
