@@ -3296,6 +3296,18 @@ if (path) {
     }
 }
 return
+; compress jpeg
+!j::
+for unused, fullPath in getSelectedPaths() {
+
+    SplitPath % fullPath, , OutDir, , OutNameNoExt
+    convertTo:=OutDir "\irfanViewCompressed\" OutNameNoExt ".jpg"
+
+    toRun:="""lib\irfanview\i_view64.exe"" """ fullPath """ /jpgq=50 /convert=""" convertTo """ /cmdexit"
+    ; MsgBox % Clipboard:=toRun
+    RunWait % toRun
+}
+return
 ; darkenWithIrfanView
 ^+j::
 for unused, fullPath in getSelectedPaths() {
