@@ -1132,14 +1132,13 @@ normalize_Any_Path(dPath, parentDir:=false) { ;parentDir to convert relative to 
         return false
     }
     dPath:=RTrim(dPath," `t")
-
-    if (SubStr(dPath,1,5)="file:") {
-        dPath:=URItoPath(dPath)
-    }
-
     dPath:=StrReplace(dPath, "/" , "\")
     ; path "\\" -> "\" and "\\\\\" -> "\"
     dPath:=RegExReplace(dPath, "\\{2,}" , "\")
+
+    if (SubStr(dPath,1,5)="file:") {
+        dPath:=UrlUnescape(SubStr(dPath,7))
+    }
 
     fullPath:=_getFullPathName(dPath, parentDir)
     if (fullPath==false) {
@@ -1148,14 +1147,11 @@ normalize_Any_Path(dPath, parentDir:=false) { ;parentDir to convert relative to 
 
     return _fixCasingOfPath(fullPath)
 }
-URItoPath(theUrl)
-{
-    MAX_PATH:=260
-    ; 259 visible characters because NUL is a character
-    ; chrome only recognizes 259 visible characters
-    VarSetCapacity(vPath, (MAX_PATH - 1)*2) ;VarSetCapacity takes visible characters
-    DllCall("shlwapi\PathCreateFromUrlW", "Str",theUrl, "Str",vPath, "UInt*",MAX_PATH, "UInt",0)
-    return vPath
+UrlUnescape(url_) { ;found at https://www.autohotkey.com/boards/viewtopic.php?t=84825#post_content372262
+    buf_size:=StrLen(url_)*2
+    VarSetCapacity(buf, buf_size)
+    DllCall("Shlwapi\UrlUnescape", "Str", url_, "Ptr", &buf, "UInt*", buf_size, "UInt", 0x00040000, "UInt")
+    Return StrGet(&buf, "UTF-16")
 }
 _getFullPathName(dPath, parentDir:=false) { ;https://www.autohotkey.com/boards/viewtopic.php?t=67050#p289536
     if (SubStr(dPath,2,1)==":") {
