@@ -456,19 +456,23 @@ glistViewEvents1:
 glistViewEvents2:
     ; whichSide:=SubStr(A_GuiControl, 0)
     if (A_GuiEvent=="D") {
-        selectedPaths:=getSelectedPaths()
+        namesArr:=getSelectedNames()
+        parentDir:=RTrim(EcurrentDir%whichSide%, "\") "\"
 
-        if (GetKeyState("Alt")) {
-            FileToClipboard(selectedPaths, "cut")
-        } else {
-            FileToClipboard(selectedPaths)
+        DllCall("shell32\SHParseDisplayName","Str",parentDir,"Uint",0,"Ptr*",pidl,"Uint",0,"Uint",0)
+        VarSetCapacity(IID_IShellFolder, 16)
+        DllCall("ole32\IIDFromString","Str","{000214E6-0000-0000-C000-000000000046}","Ptr",&IID_IShellFolder)
+        DllCall("shell32\SHBindToObject","Ptr",0,"Ptr",pidl,"Ptr",0,"Ptr",&IID_IShellFolder,"Ptr*",pIShellFolder)
+        VarSetCapacity(apidl, namesArr.Length() * A_PtrSize)
+        for k, v in namesArr {
+            ;IShellFolder:ParseDisplayName
+            DllCall(VTable(pIShellFolder,3),"UPtr",pIShellFolder,"Ptr",0,"Ptr",0,"Wstr",v,"Ptr",0,"Ptr*",tmpPIDL,"Ptr",0) ;IShellFolder:ParseDisplayName
+            NumPut(tmpPIDL,&apidl+0,(k - 1)*A_PtrSize,"Ptr")
         }
-
-        Cursors := []
-        Cursors[1] := DllCall("LoadCursor", "Ptr", 0, "Ptr", 32515, "UPtr") ; DROPEFFECT_COPY = IDC_CROSS
-        Cursors[2] := DllCall("LoadCursor", "Ptr", 0, "Ptr", 32516, "UPtr") ; DROPEFFECT_MOVE = IDC_UPARROW
-        Cursors[3] := DllCall("LoadCursor", "Ptr", 0, "Ptr", 32648, "UPtr") ; Copy or Move = IDC_NO
-        DoDragDrop(Cursors)
+        VarSetCapacity(IID_IDataObject, 16)
+        DllCall("ole32\IIDFromString","Str","{0000010e-0000-0000-c000-000000000046}","Ptr",&IID_IDataObject)
+        DllCall("shell32\SHCreateDataObject","Ptr",pidl,"Uint",namesArr.Length(),"Ptr",&apidl,"Ptr",0,"Ptr",&IID_IDataObject,"Ptr*",pDataObject)
+        DllCall("shell32\SHDoDragDrop","Ptr",0,"Ptr",pDataObject,"Ptr",0,"UInt",7,"Ptr*",Effect,"Ptr") ; 7=DROPEFFECT_COPY | DROPEFFECT_MOVE | DROPEFFECT_LINK
     }
     else if (A_GuiEvent=="F") {
         whichSide:=SubStr(A_GuiControl, 0)
