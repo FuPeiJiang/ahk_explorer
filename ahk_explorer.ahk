@@ -3290,7 +3290,7 @@ path:=getSelectedPaths()[1]
 if (path) {
     SplitPath, path,, OutDir, OutExtension, OutNameNoExt
     if (OutExtension="pdf") {
-        Run % """lib\pdfimages.exe"" -j -list """ path """ """ OutDir "\" OutNameNoExt """"
+        Run % """lib\pdfimages\pdfimages.exe"" -png -j """ path """ """ OutDir "\" OutNameNoExt """"
     } else {
         p("need to select .pdf")
     }
